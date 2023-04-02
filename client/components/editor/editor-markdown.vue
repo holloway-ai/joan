@@ -215,6 +215,7 @@ import underline from '../../libs/markdown-it-underline'
 import 'katex/dist/contrib/mhchem'
 import twemoji from 'twemoji'
 import plantuml from './markdown/plantuml'
+import video from '../../../server/modules/rendering/markdown-video-parser/renderer'
 
 // Prism (Syntax Highlighting)
 import Prism from 'prismjs'
@@ -319,6 +320,13 @@ cmFold.register('markdown')
 
 // TODO: Use same options as defined in backend
 plantuml.init(md, {})
+
+// ========================================
+// VIDEO MARKDOWN PARSER
+// ========================================
+
+// TODO: find a way to properly get the token for the last element in the page
+video.init(md, {})
 
 // ========================================
 // KATEX

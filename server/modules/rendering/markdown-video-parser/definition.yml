@@ -1,0 +1,7 @@
+key: markdownVideoParser
+title: Video Parser
+description: Plugin that parses videos timestamps into span tags
+author: Ghost
+# icon: mdi-sitemap
+enabledDefault: true
+dependsOn: markdownCore
