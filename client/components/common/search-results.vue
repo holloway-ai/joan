@@ -46,18 +46,22 @@
                 v-list-item-title(v-text='term')
             v-divider(v-if='idx < suggestions.length - 1')
       .text-xs-center.pt-5(v-if='search && search.length > 1')
-        //- v-btn.mx-2(outlined, color='orange', @click='search = ``', v-if='results.length > 0')
-        //-   v-icon(left) mdi-content-save
-        //-   span {{$t('common:header.searchCopyLink')}}
-        v-btn.mx-2(outlined, color='pink', @click='search = ``')
+        v-btn.mx-2(outlined, color='orange', @click='search = ``', v-if='results.length > 0')
+          v-icon(left) mdi-content-save
+          span {{$t('common:header.searchCopyLink')}}
+        v-btn.mx-2(outlined, color='green', @click='search = ``')
           v-icon(left) mdi-close
           span {{$t('common:header.searchClose')}}
+        v-btn.mx-2(outlined, color='blue', @click='runTest()')
+          v-icon(left) mdi-chili-hot
+          span {{"Franz Xaver test"}}
 </template>
 
 <script>
 import _ from 'lodash'
 import { sync } from 'vuex-pathify'
 import { OrbitSpinner } from 'epic-spinners'
+import axios from 'axios'
 
 import searchPagesQuery from 'gql/common/common-pages-query-search.gql'
 
@@ -140,6 +144,22 @@ export default {
     },
     goToPageInNewTab(item) {
       window.open(`/${item.locale}/${item.path}`, '_blank')
+    },
+    runTest() {
+      const apiUrl = 'http://franzxaver.holloway.ai'
+      const auth = {
+        headers: {
+          'access_token': `joan`
+        }
+      }
+      const data = {
+        'url': 'http://franzxaver.holloway.ai',
+        'resultType': 'vmarkdown',
+        'description': 'string'
+      }
+      axios.post(`${apiUrl}/api/v1/video/`, data, auth).then((res) => {
+        this.search = res.data.job_id
+      })
     }
   },
   apollo: {
