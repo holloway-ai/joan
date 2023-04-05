@@ -9,16 +9,6 @@
       template(v-else)
         v-tooltip(bottom, color='primary')
           template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn(icon, tile, v-on='on', @click='toggleMarkup({ start: `**` })').mx-0
-              v-icon mdi-format-bold
-          span {{$t('editor:markup.bold')}}
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn.wait-p1s(icon, tile, v-on='on', @click='toggleMarkup({ start: `*` })').mx-0
-              v-icon mdi-format-italic
-          span {{$t('editor:markup.italic')}}
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
             v-btn.animated.fadeIn.wait-p2s(icon, tile, v-on='on', @click='toggleMarkup({ start: `~~` })').mx-0
               v-icon mdi-format-strikethrough
           span {{$t('editor:markup.strikethrough')}}
@@ -567,7 +557,7 @@ export default {
       let currentLine = cm.getCursor().line
       if (currentLine < 3) {
         this.Velocity(this.$refs.editorPreview, 'stop', true)
-        this.Velocity(this.$refs.editorPreview?.firstChild, 'scroll', { offset: '-50', duration: 1000, container: this.$refs.editorPreviewContainer })
+        // this.Velocity(this.$refs.editorPreview?.firstChild, 'scroll', { offset: '-50', duration: 1000, container: this.$refs.editorPreviewContainer })
       } else {
         let closestLine = _.findLast(linesMap, n => n <= currentLine)
         let destElm = this.$refs.editorPreview.querySelector(`[data-line='${closestLine}']`)
@@ -729,7 +719,7 @@ export default {
     }
   },
   mounted() {
-    this.$store.set('editor/editorKey', 'markdown')
+    this.$store.set('editor/editorKey', 'video')
 
     if (this.mode === 'create' && !this.$store.get('editor/content')) {
       this.$store.set('editor/content', '# Header\nYour content here')
@@ -866,7 +856,6 @@ export default {
   },
   beforeDestroy() {
     this.$root.$off('editorInsert')
-    this.$root.$off('editorUpdate')
   }
 }
 </script>
