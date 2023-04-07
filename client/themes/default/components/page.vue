@@ -105,7 +105,6 @@
                       v-icon.px-3(color='grey lighten-1', small) {{ $vuetify.rtl ? `mdi-chevron-left` : `mdi-chevron-right` }}
                       v-list-item-title.px-3.caption.grey--text(:class='$vuetify.theme.dark ? `text--lighten-1` : `text--darken-1`') {{tocSubItem.title}}
                     //- v-divider(inset, v-if='tocIdx < toc.length - 1')
-
             v-card.page-tags-card.mb-5(v-if='tags.length > 0')
               .pa-5
                 .overline.teal--text.pb-2(:class='$vuetify.theme.dark ? `text--lighten-3` : ``') {{$t('common:page.tags')}}
@@ -194,7 +193,6 @@
             //-         hover
             //-       )
             //-       .caption.grey--text 5 votes
-
             v-card.page-shortcuts-card(flat)
               v-toolbar(:color='$vuetify.theme.dark ? `grey darken-4-d3` : `grey lighten-3`', flat, dense)
                 v-spacer
@@ -366,9 +364,7 @@ import { get, sync } from 'vuex-pathify'
 import _ from 'lodash'
 import ClipboardJS from 'clipboard'
 import Vue from 'vue'
-
 Vue.component('Tabset', Tabset)
-
 Prism.plugins.autoloader.languages_path = '/_assets/js/prism/'
 Prism.plugins.NormalizeWhitespace.setDefaults({
   'remove-trailing': true,
@@ -381,11 +377,9 @@ Prism.plugins.NormalizeWhitespace.setDefaults({
 Prism.plugins.toolbar.registerButton('copy-to-clipboard', (env) => {
   let linkCopy = document.createElement('button')
   linkCopy.textContent = 'Copy'
-
   const clip = new ClipboardJS(linkCopy, {
     text: () => { return env.code }
   })
-
   clip.on('success', () => {
     linkCopy.textContent = 'Copied!'
     resetClipboardText()
@@ -394,16 +388,13 @@ Prism.plugins.toolbar.registerButton('copy-to-clipboard', (env) => {
     linkCopy.textContent = 'Press Ctrl+C to copy'
     resetClipboardText()
   })
-
   return linkCopy
-
   function resetClipboardText() {
     setTimeout(() => {
       linkCopy.textContent = 'Copy'
     }, 5000)
   }
 })
-
 export default {
   components: {
     NavSidebar,
@@ -493,13 +484,14 @@ export default {
   },
   data() {
     return {
+      route: window.location,
       navShown: false,
       navExpanded: false,
       upBtnShown: false,
       pageEditFab: false,
       scrollOpts: {
-        duration: 1500,
-        offset: 0,
+        duration: 1150,
+        offset: 50,
         easing: 'easeInOutCubic'
       },
       scrollStyle: {
@@ -533,7 +525,6 @@ export default {
         return 3.5
       },
       set (val) {
-
       }
     },
     breadcrumbs() {
@@ -598,42 +589,37 @@ export default {
     if (this.editShortcuts) {
       this.$store.set('page/editShortcuts', JSON.parse(Buffer.from(this.editShortcuts, 'base64').toString()))
     }
-
     this.$store.set('page/mode', 'view')
   },
   mounted () {
     if (this.$vuetify.theme.dark) {
       this.scrollStyle.bar.background = '#424242'
     }
-
     // -> Check side navigation visibility
     this.handleSideNavVisibility()
     window.addEventListener('resize', _.debounce(() => {
       this.handleSideNavVisibility()
     }, 500))
-
     // -> Highlight Code Blocks
     Prism.highlightAllUnder(this.$refs.container)
-
     // -> Render Mermaid diagrams
     mermaid.mermaidAPI.initialize({
       startOnLoad: true,
       theme: this.$vuetify.theme.dark ? `dark` : `default`
     })
-
     // -> Handle anchor scrolling
     if (window.location.hash && window.location.hash.length > 1) {
       if (document.readyState === 'complete') {
         this.$nextTick(() => {
-          this.$vuetify.goTo(decodeURIComponent(window.location.hash), this.scrollOpts)
+          this.navigateToResult();
         })
       } else {
         window.addEventListener('load', () => {
-          this.$vuetify.goTo(decodeURIComponent(window.location.hash), this.scrollOpts)
+          this.navigateToResult();
+          window.addEventListener('hashchange', () => this.navigateToResult())
         })
       }
     }
-
     // -> Handle anchor links within the page contents
     this.$nextTick(() => {
       this.$refs.container.querySelectorAll(`a[href^="#"], a[href^="${window.location.href.replace(window.location.hash, '')}#"]`).forEach(el => {
@@ -643,9 +629,11 @@ export default {
           this.$vuetify.goTo(decodeURIComponent(ev.currentTarget.hash), this.scrollOpts)
         }
       })
-
       window.boot.notify('page-ready')
     })
+  },
+  beforeUnmount() {
+    window.removeEventListener('hashchange', () => this.navigateToResult())
   },
   methods: {
     goHome () {
@@ -703,13 +691,45 @@ export default {
       if (focusNewComment) {
         document.querySelector('#discussion-new').focus()
       }
+    },
+    navigateToResult () {
+      const elements = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6, .content'));
+      const location = String(window.location);
+      const searchResultId = location.substring(location.indexOf('#') + 1);
+      elements.forEach(element => {
+        if (element.id === searchResultId) {
+          element.classList.add('highlighted-on-select')
+        } else {
+          element.classList.remove('highlighted-on-select')
+        };
+      })
+      this.$vuetify.goTo(decodeURIComponent(window.location.hash), this.scrollOpts)
+    }
+  },
+  watch: {
+    upBtnShown(_, newValue) {
+      if (newValue) {
+        const paragraphs = Array.from(document.querySelectorAll('.text-container p'));
+        const location = String(window.location);
+        const pid = location.substring(location.indexOf('#'));
+        console.log('pid: ', pid);
+        console.log('paragraphs: ', paragraphs);
+        paragraphs.forEach(p => {
+          if (p.id === pid) {
+            console.log('AAAA');
+            Array.from(p.children).forEach(child => child.classList.add('highlighted-on-select'))
+          } else {
+            console.log('BBBB');
+            Array.from(p.children).forEach(child => child.classList.remove('highlighted-on-select'))
+          };
+        })
+      };
     }
   }
 }
 </script>
 
 <style lang="scss">
-
 .breadcrumbs-nav {
   .v-btn {
     min-width: 0;
@@ -724,7 +744,6 @@ export default {
     padding: 0 6px 0 12px;
   }
 }
-
 .page-col-sd {
   margin-top: -90px;
   align-self: flex-start;
@@ -734,53 +753,43 @@ export default {
   overflow-y: auto;
   -ms-overflow-style: none;
 }
-
 .page-col-sd::-webkit-scrollbar {
   display: none;
 }
-
 .page-header-section {
   position: relative;
-
   > .is-page-header {
     position: relative;
   }
-
   .page-header-headings {
     min-height: 52px;
     display: flex;
     justify-content: center;
     flex-direction: column;
   }
-
   .page-edit-shortcuts {
     position: absolute;
     bottom: -33px;
     right: 10px;
-
     .v-btn {
       border-right: 1px solid #DDD !important;
       border-bottom: 1px solid #DDD !important;
       border-radius: 0;
       color: #777;
       background-color: #FFF !important;
-
       @at-root .theme--dark & {
         background-color: #222 !important;
         border-right-color: #444 !important;
         border-bottom-color: #444 !important;
         color: #CCC;
       }
-
       .v-icon {
         color: mc('blue', '700');
       }
-
       &:first-child {
         border-top-left-radius: 5px;
         border-bottom-left-radius: 5px;
       }
-
       &:last-child {
         border-top-right-radius: 5px;
         border-bottom-right-radius: 5px;
@@ -788,5 +797,4 @@ export default {
     }
   }
 }
-
 </style>
