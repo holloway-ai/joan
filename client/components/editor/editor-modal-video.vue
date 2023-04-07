@@ -110,19 +110,23 @@ export default {
 
           // format stream value to parse it to JSON
           const valueDecoded = decoder.decode(value)
-          const jsonString = valueDecoded.replace('data: ', '').replaceAll("'", '"')
-          const startIndex = jsonString.indexOf('{')
-          const endIndex = jsonString.lastIndexOf('}')
-          const arrayString = jsonString.substring(startIndex, endIndex + 1)
-          const progressObject = JSON.parse(arrayString)
-
-          const progressRatio = 100 / progressObject.totalAmount
-          updateProgress(Math.round(progressObject.progress * progressRatio))
-          if (progressObject.status === 'finished') {
-            updateProgress(100)
-            updateText(progressObject?.result?.vmarkdown)
-          }
-
+          const dataEvent = 'data: '
+          valueDecoded.split('\n').forEach((msg) => {
+            if (msg.startsWith(dataEvent)) {
+              console.log(msg)
+              try {
+                const progressObject = JSON.parse(msg.slice(dataEvent.length).replace(/([^\\])\n/g, '$1\\n'))[0]
+                const progressRatio = 100 / progressObject.totalAmount
+                updateProgress(Math.round(progressObject.progress * progressRatio))
+                if (progressObject.status === 'finished') {
+                  updateProgress(100)
+                  updateText(progressObject?.result?.vmarkdown)
+                }
+              } catch (error) {
+                console.log(error)
+              }
+            }
+          })
           // Continue reading the stream
           readStream()
         }).catch(error => {
