@@ -106,8 +106,17 @@ export default {
 
       function readStream() {
         reader.read().then(({ done, value }) => {
-          if (done) return
-
+          if (done) {
+            console.log('Stream complete')
+            axios.get(`${apiUrl}/api/v1/video/${jobId}`, auth)
+              .then((res) => {
+                const progressObject = res.data
+                console.log('response', res)
+                updateText(progressObject?.vmarkdown)
+                updateProgress(100)
+              })
+            return
+          }
           // format stream value to parse it to JSON
           const valueDecoded = decoder.decode(value)
           const dataEvent = 'data: '
@@ -120,7 +129,6 @@ export default {
                 updateProgress(Math.round(progressObject.progress * progressRatio))
                 if (progressObject.status === 'finished') {
                   updateProgress(100)
-                  updateText(progressObject?.result?.vmarkdown)
                 }
               } catch (error) {
                 console.log(error)
