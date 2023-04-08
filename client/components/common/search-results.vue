@@ -56,6 +56,7 @@
 
 <script>
 import _ from 'lodash'
+import { getHash } from '../../helpers/utils'
 import { sync } from 'vuex-pathify'
 import { getHash } from '../../helpers/utils'
 import { OrbitSpinner } from 'epic-spinners'
