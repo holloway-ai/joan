@@ -405,6 +405,7 @@ export default {
   },
   data() {
     return {
+      route: window.location,
       navShown: false,
       navExpanded: false,
       upBtnShown: false,
@@ -566,7 +567,6 @@ export default {
     this.$store.set('page/mode', 'view')
   },
   mounted () {
-    console.log('AAAA');
     this.$watch(
       () => {
         return this.$refs.headerRef.clientHeight
@@ -745,6 +745,24 @@ export default {
   watch: {
     pageContainerHeight (newValue, oldValue) {
       console.log('new page height: ', newValue);
+    },
+    upBtnShown(_, newValue) {
+      if (newValue) {
+        const paragraphs = Array.from(document.querySelectorAll('.text-container p'));
+        const location = String(window.location);
+        const pid = location.substring(location.indexOf('#'));
+        console.log('pid: ', pid);
+        console.log('paragraphs: ', paragraphs);
+        paragraphs.forEach(p => {
+          if (p.id === pid) {
+            console.log('AAAA');
+            Array.from(p.children).forEach(child => child.classList.add('highlighted-on-select'))
+          } else {
+            console.log('BBBB');
+            Array.from(p.children).forEach(child => child.classList.remove('highlighted-on-select'))
+          };
+        })
+      };
     }
   }
 }

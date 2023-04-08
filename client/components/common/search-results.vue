@@ -18,7 +18,7 @@
         v-subheader.white--text {{$t('common:header.searchResultsCount', { total: response.totalHits })}}
         v-list.search-results-items.radius-7.py-0(two-line, dense)
           template(v-for='(item, idx) of results')
-            v-list-item(@click='goToPage(item)', @click.middle="goToPageInNewTab(item)", :key='item.id', :class='idx === cursor ? `highlighted` : ``')
+            v-list-item(@click='goToPage(item); search=``', @click.middle="goToPageInNewTab(item)", :key='item.id', :class='idx === cursor ? `highlighted` : ``')
               v-list-item-avatar(tile)
                 img(src='/_assets/svg/icon-selective-highlighting.svg')
               v-list-item-content
@@ -56,6 +56,7 @@
 
 <script>
 import _ from 'lodash'
+import { getHash } from '../../helpers/utils'
 import { sync } from 'vuex-pathify'
 import { OrbitSpinner } from 'epic-spinners'
 
@@ -70,6 +71,11 @@ export default {
       cursor: 0,
       pagination: 1,
       perPage: 10,
+      scrollOpts: {
+        duration: 1150,
+        offset: 50,
+        easing: 'easeInOutCubic'
+      },
       response: {
         results: [],
         suggestions: [],
@@ -136,10 +142,23 @@ export default {
       this.search = term
     },
     goToPage(item) {
+      this.handleSamePageResult(item.path)
       window.location.assign(`/${item.locale}/${item.path}`)
     },
     goToPageInNewTab(item) {
       window.open(`/${item.locale}/${item.path}`, '_blank')
+    },
+    handleSamePageResult(resultPath) {
+      const resultHash = getHash(resultPath);
+      const currentPageHash = getHash(String(window.location));
+      if (resultHash === currentPageHash) {
+        const element = document.getElementById(resultHash);
+        element.classList.remove('highlighted-on-select')
+        setTimeout(() => {
+          element.classList.add('highlighted-on-select')
+          this.$vuetify.goTo(decodeURIComponent(window.location.hash, this.scrollOpts))
+        }, 300)
+      };
     }
   },
   apollo: {
