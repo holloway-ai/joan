@@ -1,8 +1,7 @@
 /* THEME SPECIFIC JAVASCRIPT */
 window.onload = function () {
-
   function attachEventListeners() {
-    const video = document.querySelector("#presentationVideo");    
+    const video = document.querySelector("#presentationVideo");
     const textContainer = document.querySelector('.text-container');
     const highlights = document.querySelectorAll("[data-start]");
 
@@ -21,15 +20,15 @@ window.onload = function () {
           }
         });
 
-          const highlightedSegment = document.querySelector(".highlighted");
+        const highlightedSegment = document.querySelector(".highlighted");
 
-          if (textContainer && highlightedSegment) {
-            const textContainerRect = textContainer.getBoundingClientRect();
-            const highlightedSegmentRect = highlightedSegment.getBoundingClientRect();
-            const scrollToY = highlightedSegment.offsetTop - (textContainerRect.height / 2) + (highlightedSegmentRect.height / 2);
+        if (textContainer && highlightedSegment) {
+          const textContainerRect = textContainer.getBoundingClientRect();
+          const highlightedSegmentRect = highlightedSegment.getBoundingClientRect();
+          const scrollToY = highlightedSegment.offsetTop - (textContainerRect.height / 2) + (highlightedSegmentRect.height / 2);
 
-            textContainer.scrollTop = scrollToY;
-          }
+          textContainer.scrollTop = scrollToY;
+        }
       });
 
       highlights.forEach(function (highlight) {
