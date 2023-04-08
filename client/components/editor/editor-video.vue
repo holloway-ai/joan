@@ -9,16 +9,6 @@
       template(v-else)
         v-tooltip(bottom, color='primary')
           template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn(icon, tile, v-on='on', @click='toggleMarkup({ start: `**` })').mx-0
-              v-icon mdi-format-bold
-          span {{$t('editor:markup.bold')}}
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn.wait-p1s(icon, tile, v-on='on', @click='toggleMarkup({ start: `*` })').mx-0
-              v-icon mdi-format-italic
-          span {{$t('editor:markup.italic')}}
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
             v-btn.animated.fadeIn.wait-p2s(icon, tile, v-on='on', @click='toggleMarkup({ start: `~~` })').mx-0
               v-icon mdi-format-strikethrough
           span {{$t('editor:markup.strikethrough')}}
@@ -220,7 +210,6 @@ import underline from '../../libs/markdown-it-underline'
 import 'katex/dist/contrib/mhchem'
 import twemoji from 'twemoji'
 import plantuml from './markdown/plantuml'
-import video from '../../../server/modules/rendering/markdown-video-parser/renderer'
 
 // Prism (Syntax Highlighting)
 import Prism from 'prismjs'
@@ -325,13 +314,6 @@ cmFold.register('markdown')
 
 // TODO: Use same options as defined in backend
 plantuml.init(md, {})
-
-// ========================================
-// VIDEO MARKDOWN PARSER
-// ========================================
-
-// TODO: find a way to properly get the token for the last element in the page
-video.init(md, {})
 
 // ========================================
 // KATEX
@@ -575,7 +557,7 @@ export default {
       let currentLine = cm.getCursor().line
       if (currentLine < 3) {
         this.Velocity(this.$refs.editorPreview, 'stop', true)
-        this.Velocity(this.$refs.editorPreview?.firstChild, 'scroll', { offset: '-50', duration: 1000, container: this.$refs.editorPreviewContainer })
+        // this.Velocity(this.$refs.editorPreview?.firstChild, 'scroll', { offset: '-50', duration: 1000, container: this.$refs.editorPreviewContainer })
       } else {
         let closestLine = _.findLast(linesMap, n => n <= currentLine)
         let destElm = this.$refs.editorPreview.querySelector(`[data-line='${closestLine}']`)
@@ -737,7 +719,7 @@ export default {
     }
   },
   mounted() {
-    this.$store.set('editor/editorKey', 'markdown')
+    this.$store.set('editor/editorKey', 'video')
 
     if (this.mode === 'create' && !this.$store.get('editor/content')) {
       this.$store.set('editor/content', '# Header\nYour content here')
@@ -874,7 +856,6 @@ export default {
   },
   beforeDestroy() {
     this.$root.$off('editorInsert')
-    this.$root.$off('editorUpdate')
   }
 }
 </script>
