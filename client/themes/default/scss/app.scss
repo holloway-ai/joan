@@ -1,7 +1,9 @@
 /* THEME SPECIFIC STYLES */
+@import 'variables';
 
 .v-main .contents {
-  color: mc('grey', '800');
+  font-family: 'Aspekta';
+  // color: mc('grey', '800');
   padding: .5rem 0 50px;
   position: relative;
 
@@ -117,33 +119,34 @@
   }
   h2 {
     margin: 1rem 0 0 0;
-    color: mc('grey', '800');
+    // color: mc('grey', '800');
+    color: black;
     position: relative;
 
     @at-root .theme--dark & {
       color: mc('grey', '400');
     }
 
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 1px;
-      background: linear-gradient(to right, mc('grey', '700'), rgba(mc('grey', '700'), 0));
-
-      @at-root .theme--dark & {
-        background: linear-gradient(to right, mc('grey', '300'), rgba(mc('grey', '700'), 0));
-      }
-
-      @at-root .is-rtl & {
-        background: linear-gradient(to left, mc('grey', '700'), rgba(mc('grey', '700'), 0));
-      }
-      @at-root .theme--dark.is-rtl & {
-        background: linear-gradient(to left, mc('grey', '300'), rgba(mc('grey', '700'), 0));
-      }
-    }
+    // &::after {
+    //   content: '';
+    //   position: absolute;
+    //   bottom: 0;
+    //   left: 0;
+    //   width: 100%;
+    //   height: 1px;
+    //   background: linear-gradient(to right, mc('grey', '700'), rgba(mc('grey', '700'), 0));
+    //
+    //   @at-root .theme--dark & {
+    //     background: linear-gradient(to right, mc('grey', '300'), rgba(mc('grey', '700'), 0));
+    //   }
+    //
+    //   @at-root .is-rtl & {
+    //     background: linear-gradient(to left, mc('grey', '700'), rgba(mc('grey', '700'), 0));
+    //   }
+    //   @at-root .theme--dark.is-rtl & {
+    //     background: linear-gradient(to left, mc('grey', '300'), rgba(mc('grey', '700'), 0));
+    //   }
+    // }
   }
   h3 {
     margin: 8px 0 0 0;
@@ -154,15 +157,15 @@
       color: mc('grey', '600');
     }
 
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 1px;
-      background: linear-gradient(to right, mc('grey', '500'), rgba(mc('grey', '500'), 0) 90%);
-    }
+    // &::after {
+    //   content: '';
+    //   position: absolute;
+    //   bottom: 0;
+    //   left: 0;
+    //   width: 100%;
+    //   height: 1px;
+    //   background: linear-gradient(to right, mc('grey', '500'), rgba(mc('grey', '500'), 0) 90%);
+    // }
   }
   h4, h5, h6 {
     font-size: 1rem;
@@ -356,6 +359,38 @@
     }
   }
 
+  // joan custom styles
+
+  .sticky {
+    height: 200px;
+    position: fixed;
+    bottom: 30%;
+    right: 20px;
+    z-index: 9999
+  }
+
+  .highlighted-on-select {
+    animation-name: fade;
+    animation-duration: 5s
+  }
+  @keyframes fade {
+    from {
+      background-color: #44ba81
+    }
+    to {
+      background-color: transparent
+    }
+  }
+  //
+  video {
+    // max-width: 100%;
+    // height: 100%;
+    height: 300px;
+  }
+  //
+  .highlighted {
+    background-color: #ff0
+  }
   // ---------------------------------
   // ASCIIDOC SPECIFIC
   // ---------------------------------
@@ -685,10 +720,6 @@
         display:inline-block;
         vertical-align:top;
         padding-top:0;
-        
-        &:first-child {
-          width: 100%;
-        }
       }
     }
   }
