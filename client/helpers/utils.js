@@ -3,5 +3,5 @@ function getHash (url) {
 };
 
 export { 
-  getHash
+  getHash,
 }

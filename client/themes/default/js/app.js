@@ -7,7 +7,6 @@ window.onload = function () {
     const highlights = document.querySelectorAll("[data-start]");
 
     if (video && highlights.length > 0) {
-  		console.log(highlights);
       video.addEventListener("timeupdate", function () {
         const currentTime = video.currentTime;
 

@@ -1,6 +1,6 @@
 <template lang='pug'>
   .editor-markdown
-    v-toolbar.editor-markdown-toolbar(dense, color='primary', dark, flat, style='overflow-x: hidden;')
+    v-toolbar.editor-markdown-toolbar(dense, dark, flat, style='overflow-x: hidden;')
       template(v-if='isModalShown')
         v-spacer
         v-btn.animated.fadeInRight(text, @click='closeAllModal')
@@ -31,7 +31,7 @@
               v-list-item(@click='setHeaderLine(n)', :key='idx')
                 v-list-item-action
                   v-icon(:size='24 - (idx - 1) * 2') mdi-format-header-{{n}}
-                v-list-item-title {{$t('editor:markup.heading', { level: n })}}
+                <!-- v-list-item-title {{$t('editor:markup.heading', { level: n })}} -->
               v-divider(v-if='idx < 5')
         v-tooltip(bottom, color='primary')
           template(v-slot:activator='{ on }')
@@ -103,7 +103,7 @@
           v-tooltip(bottom, color='primary', v-if='previewShown')
             template(v-slot:activator='{ on }')
               v-btn.animated.fadeIn.wait-p1s(icon, tile, v-on='on', @click='spellModeActive = !spellModeActive').mx-0
-                v-icon(:color='spellModeActive ? `amber` : `white`') mdi-spellcheck
+                v-icon mdi-spellcheck
             span {{$t('editor:markup.toggleSpellcheck')}}
           v-tooltip(bottom, color='primary')
             template(v-slot:activator='{ on }')
@@ -869,6 +869,7 @@ export default {
 </script>
 
 <style lang='scss'>
+@import "../../scss/joan-styles.scss";
 
 $editor-height: calc(100vh - 112px - 24px);
 $editor-height-mobile: calc(100vh - 112px - 16px);
@@ -984,13 +985,20 @@ $editor-height-mobile: calc(100vh - 112px - 16px);
     }
   }
 
+  // editor icons
+  .theme--dark.v-btn.v-btn--icon{
+    color: $gray-700;
+  }
+
   &-toolbar {
-    background-color: mc('blue', '700');
-    background-image: linear-gradient(to bottom, mc('blue', '700') 0%, mc('blue','800') 100%);
-    color: #FFF;
+    // background-color: mc('blue', '100');
+    // background-image: linear-gradient(to bottom, mc('blue', '700') 0%, mc('blue','800') 100%);
+    // color: #FFF;
 
     .v-toolbar__content {
       padding-left: 64px;
+      background-color: $gray-400;
+      color: red;
 
       @include until($tablet) {
         padding-left: 8px;
