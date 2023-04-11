@@ -114,6 +114,11 @@
       .editor-markdown-sidebar
         v-tooltip(right, color='teal')
           template(v-slot:activator='{ on }')
+            v-btn.mt-3.animated.fadeInLeft.wait-p2s(icon, tile, v-on='on', dark, @click='toggleModal(`editorVideoUpload`)').mx-0
+              v-icon mdi-video-plus
+          span {{ "Transcribe A Video" }}
+        v-tooltip(right, color='teal')
+          template(v-slot:activator='{ on }')
             v-btn.animated.fadeInLeft(icon, tile, v-on='on', dark, @click='insertLink').mx-0
               v-icon mdi-link-plus
           span {{$t('editor:markup.insertLink')}}
@@ -127,11 +132,6 @@
             v-btn.mt-3.animated.fadeInLeft.wait-p2s(icon, tile, v-on='on', dark, @click='toggleModal(`editorModalDrawio`)').mx-0
               v-icon mdi-chart-multiline
           span {{$t('editor:markup.insertDiagram')}}
-        v-tooltip(right, color='teal')
-          template(v-slot:activator='{ on }')
-            v-btn.mt-3.animated.fadeInLeft.wait-p2s(icon, tile, v-on='on', dark, @click='toggleModal(`editorVideoUpload`)').mx-0
-              v-icon mdi-video-plus
-          span {{ "Transcribe A Video" }}
         template(v-if='$vuetify.breakpoint.mdAndUp')
           v-spacer
           v-tooltip(right, color='teal')
