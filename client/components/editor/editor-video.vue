@@ -1,22 +1,12 @@
 <template lang='pug'>
   .editor-markdown
-    v-toolbar.editor-markdown-toolbar(dense, dark, flat, style='overflow-x: hidden;')
+    v-toolbar.editor-markdown-toolbar(dense, color='primary', dark, flat, style='overflow-x: hidden;')
       template(v-if='isModalShown')
         v-spacer
         v-btn.animated.fadeInRight(text, @click='closeAllModal')
           v-icon(left) mdi-arrow-left-circle
           span {{$t('editor:backToEditor')}}
       template(v-else)
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn(icon, tile, v-on='on', @click='toggleMarkup({ start: `**` })').mx-0
-              v-icon mdi-format-bold
-          span {{$t('editor:markup.bold')}}
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn.wait-p1s(icon, tile, v-on='on', @click='toggleMarkup({ start: `*` })').mx-0
-              v-icon mdi-format-italic
-          span {{$t('editor:markup.italic')}}
         v-tooltip(bottom, color='primary')
           template(v-slot:activator='{ on }')
             v-btn.animated.fadeIn.wait-p2s(icon, tile, v-on='on', @click='toggleMarkup({ start: `~~` })').mx-0
@@ -31,7 +21,7 @@
               v-list-item(@click='setHeaderLine(n)', :key='idx')
                 v-list-item-action
                   v-icon(:size='24 - (idx - 1) * 2') mdi-format-header-{{n}}
-                <!-- v-list-item-title {{$t('editor:markup.heading', { level: n })}} -->
+                v-list-item-title {{$t('editor:markup.heading', { level: n })}}
               v-divider(v-if='idx < 5')
         v-tooltip(bottom, color='primary')
           template(v-slot:activator='{ on }')
@@ -103,7 +93,7 @@
           v-tooltip(bottom, color='primary', v-if='previewShown')
             template(v-slot:activator='{ on }')
               v-btn.animated.fadeIn.wait-p1s(icon, tile, v-on='on', @click='spellModeActive = !spellModeActive').mx-0
-                v-icon mdi-spellcheck
+                v-icon(:color='spellModeActive ? `amber` : `white`') mdi-spellcheck
             span {{$t('editor:markup.toggleSpellcheck')}}
           v-tooltip(bottom, color='primary')
             template(v-slot:activator='{ on }')
@@ -220,7 +210,6 @@ import underline from '../../libs/markdown-it-underline'
 import 'katex/dist/contrib/mhchem'
 import twemoji from 'twemoji'
 import plantuml from './markdown/plantuml'
-import video from '../../../server/modules/rendering/markdown-video-parser/renderer'
 
 // Prism (Syntax Highlighting)
 import Prism from 'prismjs'
@@ -325,13 +314,6 @@ cmFold.register('markdown')
 
 // TODO: Use same options as defined in backend
 plantuml.init(md, {})
-
-// ========================================
-// VIDEO MARKDOWN PARSER
-// ========================================
-
-// TODO: find a way to properly get the token for the last element in the page
-video.init(md, {})
 
 // ========================================
 // KATEX
@@ -575,7 +557,7 @@ export default {
       let currentLine = cm.getCursor().line
       if (currentLine < 3) {
         this.Velocity(this.$refs.editorPreview, 'stop', true)
-        this.Velocity(this.$refs.editorPreview?.firstChild, 'scroll', { offset: '-50', duration: 1000, container: this.$refs.editorPreviewContainer })
+        // this.Velocity(this.$refs.editorPreview?.firstChild, 'scroll', { offset: '-50', duration: 1000, container: this.$refs.editorPreviewContainer })
       } else {
         let closestLine = _.findLast(linesMap, n => n <= currentLine)
         let destElm = this.$refs.editorPreview.querySelector(`[data-line='${closestLine}']`)
@@ -737,7 +719,7 @@ export default {
     }
   },
   mounted() {
-    this.$store.set('editor/editorKey', 'markdown')
+    this.$store.set('editor/editorKey', 'video')
 
     if (this.mode === 'create' && !this.$store.get('editor/content')) {
       this.$store.set('editor/content', '# Header\nYour content here')
@@ -874,13 +856,11 @@ export default {
   },
   beforeDestroy() {
     this.$root.$off('editorInsert')
-    this.$root.$off('editorUpdate')
   }
 }
 </script>
 
 <style lang='scss'>
-@import "../../scss/joan-styles.scss";
 
 $editor-height: calc(100vh - 112px - 24px);
 $editor-height-mobile: calc(100vh - 112px - 16px);
@@ -996,20 +976,13 @@ $editor-height-mobile: calc(100vh - 112px - 16px);
     }
   }
 
-  // editor icons
-  .theme--dark.v-btn.v-btn--icon{
-    color: $gray-700;
-  }
-
   &-toolbar {
-    // background-color: mc('blue', '100');
-    // background-image: linear-gradient(to bottom, mc('blue', '700') 0%, mc('blue','800') 100%);
-    // color: #FFF;
+    background-color: mc('blue', '700');
+    background-image: linear-gradient(to bottom, mc('blue', '700') 0%, mc('blue','800') 100%);
+    color: #FFF;
 
     .v-toolbar__content {
       padding-left: 64px;
-      background-color: $gray-400;
-      color: red;
 
       @include until($tablet) {
         padding-left: 8px;

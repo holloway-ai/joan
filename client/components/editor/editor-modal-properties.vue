@@ -276,10 +276,10 @@ export default {
       currentTab: 0,
       cm: null,
       rules: {
-          required: value => !!value || 'This field is required.',
-          path: value => {
-            return filenamePattern.test(value) || 'Invalid path. Please ensure it does not contain special characters, or begin/end in a slash or hashtag string.'
-          }
+        required: value => !!value || 'This field is required.',
+        path: value => {
+          return filenamePattern.test(value) || 'Invalid path. Please ensure it does not contain special characters, or begin/end in a slash or hashtag string.'
+        }
       }
     }
   },
@@ -291,6 +291,7 @@ export default {
     mode: get('editor/mode'),
     title: sync('page/title'),
     description: sync('page/description'),
+    activeModal: sync('editor/activeModal'),
     locale: sync('page/locale'),
     tags: sync('page/tags'),
     path: sync('page/path'),
@@ -348,6 +349,7 @@ export default {
       this.tags = _.without(this.tags, tag)
     },
     close() {
+      if (this.$store.get('editor/editorKey') === 'video') this.activeModal = 'editorVideoUpload'
       this.isShown = false
     },
     showPathSelector() {
