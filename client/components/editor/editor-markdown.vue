@@ -1383,6 +1383,7 @@ $editor-height-mobile: calc(100vh - 112px - 16px);
     }
   }
 
+<<<<<<< HEAD
   &-page-settings {
     display: flex;
     width: 100%;
@@ -1464,10 +1465,14 @@ $editor-height-mobile: calc(100vh - 112px - 16px);
     margin-right: 1em;
   }
 
+=======
+  // editor icons
+>>>>>>> 10c674f1 (page ui overhaul.)
   .theme--dark.v-btn.v-btn--icon{
     color: $gray-700;
   }
 
+<<<<<<< HEAD
   & .theme--light.v-sheet {
     border-bottom: 1px solid $gray-300;
   }
@@ -1484,6 +1489,17 @@ $editor-height-mobile: calc(100vh - 112px - 16px);
 
     .v-toolbar__content {
       padding: 0 3.3em;
+=======
+  &-toolbar {
+    // background-color: mc('blue', '100');
+    // background-image: linear-gradient(to bottom, mc('blue', '700') 0%, mc('blue','800') 100%);
+    // color: #FFF;
+
+    .v-toolbar__content {
+      padding-left: 64px;
+      background-color: $gray-400;
+      color: red;
+>>>>>>> 10c674f1 (page ui overhaul.)
 
       @include until($tablet) {
         padding-left: 8px;
