@@ -1,3 +1,11 @@
+# Joan 
+Fork of wiki.js with video support 
+
+## build 
+
+`docker build -t ghcr.io/holloway-ai/joan:0.1.2 -f dev/build/Dockerfile .`
+
+
 <div align="center">
 
 <picture>
