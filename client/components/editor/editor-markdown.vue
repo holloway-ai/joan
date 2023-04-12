@@ -220,7 +220,7 @@ import underline from '../../libs/markdown-it-underline'
 import 'katex/dist/contrib/mhchem'
 import twemoji from 'twemoji'
 import plantuml from './markdown/plantuml'
-import video from '../../../server/modules/rendering/markdown-video-parser/renderer'
+import video from './markdown/video/renderer'
 
 // Prism (Syntax Highlighting)
 import Prism from 'prismjs'
