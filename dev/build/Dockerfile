@@ -1,9 +1,10 @@
 # ====================
 # --- Build Assets ---
 # ====================
-FROM node:16-alpine AS assets
+FROM node:14.21.3-buster-slim AS assets
 
-RUN apk add yarn g++ make cmake python3 --no-cache
+RUN apt-get update && \
+    apt-get install -y  yarn g++ make cmake python3
 
 WORKDIR /wiki
 
@@ -23,10 +24,11 @@ RUN yarn --production --frozen-lockfile --non-interactive
 # ===============
 # --- Release ---
 # ===============
-FROM node:16-alpine
-LABEL maintainer="requarks.io"
+FROM node:14.21.3-buster-slim
+LABEL maintainer="holloway.ai"
 
-RUN apk add bash curl git openssh gnupg sqlite --no-cache && \
+RUN apt-get update && \
+    apt-get install -y bash curl git openssh-server gnupg sqlite && \
     mkdir -p /wiki && \
     mkdir -p /logs && \
     mkdir -p /wiki/data/content && \
