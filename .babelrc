@@ -33,6 +33,14 @@
         "corejs": 3,
         "debug": false
       }
+    ],
+    [
+      "@vue/cli-plugin-babel/preset",
+      {
+        "include": [
+          "@babel/plugin-proposal-optional-chaining"
+        ]
+      }
     ]
   ]
 }
