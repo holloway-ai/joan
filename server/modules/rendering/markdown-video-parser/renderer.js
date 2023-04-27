@@ -1,3 +1,4 @@
+const blockEmbedPlugin = require("markdown-it-block-embed");
 const { videoBlock } = require('./video-parser');
 const { timeBlock } = require('./timestamp-parser');
 
@@ -23,12 +24,39 @@ function includeLastToken (state, startLine, endLine) {
   };
 };
 
+// function myRule (state) {
+//   const iframeOpen = state.push('iframe_open', 'iframe', 1);
+//   iframeOpen.content = '<iframe width="560" height="315" src="https://www.youtube.com/embed/61lVNkvk9AU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen>';
+//   const iframeClose = state.push('iframe_close', 'iframe', -1);
+//   iframeClose.content = '</iframe>';
+//   // console.log('state.tokens: ', state.tokens);
+// };
+//
+// function iframeOpenRenderer (tokens, idx, options, env, self) {
+//   console.log('idx: ', idx);
+//   // console.log('tokens given to renderer', tokens);   
+//   const token = tokens[idx];
+//   console.log('token: ', token);
+//   return '<iframe width="560" height="315" src="https://www.youtube.com/embed/61lVNkvk9AU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen>'
+// };
+//
+// function iframeCloseRenderer (tokens, idx, options, env, self) {
+//   return '</iframe>';
+// };
 module.exports = {
   init (mdinst, conf) {
+    // mdinst.use(blockEmbedPlugin, { containerClassName: 'video-embed' });
+    // const input = "@[youtube](SXHsPKPD_eo)";
+    // const output = mdinst.render(input);
+    // console.log('output: ', output);
     mdinst.use((md, opts) => {
+      // md.block.ruler.before('paragraph', 'my_rule', myRule)
       md.block.ruler.before('paragraph', 'include_last_token', includeLastToken)
       md.block.ruler.before('paragraph', 'time_block', timeBlock)
       md.block.ruler.before('paragraph', 'video', videoBlock)
+      // md.renderer.rules.inline = () => 'test';
+      // md.renderer.rules.iframe_open = iframeOpenRenderer;
+      // md.renderer.rules.iframe_close = iframeCloseRenderer;
     })
   }
 }
