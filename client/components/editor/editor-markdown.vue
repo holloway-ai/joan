@@ -330,8 +330,7 @@ plantuml.init(md, {})
 // VIDEO MARKDOWN PARSER
 // ========================================
 
-// TODO: find a way to properly get the token for the last element in the page
-video.init(md, {})
+// video.init(md, {})
 
 // ========================================
 // KATEX
@@ -737,6 +736,7 @@ export default {
     }
   },
   mounted() {
+    console.log('AAAAA');
     this.$store.set('editor/editorKey', 'markdown')
 
     if (this.mode === 'create' && !this.$store.get('editor/content')) {
