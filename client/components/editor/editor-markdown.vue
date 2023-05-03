@@ -220,7 +220,7 @@ import underline from '../../libs/markdown-it-underline'
 import 'katex/dist/contrib/mhchem'
 import twemoji from 'twemoji'
 import plantuml from './markdown/plantuml'
-import video from '../../../server/modules/rendering/markdown-video-parser/renderer'
+// import video from '../../../server/modules/rendering/markdown-video-parser/renderer'
 
 // Prism (Syntax Highlighting)
 import Prism from 'prismjs'
@@ -330,8 +330,7 @@ plantuml.init(md, {})
 // VIDEO MARKDOWN PARSER
 // ========================================
 
-// TODO: find a way to properly get the token for the last element in the page
-video.init(md, {})
+// video.init(md, {})
 
 // ========================================
 // KATEX
@@ -737,6 +736,7 @@ export default {
     }
   },
   mounted() {
+    console.log('AAAAA');
     this.$store.set('editor/editorKey', 'markdown')
 
     if (this.mode === 'create' && !this.$store.get('editor/content')) {

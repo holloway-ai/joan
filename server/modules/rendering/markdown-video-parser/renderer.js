@@ -1,62 +1,58 @@
-const blockEmbedPlugin = require("markdown-it-block-embed");
 const { videoBlock } = require('./video-parser');
 const { timeBlock } = require('./timestamp-parser');
 
-// this is a workaround to fix the parser not including the token for the last element issue.
-
-// this basically takes the last line with content from the source (state.src) and generate
-// a token with it, then it removes that last line from the source to avoid a duplicate line.
-function includeLastToken (state, startLine, endLine) {
-  let start = state.bMarks[startLine] + state.tShift[startLine]
-  let max = state.eMarks[startLine]
-  const isTheLastLine = max === state.eMarks[state.eMarks.length - 1];
-
-  if (isTheLastLine) {
-    const remainingContent = state.src.substring(0, start - 10);
-    const lastLine = state.src.substring(start);
-    state.src = remainingContent;
-
-    const paragraphOpen = state.push('paragraph_open', 'p', 1)
-    const textLine = state.push('inline', '', 0)
-    textLine.content = lastLine;
-    textLine.children = []
-    const paragraphClose = state.push('paragraph_close', 'p', -1)
-  };
-};
-
-// function myRule (state) {
-//   const iframeOpen = state.push('iframe_open', 'iframe', 1);
-//   iframeOpen.content = '<iframe width="560" height="315" src="https://www.youtube.com/embed/61lVNkvk9AU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen>';
-//   const iframeClose = state.push('iframe_close', 'iframe', -1);
-//   iframeClose.content = '</iframe>';
-//   // console.log('state.tokens: ', state.tokens);
-// };
-//
-// function iframeOpenRenderer (tokens, idx, options, env, self) {
-//   console.log('idx: ', idx);
-//   // console.log('tokens given to renderer', tokens);   
-//   const token = tokens[idx];
-//   console.log('token: ', token);
-//   return '<iframe width="560" height="315" src="https://www.youtube.com/embed/61lVNkvk9AU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen>'
-// };
-//
-// function iframeCloseRenderer (tokens, idx, options, env, self) {
-//   return '</iframe>';
-// };
 module.exports = {
   init (mdinst, conf) {
-    // mdinst.use(blockEmbedPlugin, { containerClassName: 'video-embed' });
-    // const input = "@[youtube](SXHsPKPD_eo)";
-    // const output = mdinst.render(input);
-    // console.log('output: ', output);
     mdinst.use((md, opts) => {
-      // md.block.ruler.before('paragraph', 'my_rule', myRule)
-      md.block.ruler.before('paragraph', 'include_last_token', includeLastToken)
-      md.block.ruler.before('paragraph', 'time_block', timeBlock)
-      md.block.ruler.before('paragraph', 'video', videoBlock)
-      // md.renderer.rules.inline = () => 'test';
-      // md.renderer.rules.iframe_open = iframeOpenRenderer;
-      // md.renderer.rules.iframe_close = iframeCloseRenderer;
+      md.block.ruler.at('paragraph', timeBlock)
+
+      md.core.ruler.push('new_rule', (state) => {
+        // page content
+        const pageContentOpen = new state.Token('div_open', 'div', 1);
+        pageContentOpen.attrs = [ [ 'id', 'page-content' ] ]
+
+        const pageTitleContainerOpen = new state.Token('div_open', 'div', 1);
+        pageTitleContainerOpen.attrs = [ [ 'class', 'title-container' ] ]
+        const pageTitleContainerClose = new state.Token('div_close', 'div', -1);
+
+        const pageTextOpen = new state.Token('div_open', 'div', 1);
+        pageTextOpen.attrs = [ [ 'id', 'page-text' ] ]
+        const pageText = state.tokens.filter(t => !(t.type.includes('video') || t.type.includes('slide')));
+        const pageTextClose = new state.Token('div_close', 'div', -1);
+
+        const pageContentClose = new state.Token('div_close', 'div', -1);
+
+
+        // page slides
+        const pageSlidersOpen = new state.Token('div_open', 'div', 1);
+        pageSlidersOpen.attrs = [ [ 'id', 'page-sliders' ] ]
+        const pageSlidersClose = new state.Token('div_close', 'div', -1);
+
+        // slides
+        const slides = state.tokens.reduce((acc, curr, idx) => {
+          if (curr.content.slice(0, 2) === '![') {
+            return [ ...acc, [ state.tokens[idx - 1], curr, state.tokens[idx + 1] ] ];
+          };
+          return acc;
+        }, []).flat();
+
+
+        state.tokens = [
+          pageContentOpen,
+          pageTitleContainerOpen,
+          pageTitleContainerClose,
+          pageTextOpen,
+          ...pageText,
+          pageTextClose,
+          pageContentClose,
+          pageSlidersOpen,
+          ...state.tokens.filter(t => t.type.includes('video_')),
+          ...slides,
+          pageSlidersClose
+        ];
+        // console.log('=============', state.tokens);
+      })
+      // console.log('CORE', md.core.ruler.__rules__);
     })
   }
 }
