@@ -1,4 +1,3 @@
-const { videoBlock } = require('./video-parser');
 const { timeBlock } = require('./timestamp-parser');
 
 module.exports = {
@@ -24,9 +23,9 @@ module.exports = {
 
 
         // page slides
-        const pageSlidersOpen = new state.Token('div_open', 'div', 1);
-        pageSlidersOpen.attrs = [ [ 'id', 'page-sliders' ] ]
-        const pageSlidersClose = new state.Token('div_close', 'div', -1);
+        const pageSlidesOpen = new state.Token('div_open', 'div', 1);
+        pageSlidesOpen.attrs = [ [ 'id', 'page-slides' ] ]
+        const pageSlidesClose = new state.Token('div_close', 'div', -1);
 
         // slides
         const slides = state.tokens.reduce((acc, curr, idx) => {
@@ -36,6 +35,13 @@ module.exports = {
           return acc;
         }, []).flat();
 
+        // video
+        const video = state.tokens.filter(t => t.type.includes('video_'));
+
+        const pageSlidesOptionsOpen = new state.Token('div_open', 'div', 1);
+        const pageSlidesOptionsClose = new state.Token('div_close', 'div', -1);
+        const pageSlidesContentOpen = new state.Token('div_open', 'div', 1);
+        const pageSlidesContentClose = new state.Token('div_close', 'div', -1);
 
         state.tokens = [
           pageContentOpen,
@@ -45,10 +51,14 @@ module.exports = {
           ...pageText,
           pageTextClose,
           pageContentClose,
-          pageSlidersOpen,
-          ...state.tokens.filter(t => t.type.includes('video_')),
+          pageSlidesOpen,
+          pageSlidesOptionsOpen,
+          pageSlidesOptionsClose,
+          pageSlidesContentOpen,
+          ...video,
           ...slides,
-          pageSlidersClose
+          pageSlidesContentClose,
+          pageSlidesClose
         ];
         // console.log('=============', state.tokens);
       })
