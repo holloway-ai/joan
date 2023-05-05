@@ -9,6 +9,7 @@ function sanitizeContentElements (arr) {
     // omit empty strings and same values
     if (isFirstIndex && emptyString) return acc;
     if (!isFirstIndex && (emptyString || sameAsLast)) return acc;
+    // if (isCustomStyle) return acc;
 
     return [ ...acc, curr ]
   }, []).map(el => {
@@ -18,9 +19,13 @@ function sanitizeContentElements (arr) {
 };
 
 function generateSpans (contents, Token) {
+  // console.log('contents: ', contents);
   return contents.reduce((acc, curr, idx) => {
     const isFirst = idx === 0;
     const isLast = idx === contents.length - 1;
+    const isCustomStyle = curr[0] === '{' && curr[curr.length - 1] === '}';
+
+    if (isCustomStyle) return acc;
 
     if (typeof curr === 'number') {
 
@@ -90,7 +95,6 @@ function getUrls (src) {
 };
 
 function timeBlock (state, startLine) {
-  console.log('state: ', state);
   // this is the default 'paragraph' rule implementation
   let content, terminate, i, l, token, oldParentType,
       nextLine = startLine + 1,
@@ -136,11 +140,15 @@ function timeBlock (state, startLine) {
 
   state.parentType = oldParentType;
 
-  // adding token with the title of the page
-  
-  // const title = state.push('heading_open', 'h1', 1);
-  // title.content = state.env.title;
-  // state.push('heading_close', 'h1', -1);
+  // adding class to paragraph
+
+  const paragraphs = state.tokens.filter(t => t.type === 'paragraph_open');
+
+  paragraphs.forEach((t, idx) => {
+    if (t.type === 'paragraph_open') {
+      t.attrs = [ [ 'class', 'content' ], [ 'id', idx ] ]
+    };
+  })
 
   // thumbnail parser
 

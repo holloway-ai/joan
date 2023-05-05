@@ -97,7 +97,10 @@ export default {
   },
   methods: {
     selectEditor (name) {
-      this.currentEditor = `editor${_.startCase(name)}`
+      const currentLocation = new URLSearchParams(window.location.search);
+      const params = Object.fromEntries(currentLocation.entries());
+      // console.log(params);
+      this.currentEditor = `editor${_.startCase(params.editor)}`
       this.isShown = false
     },
     goBack () {
@@ -113,6 +116,12 @@ export default {
         window.location.assign(`/e/${this.locale}/${this.path}?from=${id}`)
       })
     }
+  },
+  mounted () {
+    const currentLocation = new URLSearchParams(window.location.search);
+    const params = Object.fromEntries(currentLocation.entries());
+    // console.log(params);
+    this.currentEditor = `editor${_.startCase(params.editor)}`
   }
 }
 </script>
