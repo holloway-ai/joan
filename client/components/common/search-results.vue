@@ -118,6 +118,7 @@ export default {
     }
   },
   mounted() {
+    console.log('search results mounted');
     this.$root.$on('searchMove', (dir) => {
       this.cursor += ((dir === 'up') ? -1 : 1)
       if (this.cursor < -1) {

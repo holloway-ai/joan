@@ -9,7 +9,6 @@ function sanitizeContentElements (arr) {
     // omit empty strings and same values
     if (isFirstIndex && emptyString) return acc;
     if (!isFirstIndex && (emptyString || sameAsLast)) return acc;
-    // if (isCustomStyle) return acc;
 
     return [ ...acc, curr ]
   }, []).map(el => {
@@ -61,15 +60,6 @@ function generateSpans (contents, Token) {
   }, []);
 };
 
-function getSectionTimestampsOld (src) {
-  const TIMESTAMP_MARK_RAW = String.raw`{~([^}]*(?:\d*(?:\.\d+)?)[^}]*)}`;
-  const lookahead = `${TIMESTAMP_MARK_RAW}(?=(?:(?!${TIMESTAMP_MARK_RAW})[^])*(?:^##.+|(?![^])))`;;
-  const lookbehind = `(?<=^##.+$(?:(?!${TIMESTAMP_MARK_RAW})[^])*)${TIMESTAMP_MARK_RAW}`;
-  const sectionTimestamps = new RegExp(`${lookbehind}|${lookahead}`, 'gm');
-
-  return src.matchAll(sectionTimestamps);
-};
-
 function getSectionTimestamps(str) {
   const timestamps = `\n${str}`.split('\n## ')
     .map(x => [...x.matchAll(/\{~(\d|\.)*\}/g)].map(x => x[0]))
@@ -88,11 +78,6 @@ function getSectionTimestamps(str) {
 
   return groupedTimestamps;
 }
-
-function getUrls (src) {
-  console.log(src);
-  return src.split('![')
-};
 
 function timeBlock (state, startLine) {
   // this is the default 'paragraph' rule implementation
