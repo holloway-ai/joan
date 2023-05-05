@@ -11,8 +11,13 @@ function sanitizeContentElements (arr) {
     const emptyString = curr === ''
 
     // omit empty strings and same values
+<<<<<<< HEAD
     if (isFirstIndex && emptyString) return acc
     if (!isFirstIndex && (emptyString || sameAsLast)) return acc
+=======
+    if (isFirstIndex && emptyString) return acc;
+    if (!isFirstIndex && (emptyString || sameAsLast)) return acc;
+>>>>>>> 0ff14912 (page redesign implementation at 80%)
 
     return [ ...acc, curr ]
   }, []).map(el => {
@@ -63,6 +68,7 @@ function generateSpans (contents, Token) {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 function timeBlock (state, startLine) {
   // this is the default 'paragraph' rule implementation
   let content; let terminate; let i; let l; let token; let oldParentType
@@ -79,6 +85,8 @@ function getSectionTimestampsOld (src) {
   return src.matchAll(sectionTimestamps);
 };
 
+=======
+>>>>>>> 0ff14912 (page redesign implementation at 80%)
 function getSectionTimestamps(str) {
   const timestamps = `\n${str}`.split('\n## ')
     .map(x => [...x.matchAll(/\{~(\d|\.)*\}/g)].map(x => x[0]))
@@ -97,11 +105,6 @@ function getSectionTimestamps(str) {
 
   return groupedTimestamps;
 }
-
-function getUrls (src) {
-  console.log(src);
-  return src.split('![')
-};
 
 function timeBlock (state, startLine) {
   console.log('state: ', state);
