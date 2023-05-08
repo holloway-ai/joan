@@ -18,7 +18,6 @@ function sanitizeContentElements (arr) {
 };
 
 function generateSpans (contents, Token) {
-  // console.log('contents: ', contents);
   return contents.reduce((acc, curr, idx) => {
     const isFirst = idx === 0;
     const isLast = idx === contents.length - 1;
@@ -59,25 +58,6 @@ function generateSpans (contents, Token) {
     };
   }, []);
 };
-
-function getSectionTimestamps(str) {
-  const timestamps = `\n${str}`.split('\n## ')
-    .map(x => [...x.matchAll(/\{~(\d|\.)*\}/g)].map(x => x[0]))
-    .map(x => [x[0], x.slice(-1)]).flat(2).filter(x => x)
-    .map(x => +x.replace(/[\{\}~]/g, ''));
-
-  const groupedTimestamps = timestamps.reduce((acc, curr, idx) => {
-    if (idx % 2 === 0) {
-      return [ ...acc, { dataStart: curr } ]
-    } else {
-      const arr = [ ...acc ];
-      arr[ acc.length - 1 ].dataEnd = curr
-      return arr;
-    };
-  }, []);
-
-  return groupedTimestamps;
-}
 
 function timeBlock (state, startLine) {
   // this is the default 'paragraph' rule implementation
@@ -137,17 +117,24 @@ function timeBlock (state, startLine) {
 
   // thumbnail parser
 
-  const sectionTimestamps = getSectionTimestamps(state.src);
-  
+  const isVideoPage = state.src.includes('?[video]');
+  if (!isVideoPage) return true;
+
   state.tokens.forEach((t, idx) => {
     if (t.content.slice(0, 2) === '![') {
-      const imgAlt = t.content.slice(t.content.indexOf('[') + 1, t.content.indexOf(']')).trim();
+      const haveTimestamp = t.content.match(TIME_STAMP_MARK);
+      const imgAlt = t.content.slice(t.content.indexOf('[') + 1, haveTimestamp ? t.content.indexOf('{') : t.content.indexOf(']')).trim();
       const imgAltSanitized = imgAlt.toLowerCase().replaceAll(' ', '-');
       const imgSrc = t.content.slice(t.content.indexOf('(') + 1, t.content.indexOf(')'));
+      const slideTimestamp = t.content.slice(t.content.indexOf('~') + 1, t.content.indexOf('}'));
 
       state.tokens[idx - 1].type = 'slide_open';
       state.tokens[idx - 1].tag = 'div';
-      state.tokens[idx - 1].attrs = [ [ 'class', 'slide' ], [ 'data-id', imgAltSanitized ] ];
+      state.tokens[idx - 1].attrs = [
+        [ 'class', 'slide' ], 
+        [ 'data-id', imgAltSanitized ],
+        ...haveTimestamp ? [ [ 'data-start', slideTimestamp ] ] : []
+      ];
 
       t.type = 'slide_content';
       t.tag = 'img';
@@ -157,14 +144,6 @@ function timeBlock (state, startLine) {
       state.tokens[idx + 1].type = 'slide_close';
       state.tokens[idx + 1].tag = 'div';
     };
-  })
-
-  state.tokens.filter(t => t.type === 'slide_open').forEach((t, idx) => {
-    t.attrs = [
-      ...t.attrs,
-      [ 'data-start', sectionTimestamps[idx].dataStart ], 
-      [ 'data-end', sectionTimestamps[idx].dataEnd ] 
-    ]
   })
 
   // timestamp parser
@@ -249,7 +228,6 @@ function timeBlock (state, startLine) {
       [ 'type', `video/${videoType}` ] 
     ]
     state.push('video_close', 'video', -1)
-
     state.push('video_container_close', 'div', -1)
   };
 
