@@ -58,7 +58,6 @@
 import _ from 'lodash'
 import { getHash } from '../../helpers/utils'
 import { sync } from 'vuex-pathify'
-import { getHash } from '../../helpers/utils'
 import { OrbitSpinner } from 'epic-spinners'
 
 import searchPagesQuery from 'gql/common/common-pages-query-search.gql'
@@ -192,7 +191,7 @@ export default {
 <style lang="scss">
 .search-results {
   position: fixed;
-  top: 64px;
+  top: 100px;
   left: 0;
   overflow-y: auto;
   width: 100%;

@@ -40,6 +40,15 @@
     <path d="M14 6H17C19.973 6 22.441 8.16229 22.917 11H23V12C23 15.3137 20.3137 18 17 18H14V16H17C19.2091 16 21 14.2091 21 12C21 9.79086 19.2091 8 17 8H14V6Z" fill="black"/>
     <path d="M7 11L17 11V13L7 13V11Z" fill="black"/>
   </svg>
+  <svg v-else-if="name === 'expand'" width="10" height="16" viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8.00015 0.585693L0.585938 7.99991L8.00015 15.4141L9.41436 13.9999L3.41436 7.99991L9.41436 1.99991L8.00015 0.585693Z" fill="black"/>
+  </svg>
+  <svg v-else-if="name === 'restore'" width="10" height="16" viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M1.99985 15.4143L9.41406 8.00009L1.99985 0.585881L0.585634 2.00009L6.58564 8.00009L0.585635 14.0001L1.99985 15.4143Z" fill="black"/>
+  </svg>
+  <svg v-else-if="name === 'page'" width="18" height="22" viewBox="0 0 18 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 0H11.4142L18 6.58579V22H0V0ZM2 2V20H16V8H10V2H2ZM12 3.41421L14.5858 6H12V3.41421Z" fill="black"/>
+  </svg>
 </template>
 
 <script>
