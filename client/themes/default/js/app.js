@@ -1,35 +1,11 @@
 /* THEME SPECIFIC JAVASCRIPT */
 window.onload = function () {
-  
   function attachEventListeners() {
     const video = document.querySelector("#presentationVideo");    
     const textContainer = document.querySelector('.text-container');
     const highlights = document.querySelectorAll("[data-start]");
-    
-    if (video) {      
-      window.addEventListener('scroll', function () {
-        const pageHeight = window.innerHeight;   
-        const isMobile = function () {
-          return window.innerWidth < 460;
-        }
-        if (!isMobile()) { 
-          if (window.pageYOffset > pageHeight * .4) {
-            video.classList.add("sticky");
-          } else {
-            video.classList.remove("sticky");
-          }  
-        } else {
-          if (window.pageYOffset > pageHeight * .4) {
-            video.classList.add("sticky");
-          } else {
-            video.classList.remove("sticky");
-          } 
-        }
-      })
-    }
 
     if (video && highlights.length > 0) {
-  		console.log(highlights);
       video.addEventListener("timeupdate", function () {
         const currentTime = video.currentTime;
 
@@ -43,16 +19,16 @@ window.onload = function () {
             highlight.classList.remove("highlighted");
           }
         });
- 
-          const highlightedSegment = document.querySelector(".highlighted");
 
-          if (textContainer && highlightedSegment) {
-            const textContainerRect = textContainer.getBoundingClientRect();
-            const highlightedSegmentRect = highlightedSegment.getBoundingClientRect();
-            const scrollToY = highlightedSegment.offsetTop - (textContainerRect.height / 2) + (highlightedSegmentRect.height / 2);
+        const highlightedSegment = document.querySelector(".highlighted");
 
-            textContainer.scrollTop = scrollToY;
-          }
+        if (textContainer && highlightedSegment) {
+          const textContainerRect = textContainer.getBoundingClientRect();
+          const highlightedSegmentRect = highlightedSegment.getBoundingClientRect();
+          const scrollToY = highlightedSegment.offsetTop - (textContainerRect.height / 2) + (highlightedSegmentRect.height / 2);
+
+          textContainer.scrollTop = scrollToY;
+        }
       });
 
       highlights.forEach(function (highlight) {

@@ -298,6 +298,7 @@ export default {
           locale: this.currentLocale
         }
       })
+      console.log('resp: ', resp);
       const items = _.get(resp, 'data.pages.tree', [])
       const itemFolders = _.filter(items, ['isFolder', true]).map(f => ({...f, children: []}))
       const itemPages = _.filter(items, i => i.pageId > 0)
