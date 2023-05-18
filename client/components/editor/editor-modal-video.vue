@@ -69,7 +69,7 @@ export default {
       this.activeModal = ''
     },
     async fetchVideo() {
-      const apiUrl = 'http://franzxaver.holloway.ai'
+      const apiUrl = 'https://franzxaver.holloway.ai'
       const auth = {
         headers: {
           'access_token': `joan`
