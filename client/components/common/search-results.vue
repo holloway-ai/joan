@@ -56,8 +56,8 @@
 
 <script>
 import _ from 'lodash'
-import { sync } from 'vuex-pathify'
 import { getHash } from '../../helpers/utils'
+import { sync } from 'vuex-pathify'
 import { OrbitSpinner } from 'epic-spinners'
 
 import searchPagesQuery from 'gql/common/common-pages-query-search.gql'
@@ -117,6 +117,7 @@ export default {
     }
   },
   mounted() {
+    console.log('search results mounted');
     this.$root.$on('searchMove', (dir) => {
       this.cursor += ((dir === 'up') ? -1 : 1)
       if (this.cursor < -1) {
@@ -190,7 +191,7 @@ export default {
 <style lang="scss">
 .search-results {
   position: fixed;
-  top: 64px;
+  top: 100px;
   left: 0;
   overflow-y: auto;
   width: 100%;
