@@ -114,6 +114,11 @@
       .editor-markdown-sidebar
         v-tooltip(right, color='teal')
           template(v-slot:activator='{ on }')
+            v-btn.mt-3.animated.fadeInLeft.wait-p2s(icon, tile, v-on='on', dark, @click='toggleModal(`editorVideoUpload`)').mx-0
+              v-icon mdi-video-plus
+          span {{ "Transcribe A Video" }}
+        v-tooltip(right, color='teal')
+          template(v-slot:activator='{ on }')
             v-btn.animated.fadeInLeft(icon, tile, v-on='on', dark, @click='insertLink').mx-0
               v-icon mdi-link-plus
           span {{$t('editor:markup.insertLink')}}
@@ -127,11 +132,6 @@
             v-btn.mt-3.animated.fadeInLeft.wait-p2s(icon, tile, v-on='on', dark, @click='toggleModal(`editorModalDrawio`)').mx-0
               v-icon mdi-chart-multiline
           span {{$t('editor:markup.insertDiagram')}}
-        v-tooltip(right, color='teal')
-          template(v-slot:activator='{ on }')
-            v-btn.mt-3.animated.fadeInLeft.wait-p2s(icon, tile, v-on='on', dark, @click='toggleModal(`editorVideoUpload`)').mx-0
-              v-icon mdi-video-plus
-          span {{ "Transcribe A Video" }}
         template(v-if='$vuetify.breakpoint.mdAndUp')
           v-spacer
           v-tooltip(right, color='teal')
@@ -220,7 +220,7 @@ import underline from '../../libs/markdown-it-underline'
 import 'katex/dist/contrib/mhchem'
 import twemoji from 'twemoji'
 import plantuml from './markdown/plantuml'
-import video from '../../../server/modules/rendering/markdown-video-parser/renderer'
+import video from './markdown/video/renderer'
 
 // Prism (Syntax Highlighting)
 import Prism from 'prismjs'

@@ -1,3 +1,12 @@
+# Joan 
+Fork of wiki.js with video support 
+
+## build 
+
+`docker build -t ghcr.io/holloway-ai/joan:0.1.2 -f dev/build/Dockerfile .`
+`docker create --name=wiki -e LETSENCRYPT_DOMAIN=joan.holloway.ai -e LETSENCRYPT_EMAIL=info@holloway.ai -e SSL_ACTIVE=1 -e DB_TYPE=postgres -e DB_HOST=db -e DB_PORT=5432 -e DB_PASS_FILE=/etc/wiki/.db-secret -v /etc/wiki/.db-secret:/etc/wiki/.db-secret:ro -e DB_USER=wiki -e DB_NAME=wiki -e UPGRADE_COMPANION=1 --restart=unless-stopped -h wiki --network=wikinet -p 80:3000 -p 443:3443 ghcr.io/holloway-ai/joan:0.1.2`
+
+
 <div align="center">
 
 <picture>

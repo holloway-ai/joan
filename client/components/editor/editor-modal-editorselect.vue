@@ -6,16 +6,16 @@
         .subtitle-1.white--text {{$t('editor:select.title')}}
         v-container(grid-list-lg, fluid)
           v-layout(row, wrap, justify-center)
-            v-flex(xs4)
-              v-card.radius-7.animated.fadeInUp.wait-p1s(
-                hover
-                light
-                ripple
-                )
-                v-card-text.text-center(@click='selectEditor("video")')
-                  img(src='/_assets/svg/editor-icon-markdown.svg', alt='Video', style='width: 36px;')
-                  .body-2.primary--text.mt-2 Video
-                  .caption.grey--text Transcribe a video
+            //- v-flex(xs4)
+            //-   v-card.radius-7.animated.fadeInUp.wait-p1s(
+            //-     hover
+            //-     light
+            //-     ripple
+            //-     )
+            //-     v-card-text.text-center(@click='selectEditor("video")')
+            //-       img(src='/_assets/svg/editor-icon-markdown.svg', alt='Video', style='width: 36px;')
+            //-       .body-2.primary--text.mt-2 Video
+            //-       .caption.grey--text Transcribe a video
             v-flex(xs4)
               v-card.radius-7.animated.fadeInUp.wait-p1s(
                 hover
