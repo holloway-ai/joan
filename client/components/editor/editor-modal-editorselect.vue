@@ -105,9 +105,13 @@ export default {
     }
   },
   mounted () {
-    const currentLocation = new URLSearchParams(window.location.search)
-    const params = Object.fromEntries(currentLocation.entries())
-    if (Object.keys(params).length) this.currentEditor = `editor${_.startCase(params.editor)}`
+    const currentLocation = new URLSearchParams(window.location.search);
+    const params = Object.fromEntries(currentLocation.entries());
+    if (Object.keys(params).length) {
+      this.currentEditor = `editor${_.startCase(params.editor)}`
+    } else {
+      this.currentEditor = `editor${_.startCase('markdown')}`
+    }
   }
 }
 </script>

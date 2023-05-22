@@ -12,6 +12,10 @@
     <path d="M10 11V13.5H12.5V15.5H10V18H8V15.5H5.5V13.5H8V11H10Z" fill="black"/>
     <path fill-rule="evenodd" clip-rule="evenodd" d="M0 0H11.4142L18 6.58579V22H0V0ZM2 2V20H16V8H10V2H2ZM12 3.41421L14.5858 6H12V3.41421Z" fill="black"/>
   </svg>
+  <svg v-else-if="name === 'save'" width="18" height="22" viewBox="0 0 18 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M13.4142 13L8 18.4142L4.58579 15L6 13.5858L8 15.5858L12 11.5858L13.4142 13Z" fill="black"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 0H11.4142L18 6.58579V22H0V0ZM2 2V20H16V8H10V2H2ZM12 3.41421L14.5858 6H12V3.41421Z" fill="black"/>
+  </svg>
   <svg v-else-if="name === 'edit-page'" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path fill-rule="evenodd" clip-rule="evenodd" d="M17.9992 0.585693L22.4134 4.99994L4.4134 22.999H0V18.5857L17.9992 0.585693ZM14.4993 6.91424L2 19.4141L2 20.999L3.58501 20.999L16.0849 8.49981L14.4993 6.91424ZM17.4991 7.08563L15.9135 5.49999L17.9992 3.41415L19.585 4.9999L17.4991 7.08563Z" fill="black"/>
     <path d="M21.999 22.9999L9.99896 22.9999V20.9999L21.999 20.9999V22.9999Z" fill="black"/>
@@ -27,8 +31,8 @@
   <svg v-else-if="name === 'book'" width="24" height="30" viewBox="0 0 24 30" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M21 0H3C1.35 0 0 1.35 0 3V27C0 28.65 1.35 30 3 30H21C22.65 30 24 28.65 24 27V3C24 1.35 22.65 0 21 0ZM3 3H10.5V15L6.75 12.75L3 15V3Z" fill="black"/>
   </svg>
-  <svg v-else-if="name === 'search'" :width="size" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M19.25 17H18.065L17.645 16.595C19.115 14.885 20 12.665 20 10.25C20 4.865 15.635 0.5 10.25 0.5C4.865 0.5 0.5 4.865 0.5 10.25C0.5 15.635 4.865 20 10.25 20C12.665 20 14.885 19.115 16.595 17.645L17 18.065V19.25L24.5 26.735L26.735 24.5L19.25 17ZM10.25 17C6.515 17 3.5 13.985 3.5 10.25C3.5 6.515 6.515 3.5 10.25 3.5C13.985 3.5 17 6.515 17 10.25C17 13.985 13.985 17 10.25 17Z" fill="black"/>
+  <svg v-else-if="name === 'search'" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 9C0 4.02944 4.02944 0 9 0C13.9706 0 18 4.02944 18 9C18 11.125 17.2635 13.078 16.0319 14.6177L22.4142 21L21 22.4142L14.6177 16.0319C13.078 17.2635 11.125 18 9 18C4.02944 18 0 13.9706 0 9ZM9 2C5.13401 2 2 5.13401 2 9C2 12.866 5.13401 16 9 16C12.866 16 16 12.866 16 9C16 5.13401 12.866 2 9 2Z" fill="black"/>
   </svg>
   <svg v-else-if="name === 'more'" width="4" height="18" viewBox="0 0 4 18" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M0 18V14H4V18H0Z" fill="black"/>
@@ -48,6 +52,31 @@
   </svg>
   <svg v-else-if="name === 'page'" width="18" height="22" viewBox="0 0 18 22" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path fill-rule="evenodd" clip-rule="evenodd" d="M0 0H11.4142L18 6.58579V22H0V0ZM2 2V20H16V8H10V2H2ZM12 3.41421L14.5858 6H12V3.41421Z" fill="black"/>
+  </svg>
+  <svg v-else-if="name === 'preview'" width="22" height="20" viewBox="0 0 22 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M11 1.51569C9.56981 0.558586 7.8491 0 6 0C3.87259 0 1.91514 0.739382 0.37453 1.97438L0 2.27462V19.0879L1.62547 17.7849C2.82406 16.8241 4.34362 16.25 6 16.25C7.65638 16.25 9.17594 16.8241 10.3745 17.7849L11 18.2863L11.6255 17.7849C12.8241 16.8241 14.3436 16.25 16 16.25C17.6564 16.25 19.1759 16.8241 20.3745 17.7849L22 19.0879V2.27462L21.6255 1.97438C20.0849 0.739382 18.1274 0 16 0C14.1509 0 12.4302 0.558586 11 1.51569ZM2 3.25457V15.1858C3.20526 14.5869 4.56391 14.25 6 14.25C7.43609 14.25 8.79474 14.5869 10 15.1858V3.25457C8.8662 2.46348 7.48833 2 6 2C4.51167 2 3.1338 2.46348 2 3.25457ZM12 3.25457V15.1858C13.2053 14.5869 14.5639 14.25 16 14.25C17.4361 14.25 18.7947 14.5869 20 15.1858V3.25457C18.8662 2.46348 17.4883 2 16 2C14.5117 2 13.1338 2.46348 12 3.25457Z" fill="black"/>
+  </svg>
+  <svg v-else-if="name === 'bold'" width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M9.1 6.79C10.07 6.12 10.75 5.02 10.75 4C10.75 1.74 9 0 6.75 0H0.5V14H7.54C9.63 14 11.25 12.3 11.25 10.21C11.25 8.69 10.39 7.39 9.1 6.79ZM3.5 2.5H6.5C7.33 2.5 8 3.17 8 4C8 4.83 7.33 5.5 6.5 5.5H3.5V2.5ZM7 11.5H3.5V8.5H7C7.83 8.5 8.5 9.17 8.5 10C8.5 10.83 7.83 11.5 7 11.5Z" fill="black"/>
+  </svg>
+  <svg v-else-if="name === 'italic'" width="13" height="14" viewBox="0 0 13 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4.5 0V3H6.71L3.29 11H0.5V14H8.5V11H6.29L9.71 3H12.5V0H4.5Z" fill="black"/>
+  </svg>
+  <svg v-else-if="name === 'unordered-list'" width="19" height="16" viewBox="0 0 19 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M1.5 6.5C0.67 6.5 0 7.17 0 8C0 8.83 0.67 9.5 1.5 9.5C2.33 9.5 3 8.83 3 8C3 7.17 2.33 6.5 1.5 6.5ZM1.5 0.5C0.67 0.5 0 1.17 0 2C0 2.83 0.67 3.5 1.5 3.5C2.33 3.5 3 2.83 3 2C3 1.17 2.33 0.5 1.5 0.5ZM1.5 12.5C0.67 12.5 0 13.18 0 14C0 14.82 0.68 15.5 1.5 15.5C2.32 15.5 3 14.82 3 14C3 13.18 2.33 12.5 1.5 12.5ZM4.5 15H18.5V13H4.5V15ZM4.5 9H18.5V7H4.5V9ZM4.5 1V3H18.5V1H4.5Z" fill="black"/>
+  </svg>
+  <svg v-else-if="name === 'ordered-list'" width="20" height="16" viewBox="0 0 20 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0.5 13H2.5V13.5H1.5V14.5H2.5V15H0.5V16H3.5V12H0.5V13ZM1.5 4H2.5V0H0.5V1H1.5V4ZM0.5 7H2.3L0.5 9.1V10H3.5V9H1.7L3.5 6.9V6H0.5V7ZM5.5 1V3H19.5V1H5.5ZM5.5 15H19.5V13H5.5V15ZM5.5 9H19.5V7H5.5V9Z" fill="black"/>
+  </svg>
+  <svg v-else-if="name === 'diagram'" width="23" height="20" viewBox="0 0 23 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M0.5 0H22.5V8H6.5V15H10.5V12H22.5V20H10.5V17H4.5V8H0.5V0ZM12.5 18H20.5V14H12.5V18ZM2.5 2V6H20.5V2H2.5Z" fill="black"/>
+  </svg>
+  <svg v-else-if="name === 'asset'" width="22" height="21" viewBox="0 0 22 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18.5 0V3H21.5V5H18.5V8H16.5V5H13.5V3H16.5V0H18.5Z" fill="black"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M0.5 1H11.5V3H2.5V16.5858L8.5 10.5858L12 14.0858L14.5 11.5858L18.5 15.5858V10H20.5V21H0.5V1ZM18.5 18.4142L14.5 14.4142L13.4142 15.5L16.9142 19H18.5V18.4142ZM14.0858 19L8.5 13.4142L2.91421 19H14.0858Z" fill="black"/>
+  </svg>
+  <svg v-else-if="name === 'dropdown'" width="13" height="8" viewBox="0 0 13 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M1.91 0.589844L6.5 5.16984L11.09 0.589844L12.5 1.99984L6.5 7.99984L0.5 1.99984L1.91 0.589844Z" fill="black"/>
   </svg>
 </template>
 

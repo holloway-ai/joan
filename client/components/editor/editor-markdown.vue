@@ -1,173 +1,308 @@
 <template lang='pug'>
   .editor-markdown
-    v-toolbar.editor-markdown-toolbar(dense, dark, flat, style='overflow-x: hidden;')
+    v-toolbar.editor-markdown-toolbar(flat, height="80")
       template(v-if='isModalShown')
         v-spacer
         v-btn.animated.fadeInRight(text, @click='closeAllModal')
           v-icon(left) mdi-arrow-left-circle
           span {{$t('editor:backToEditor')}}
-      template(v-else)
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn(icon, tile, v-on='on', @click='toggleMarkup({ start: `**` })').mx-0
-              v-icon mdi-format-bold
-          span {{$t('editor:markup.bold')}}
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn.wait-p1s(icon, tile, v-on='on', @click='toggleMarkup({ start: `*` })').mx-0
-              v-icon mdi-format-italic
-          span {{$t('editor:markup.italic')}}
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn.wait-p2s(icon, tile, v-on='on', @click='toggleMarkup({ start: `~~` })').mx-0
-              v-icon mdi-format-strikethrough
-          span {{$t('editor:markup.strikethrough')}}
-        v-menu(offset-y, open-on-hover)
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn.wait-p3s(icon, tile, v-on='on').mx-0
-              v-icon mdi-format-header-pound
-          v-list.py-0
-            template(v-for='(n, idx) in 6')
-              v-list-item(@click='setHeaderLine(n)', :key='idx')
-                v-list-item-action
-                  v-icon(:size='24 - (idx - 1) * 2') mdi-format-header-{{n}}
-                <!-- v-list-item-title {{$t('editor:markup.heading', { level: n })}} -->
-              v-divider(v-if='idx < 5')
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn.wait-p4s(icon, tile, v-on='on', @click='toggleMarkup({ start: `~` })').mx-0
-              v-icon mdi-format-subscript
-          span {{$t('editor:markup.subscript')}}
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn.wait-p5s(icon, tile, v-on='on', @click='toggleMarkup({ start: `^` })').mx-0
-              v-icon mdi-format-superscript
-          span {{$t('editor:markup.superscript')}}
-        v-menu(offset-y, open-on-hover)
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn.wait-p6s(icon, tile, v-on='on').mx-0
-              v-icon mdi-alpha-t-box-outline
-          v-list.py-0
-            v-list-item(@click='insertBeforeEachLine({ content: `> `})')
-              v-list-item-action
-                v-icon mdi-alpha-t-box-outline
-              v-list-item-title {{$t('editor:markup.blockquote')}}
-            v-divider
-            v-list-item(@click='insertBeforeEachLine({ content: `> `, after: `{.is-info}`})')
-              v-list-item-action
-                v-icon(color='blue') mdi-alpha-i-box-outline
-              v-list-item-title {{$t('editor:markup.blockquoteInfo')}}
-            v-divider
-            v-list-item(@click='insertBeforeEachLine({ content: `> `, after: `{.is-success}`})')
-              v-list-item-action
-                v-icon(color='success') mdi-alpha-s-box-outline
-              v-list-item-title {{$t('editor:markup.blockquoteSuccess')}}
-            v-divider
-            v-list-item(@click='insertBeforeEachLine({ content: `> `, after: `{.is-warning}`})')
-              v-list-item-action
-                v-icon(color='warning') mdi-alpha-w-box-outline
-              v-list-item-title {{$t('editor:markup.blockquoteWarning')}}
-            v-divider
-            v-list-item(@click='insertBeforeEachLine({ content: `> `, after: `{.is-danger}`})')
-              v-list-item-action
-                v-icon(color='error') mdi-alpha-e-box-outline
-              v-list-item-title {{$t('editor:markup.blockquoteError')}}
-            v-divider
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn.wait-p7s(icon, tile, v-on='on', @click='insertBeforeEachLine({ content: `- `})').mx-0
-              v-icon mdi-format-list-bulleted
-          span {{$t('editor:markup.unorderedList')}}
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn.wait-p8s(icon, tile, v-on='on', @click='insertBeforeEachLine({ content: `1. `})').mx-0
-              v-icon mdi-format-list-numbered
-          span {{$t('editor:markup.orderedList')}}
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn.wait-p9s(icon, tile, v-on='on', @click='toggleMarkup({ start: "`" })').mx-0
-              v-icon mdi-code-tags
-          span {{$t('editor:markup.inlineCode')}}
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn.wait-p10s(icon, tile, v-on='on', @click='toggleMarkup({ start: `<kbd>`, end: `</kbd>` })').mx-0
-              v-icon mdi-keyboard-variant
-          span {{$t('editor:markup.keyboardKey')}}
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn.wait-p11s(icon, tile, v-on='on', @click='insertAfter({ content: `---`, newLine: true })').mx-0
-              v-icon mdi-minus
-          span {{$t('editor:markup.horizontalBar')}}
-        template(v-if='$vuetify.breakpoint.mdAndUp')
-          v-spacer
-          v-tooltip(bottom, color='primary', v-if='previewShown')
+      v-layout.row(v-else, justify-space-between)
+        .d-flex(gap="20px")
+          v-btn(
+            icon
+            @click="goToPreview"
+            :class="viewMode === 'preview' ? 'activeView' : ''"
+            )
+            icon(name="preview")
+          v-btn(
+            icon
+            @click="goToEdit"
+            :class="viewMode === 'edit' ? 'activeView' : ''"
+            )
+            icon(name="edit-page")
+          v-btn(
+            icon
+            @click="goToSettings"
+            :class="viewMode === 'settings' ? 'activeView' : ''"
+            )
+            icon(name="settings")
+        .d-flex.align-center(v-if="viewMode === 'edit'")
+          v-menu(offset-y, open-on-hover)
             template(v-slot:activator='{ on }')
-              v-btn.animated.fadeIn.wait-p1s(icon, tile, v-on='on', @click='spellModeActive = !spellModeActive').mx-0
-                v-icon mdi-spellcheck
-            span {{$t('editor:markup.toggleSpellcheck')}}
+              v-btn.mx-0.heading-dropdown(color="rgba(0, 0, 0, 0)", plain, depressed, v-on='on') Headline
+                <!-- v-icon mdi-format-header-pound -->
+                icon.ml-3(name="dropdown")
+            v-list.py-0()
+              template(v-for='(n, idx) in 6')
+                v-list-item(@click='setHeaderLine(n)', :key='idx')
+                  v-list-item-action
+                    v-icon(:size='24 - (idx - 1) * 2') mdi-format-header-{{n}}
+                  <!-- v-list-item-title {{$t('editor:markup.heading', { level: n })}} -->
+                v-divider(v-if='idx < 5')
+          v-divider(vertical)
           v-tooltip(bottom, color='primary')
             template(v-slot:activator='{ on }')
-              v-btn.animated.fadeIn.wait-p2s(icon, tile, v-on='on', @click='previewShown = !previewShown').mx-0
-                v-icon mdi-book-open-outline
-            span {{$t('editor:markup.togglePreviewPane')}}
-    .editor-markdown-main
-      .editor-markdown-sidebar
-        v-tooltip(right, color='teal')
-          template(v-slot:activator='{ on }')
-            v-btn.mt-3.animated.fadeInLeft.wait-p2s(icon, tile, v-on='on', dark, @click='toggleModal(`editorVideoUpload`)').mx-0
-              v-icon mdi-video-plus
-          span {{ "Transcribe A Video" }}
-        v-tooltip(right, color='teal')
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeInLeft(icon, tile, v-on='on', dark, @click='insertLink').mx-0
-              v-icon mdi-link-plus
-          span {{$t('editor:markup.insertLink')}}
-        v-tooltip(right, color='teal')
-          template(v-slot:activator='{ on }')
-            v-btn.mt-3.animated.fadeInLeft.wait-p1s(icon, tile, v-on='on', dark, @click='toggleModal(`editorModalMedia`)').mx-0
-              v-icon(:color='activeModal === `editorModalMedia` ? `teal` : ``') mdi-folder-multiple-image
-          span {{$t('editor:markup.insertAssets')}}
-        v-tooltip(right, color='teal')
-          template(v-slot:activator='{ on }')
-            v-btn.mt-3.animated.fadeInLeft.wait-p2s(icon, tile, v-on='on', dark, @click='toggleModal(`editorModalDrawio`)').mx-0
-              v-icon mdi-chart-multiline
-          span {{$t('editor:markup.insertDiagram')}}
-        template(v-if='$vuetify.breakpoint.mdAndUp')
-          v-spacer
-          v-tooltip(right, color='teal')
+              v-btn(icon, tile, plain, v-on='on', @click='toggleMarkup({ start: `**` })').mx-0
+                icon(name="bold")
+            span {{$t('editor:markup.bold')}}
+          v-tooltip(bottom, color='primary')
             template(v-slot:activator='{ on }')
-              v-btn.mt-3.animated.fadeInLeft.wait-p3s(icon, tile, v-on='on', dark, @click='toggleFullscreen').mx-0
-                v-icon mdi-arrow-expand-all
-            span {{$t('editor:markup.distractionFreeMode')}}
-          v-tooltip(right, color='teal')
+              v-btn(icon, tile, v-on='on', @click='toggleMarkup({ start: `*` })').mx-0
+                icon(name="italic")
+            span {{$t('editor:markup.italic')}}
+          v-tooltip(bottom, color='primary')
             template(v-slot:activator='{ on }')
-              v-btn.mt-3.animated.fadeInLeft.wait-p4s(icon, tile, v-on='on', dark, @click='toggleHelp').mx-0
-                v-icon(:color='helpShown ? `teal` : ``') mdi-help-circle
-            span {{$t('editor:markup.markdownFormattingHelp')}}
-      .editor-markdown-editor
-        textarea(ref='cm')
-      transition(name='editor-markdown-preview')
-        .editor-markdown-preview(v-if='previewShown')
-          .editor-markdown-preview-content.contents(ref='editorPreviewContainer')
-            div(
-              ref='editorPreview'
-              v-html='previewHTML'
-              :spellcheck='spellModeActive'
-              :contenteditable='spellModeActive'
-              @blur='spellModeActive = false'
-              )
+              v-btn(icon, tile, v-on='on', @click='toggleMarkup({ start: `~~` })').mx-0
+                v-icon mdi-format-strikethrough
+            span {{$t('editor:markup.strikethrough')}}
+          v-tooltip(bottom, color='primary')
+            template(v-slot:activator='{ on }')
+              v-btn(icon, tile, v-on='on', @click='toggleMarkup({ start: `~` })').mx-0
+                v-icon mdi-format-subscript
+            span {{$t('editor:markup.subscript')}}
+          v-tooltip(bottom, color='primary')
+            template(v-slot:activator='{ on }')
+              v-btn(icon, tile, v-on='on', @click='toggleMarkup({ start: `^` })').mx-0
+                v-icon mdi-format-superscript
+            span {{$t('editor:markup.superscript')}}
+          v-menu(offset-y, open-on-hover)
+            template(v-slot:activator='{ on }')
+              v-btn(icon, tile, v-on='on').mx-0
+                v-icon mdi-alpha-t-box-outline
+            v-list.py-0
+              v-list-item(@click='insertBeforeEachLine({ content: `> `})')
+                v-list-item-action
+                  v-icon mdi-alpha-t-box-outline
+                v-list-item-title {{$t('editor:markup.blockquote')}}
+              v-divider
+              v-list-item(@click='insertBeforeEachLine({ content: `> `, after: `{.is-info}`})')
+                v-list-item-action
+                  v-icon(color='blue') mdi-alpha-i-box-outline
+                v-list-item-title {{$t('editor:markup.blockquoteInfo')}}
+              v-divider
+              v-list-item(@click='insertBeforeEachLine({ content: `> `, after: `{.is-success}`})')
+                v-list-item-action
+                  v-icon(color='success') mdi-alpha-s-box-outline
+                v-list-item-title {{$t('editor:markup.blockquoteSuccess')}}
+              v-divider
+              v-list-item(@click='insertBeforeEachLine({ content: `> `, after: `{.is-warning}`})')
+                v-list-item-action
+                  v-icon(color='warning') mdi-alpha-w-box-outline
+                v-list-item-title {{$t('editor:markup.blockquoteWarning')}}
+              v-divider
+              v-list-item(@click='insertBeforeEachLine({ content: `> `, after: `{.is-danger}`})')
+                v-list-item-action
+                  v-icon(color='error') mdi-alpha-e-box-outline
+                v-list-item-title {{$t('editor:markup.blockquoteError')}}
+              v-divider
+          v-divider(vertical)
+          v-tooltip(bottom, color='primary')
+            template(v-slot:activator='{ on }')
+              v-btn(icon, tile, v-on='on', @click='insertBeforeEachLine({ content: `- `})').mx-0
+                icon(name="unordered-list")
+            span {{$t('editor:markup.unorderedList')}}
+          v-tooltip(bottom, color='primary')
+            template(v-slot:activator='{ on }')
+              v-btn(icon, tile, v-on='on', @click='insertBeforeEachLine({ content: `1. `})').mx-0
+                icon(name="ordered-list")
+            span {{$t('editor:markup.orderedList')}}
+          v-divider(vertical)
+          v-tooltip(bottom, color='primary')
+            template(v-slot:activator='{ on }')
+              v-btn(icon, tile, v-on='on', @click='toggleMarkup({ start: "`" })').mx-0
+                v-icon mdi-code-tags
+            span {{$t('editor:markup.inlineCode')}}
+          v-tooltip(bottom, color='primary')
+            template(v-slot:activator='{ on }')
+              v-btn(icon, tile, v-on='on', @click='toggleMarkup({ start: `<kbd>`, end: `</kbd>` })').mx-0
+                v-icon mdi-keyboard-variant
+            span {{$t('editor:markup.keyboardKey')}}
+          v-tooltip(bottom, color='primary')
+            template(v-slot:activator='{ on }')
+              v-btn(icon, tile, v-on='on', @click='insertAfter({ content: `---`, newLine: true })').mx-0
+                v-icon mdi-minus
+            span {{$t('editor:markup.horizontalBar')}}
+          v-divider(vertical)
+          v-tooltip(bottom, color='primary')
+            template(v-slot:activator='{ on }')
+              v-btn(icon, tile, v-on='on', @click='toggleModal(`editorModalDrawio`)').mx-0
+                icon(name="diagram")
+            span Insert diagram
+          v-tooltip(bottom, color='primary')
+            template(v-slot:activator='{ on }')
+              v-btn(icon, tile, v-on='on', @click='toggleModal(`editorModalMedia`)').mx-0
+                icon(name="asset")
+            span Insert asset
+        .d-flex.align-center(v-if='$vuetify.breakpoint.mdAndUp')
+          <!-- v-tooltip(bottom, color='primary', v-if='previewShown') -->
+          <!--   template(v-slot:activator='{ on }') -->
+          <!--     v-btn.animated.fadeIn.wait-p1s(icon, tile, v-on='on', @click='spellModeActive = !spellModeActive').mx-0 -->
+          <!--       v-icon mdi-spellcheck -->
+          <!--   span {{$t('editor:markup.toggleSpellcheck')}} -->
+          v-btn.mr-3.animated.fadeIn(color='amber', outlined, small, v-if='isConflict', @click='openConflict')
+            .overline.amber--text.mr-3 Conflict
+            status-indicator(intermediary, pulse)
+          v-btn.pa-0.save-btn(
+            text
+            @click.exact='save'
+            :class='{ "is-icon": $vuetify.breakpoint.mdAndDown }'
+            )
+            span(v-if='$vuetify.breakpoint.lgAndUp && mode !== `create` && !isDirty') {{ $t('editor:save.saved') }}
+            <!-- span(v-else-if='$vuetify.breakpoint.lgAndUp') {{ mode === 'create' ? $t('common:actions.create') : $t('common:actions.save') }} -->
+            span(v-else-if='$vuetify.breakpoint.lgAndUp') {{ mode === 'create' ? 'Transcribe' : 'Save' }}
+            icon(name="save")
+          <!-- slot(name='actions') -->
+          <!-- v-tooltip(bottom, color='primary') -->
+          <!--   template(v-slot:activator='{ on }') -->
+          <!--     v-btn.animated.fadeIn.wait-p2s(icon, tile, v-on='on', @click='previewShown = !previewShown').mx-0 -->
+          <!--       v-icon mdi-book-open-outline -->
+          <!--   span {{$t('editor:markup.togglePreviewPane')}} -->
+    .editor-markdown-main(ref="editorMarkdownMain")
+      <!-- need to put these on the toolbar -->
 
-    v-system-bar.editor-markdown-sysbar(dark, status, color='grey darken-3')
-      .caption.editor-markdown-sysbar-locale {{locale.toUpperCase()}}
-      .caption.px-3 /{{path}}
-      template(v-if='$vuetify.breakpoint.mdAndUp')
-        v-spacer
-        .caption Markdown
-        v-spacer
-        .caption Ln {{cursorPos.line + 1}}, Col {{cursorPos.ch + 1}}
+      <!-- .editor-markdown-sidebar -->
+      <!--   v-tooltip(right, color='teal') -->
+      <!--     template(v-slot:activator='{ on }') -->
+      <!--       v-btn.animated.fadeInLeft(icon, tile, v-on='on', dark, @click='insertLink').mx-0 -->
+      <!--         v-icon mdi-link-plus -->
+      <!--     span {{$t('editor:markup.insertLink')}} -->
+      <!--   v-tooltip(right, color='teal') -->
+      <!--     template(v-slot:activator='{ on }') -->
+      <!--       v-btn.mt-3.animated.fadeInLeft.wait-p1s(icon, tile, v-on='on', dark, @click='toggleModal(`editorModalMedia`)').mx-0 -->
+      <!--         v-icon(:color='activeModal === `editorModalMedia` ? `teal` : ``') mdi-folder-multiple-image -->
+      <!--     span {{$t('editor:markup.insertAssets')}} -->
+      <!--   v-tooltip(right, color='teal') -->
+      <!--     template(v-slot:activator='{ on }') -->
+      <!--       v-btn.mt-3.animated.fadeInLeft.wait-p2s(icon, tile, v-on='on', dark, @click='toggleModal(`editorModalDrawio`)').mx-0 -->
+      <!--         v-icon mdi-chart-multiline -->
+      <!--     span {{$t('editor:markup.insertDiagram')}} -->
+      <!--   v-tooltip(right, color='teal') -->
+      <!--     template(v-slot:activator='{ on }') -->
+      <!--       v-btn.mt-3.animated.fadeInLeft.wait-p2s(icon, tile, v-on='on', dark, @click='toggleModal(`editorVideoUpload`)').mx-0 -->
+      <!--         v-icon mdi-video-plus -->
+      <!--     span {{ "Transcribe A Video" }} -->
+      <!--   template(v-if='$vuetify.breakpoint.mdAndUp') -->
+      <!--     v-spacer -->
+      <!--     v-tooltip(right, color='teal') -->
+      <!--       template(v-slot:activator='{ on }') -->
+      <!--         v-btn.mt-3.animated.fadeInLeft.wait-p3s(icon, tile, v-on='on', dark, @click='toggleFullscreen').mx-0 -->
+      <!--           v-icon mdi-arrow-expand-all -->
+      <!--       span {{$t('editor:markup.distractionFreeMode')}} -->
+      <!--     v-tooltip(right, color='teal') -->
+      <!--       template(v-slot:activator='{ on }') -->
+      <!--         v-btn.mt-3.animated.fadeInLeft.wait-p4s(icon, tile, v-on='on', dark, @click='toggleHelp').mx-0 -->
+      <!--           v-icon(:color='helpShown ? `teal` : ``') mdi-help-circle -->
+      <!--       span {{$t('editor:markup.markdownFormattingHelp')}} -->
+      .editor-markdown-editor(
+        :style="{ display: viewMode === 'edit' ? 'block' : 'none', height: contentHeight + 'px' }"
+      )
+        .editor-title-container.py-8.mb-6
+          v-text-field.editor-title-input(
+            solo
+            flat
+            v-model='currentPageTitle'
+            hide-details
+            full-width
+          )
+        textarea(ref='cm')
+      .editor-markdown-preview(
+        :style="{ display: viewMode === 'edit' || viewMode === 'preview' ? 'block' : 'none', height: contentHeight + 'px' }"
+      )
+        div(
+          ref='editorPreview'
+          v-html='previewHTML'
+          :spellcheck='spellModeActive'
+          :contenteditable='spellModeActive'
+          @blur='spellModeActive = false'
+        )
+      .editor-markdown-page-settings(
+        v-if="viewMode === 'settings'"
+        :style="{ display: viewMode === 'settings' ? 'flex' : none, height: contentHeight + 'px' }"
+      )
+        .page-settings-menu(:style="{ height: contentHeight + 'px' }")
+          v-list
+            v-list-item-group(
+              v-model="settingsTabs.active"
+            )
+              v-list-item(
+                v-for="(tab, idx) in settingsTabs.tabs"
+                :key="'setting-' + tab"
+                @click="goToSettingSection(tab + '-section')"
+              )
+                v-list-item-content
+                  v-list-item-title(v-text="tab.slice(0, 1).toUpperCase() + tab.slice(1)")
+        .page-settings-content(:style="{ height: contentHeight + 'px' }")
+          section.settings-section#page-section
+            h2 Page
+            .input-container
+              label(htmlFor="page-title") Title
+              input(
+                name="page-tile"
+                placeholder="Name of the document"
+                v-model="title"
+              )
+            .input-container
+              label(htmlFor="page-path") Path
+              .d-flex
+                input(
+                  name="page-path"
+                  placeholder="Path of the document"
+                  v-model="path"
+                )
+                .v-btn(text, @click="pageMove") Move
+          section.settings-section#video-section
+            h2 Video
+            .input-container
+              label(htmlFor="page-title") Source
+              .d-flex
+                input(
+                  name="video-source"
+                  placeholder="Https://..."
+                )
+                .v-btn(text, @click="uploadAttempt = true") Select local file
+          section.settings-section#access-section
+            h2 Access
+            .d-flex.align-center.justify-space-between.px-6
+              span(v-if="isPublic") Public
+              span(v-if="!isPublic") Private
+              v-switch(v-model="isPublic", inset)
+        page-selector(
+          mode='move'
+          v-model='movePageModal'
+          :open-handler='pageMoveRename'
+          :path='path'
+          :locale='locale'
+        )
+        v-dialog(v-model="isPrivate", width='500px', @click:outside="isPublic = true")
+          v-card
+            v-card-title subscription required
+            v-card-text A subscription plan is required to made pages private.
+            v-divider
+            v-card-actions
+              v-btn(text, @click.stop="isPublic = true") accept
+        v-dialog(v-model="uploadAttempt", width='500px', @click:outside="uploadAttempt = false")
+          v-card
+            v-card-title Upload your plan
+            <!-- v-card-text  -->
+            <!-- v-divider -->
+            v-card-actions
+              v-btn(text, @click.stop="uploadAttempt = false") accept
+        
+
+      <!-- #page-slides( -->
+      <!--   v-html='previewHTML' -->
+      <!-- ) -->
+
+    <!-- v-system-bar.editor-markdown-sysbar(dark, status, color='grey darken-3') -->
+    <!--   .caption.editor-markdown-sysbar-locale {{locale.toUpperCase()}} -->
+    <!--   .caption.px-3 /{{path}} -->
+    <!--   template(v-if='$vuetify.breakpoint.mdAndUp') -->
+    <!--     v-spacer -->
+    <!--     .caption Markdown -->
+    <!--     v-spacer -->
+    <!--     .caption Ln {{cursorPos.line + 1}}, Col {{cursorPos.ch + 1}} -->
 
     markdown-help(v-if='helpShown')
-    page-selector(mode='select', v-model='insertLinkDialog', :open-handler='insertLinkHandler', :path='path', :locale='locale')
 </template>
 
 <script>
@@ -176,6 +311,10 @@ import { get, sync } from 'vuex-pathify'
 import markdownHelp from './markdown/help.vue'
 import gql from 'graphql-tag'
 import DOMPurify from 'dompurify'
+import * as cheerio from 'cheerio'
+import { getElementSize } from '../../helpers/utils'
+import pageSelector from '../common/page-selector.vue'
+import movePageMutation from 'gql/common/common-pages-mutation-move.gql'
 
 /* global siteConfig, siteLangs */
 
@@ -220,7 +359,7 @@ import underline from '../../libs/markdown-it-underline'
 import 'katex/dist/contrib/mhchem'
 import twemoji from 'twemoji'
 import plantuml from './markdown/plantuml'
-// import video from '../../../server/modules/rendering/markdown-video-parser/renderer'
+import videoRenderer from './markdown/video/renderer'
 
 // Prism (Syntax Highlighting)
 import Prism from 'prismjs'
@@ -232,6 +371,8 @@ import mermaid from 'mermaid'
 import katexHelper from './common/katex'
 import tabsetHelper from './markdown/tabset'
 import cmFold from './common/cmFold'
+
+import Icon from '../icon'
 
 // ========================================
 // INIT
@@ -327,12 +468,6 @@ cmFold.register('markdown')
 plantuml.init(md, {})
 
 // ========================================
-// VIDEO MARKDOWN PARSER
-// ========================================
-
-// video.init(md, {})
-
-// ========================================
 // KATEX
 // ========================================
 
@@ -382,24 +517,58 @@ let mermaidId = 0
 
 export default {
   components: {
-    markdownHelp
+    markdownHelp,
+    Icon,
+    pageSelector,
   },
   props: {
     save: {
       type: Function,
       default: () => {}
-    }
+    },
+    saveAndClose: {
+      type: Function,
+      default: () => {}
+    },
+    exit: {
+      type: Function,
+      default: () => {}
+    },
+    exitGo: {
+      type: Function,
+      default: () => {}
+    },
   },
   data() {
     return {
       fabInsertMenu: false,
+      isConflict: false,
       cm: null,
       cursorPos: { ch: 0, line: 1 },
-      previewShown: true,
+      // previewShown: true,
+      movePageModal: false,
       previewHTML: '',
+      isPublic: true,
+      uploadAttempt: false,
       helpShown: false,
       spellModeActive: false,
-      insertLinkDialog: false
+      insertLinkDialog: false,
+      viewMode: 'edit',
+      contentHeight: 0,
+      settingsTabs: {
+        active: 0,
+        tabs: [ 'page', 'video', 'access' ]
+      },
+      savedState: {
+        description: '',
+        isPublished: false,
+        publishEndDate: '',
+        publishStartDate: '',
+        tags: '',
+        title: '',
+        css: '',
+        js: ''
+      }
     }
   },
   computed: {
@@ -412,7 +581,33 @@ export default {
     locale: get('page/locale'),
     path: get('page/path'),
     mode: get('editor/mode'),
-    activeModal: sync('editor/activeModal')
+    title: sync('page/title'),
+    path: sync('page/path'),
+    currentPageTitle: sync('page/title'),
+    mode: get('editor/mode'),
+    activeModal: sync('editor/activeModal'),
+    isDirty () {
+      return _.some([
+        this.initContentParsed !== this.$store.get('editor/content'),
+        this.locale !== this.$store.get('page/locale'),
+        this.path !== this.$store.get('page/path'),
+        this.savedState.title !== this.$store.get('page/title'),
+        this.savedState.description !== this.$store.get('page/description'),
+        this.savedState.tags !== this.$store.get('page/tags'),
+        this.savedState.isPublished !== this.$store.get('page/isPublished'),
+        this.savedState.publishStartDate !== this.$store.get('page/publishStartDate'),
+        this.savedState.publishEndDate !== this.$store.get('page/publishEndDate'),
+        this.savedState.css !== this.$store.get('page/scriptCss'),
+        this.savedState.js !== this.$store.get('page/scriptJs')
+      ], Boolean)
+    },
+    isPrivate() {
+      if (!this.isPublic) {
+        return true
+      } else {
+        return false
+      };
+    }
   },
   watch: {
     previewShown (newValue, oldValue) {
@@ -430,6 +625,29 @@ export default {
           this.$refs.editorPreview.focus()
         })
       }
+    },
+    previewHTML (newValue) {
+      console.log('pageSlides on previewHTML value update', document.getElementById('page-slides'));
+    },
+    viewMode (newValue) {
+      console.log('new viewMode: ', newValue);
+      const pageSlides = document.getElementById('page-slides');
+      const pageContent = document.getElementById('page-content');
+      // console.log('pageSlides on viewMode change: ', pageSlides);
+      // console.log('pageContent on viewMode change: ', pageContent);
+
+      if (newValue === 'preview') {
+        pageSlides.classList.add('is-preview-mode')
+        pageContent.classList.add('is-preview-mode')
+      } else if (newValue === 'edit') {
+        pageSlides.classList.remove('is-preview-mode')
+        pageContent.classList.remove('is-preview-mode')
+      } else {
+        pageSlides.classList.remove('is-preview-mode')
+        pageContent.classList.remove('is-preview-mode')
+      };
+
+
     }
   },
   methods: {
@@ -461,11 +679,15 @@ export default {
       //   }
       // }
     },
-    processContent (newContent) {
+    processContent (newContent = this.$store.get('editor/content')) {
+      const topbarHeight = getElementSize('#top-bar', 'height');
+      const toolbarHeight = getElementSize('.editor-markdown-toolbar', 'height');
+      const contentHeight = window.innerHeight - topbarHeight - toolbarHeight;
+
       linesMap = []
       // this.$store.set('editor/content', newContent)
       this.processMarkers(this.cm.firstLine(), this.cm.lastLine())
-      this.previewHTML = DOMPurify.sanitize(md.render(newContent), {
+      this.previewHTML = DOMPurify.sanitize(md.render(newContent, { clientPage: 'edit' }), {
         ADD_TAGS: ['foreignObject']
       })
       this.$nextTick(() => {
@@ -473,7 +695,10 @@ export default {
         this.renderMermaidDiagrams()
         Prism.highlightAllUnder(this.$refs.editorPreview)
         Array.from(this.$refs.editorPreview.querySelectorAll('pre.line-numbers')).forEach(pre => pre.classList.add('prismjs'))
-        this.scrollSync(this.cm)
+        const pageSlides = document.getElementById('page-slides');
+        const pageContent = document.getElementById('page-content');
+        pageSlides.style.height = String(contentHeight) + 'px'
+        pageContent.style.height = String(contentHeight) + 'px'
       })
     },
     /**
@@ -569,21 +794,21 @@ export default {
     /**
      * Update scroll sync
      */
-    scrollSync: _.debounce(function (cm) {
-      if (!this.previewShown || cm.somethingSelected()) { return }
-      let currentLine = cm.getCursor().line
-      if (currentLine < 3) {
-        this.Velocity(this.$refs.editorPreview, 'stop', true)
-        this.Velocity(this.$refs.editorPreview?.firstChild, 'scroll', { offset: '-50', duration: 1000, container: this.$refs.editorPreviewContainer })
-      } else {
-        let closestLine = _.findLast(linesMap, n => n <= currentLine)
-        let destElm = this.$refs.editorPreview.querySelector(`[data-line='${closestLine}']`)
-        if (destElm) {
-          this.Velocity(this.$refs.editorPreview, 'stop', true)
-          this.Velocity(destElm, 'scroll', { offset: '-100', duration: 1000, container: this.$refs.editorPreviewContainer })
-        }
-      }
-    }, 500),
+    // scrollSync: _.debounce(function (cm) {
+    //   if (!this.previewShown || cm.somethingSelected()) { return }
+    //   let currentLine = cm.getCursor().line
+    //   if (currentLine < 3) {
+    //     this.Velocity(this.$refs.editorPreview, 'stop', true)
+    //     this.Velocity(this.$refs.editorPreview?.firstChild, 'scroll', { offset: '-50', duration: 1000, container: this.$refs.editorPreviewContainer })
+    //   } else {
+    //     let closestLine = _.findLast(linesMap, n => n <= currentLine)
+    //     let destElm = this.$refs.editorPreview.querySelector(`[data-line='${closestLine}']`)
+    //     if (destElm) {
+    //       this.Velocity(this.$refs.editorPreview, 'stop', true)
+    //       this.Velocity(destElm, 'scroll', { offset: '-100', duration: 1000, container: this.$refs.editorPreviewContainer })
+    //     }
+    //   }
+    // }, 500),
     toggleHelp () {
       this.helpShown = !this.helpShown
       this.activeModal = ''
@@ -727,21 +952,73 @@ export default {
         }
       })
     },
+    resizeComponents () {
+      const topbarHeight = getElementSize('#top-bar', 'height');
+      const toolbarHeight = getElementSize('.editor-markdown-toolbar', 'height');
+      const contentHeight = window.innerHeight - topbarHeight - toolbarHeight;
+
+      this.contentHeight = contentHeight
+      this.processContent()
+    },
     addMarker ({ kind, from, to, text, action }) {
       const markerElm = document.createElement('span')
       markerElm.appendChild(document.createTextNode(text))
       markerElm.className = 'CodeMirror-buttonmarker'
       markerElm.addEventListener('click', action)
       this.cm.markText(from, to, { replacedWith: markerElm, __kind: kind })
+    },
+    async pageMoveRename ({ path, locale }) {
+      this.$store.commit(`loadingStart`, 'page-move')
+      try {
+        const resp = await this.$apollo.mutate({
+          mutation: movePageMutation,
+          variables: {
+            id: this.$store.get('page/id'),
+            destinationLocale: locale,
+            destinationPath: path
+          }
+        })
+        if (_.get(resp, 'data.pages.move.responseResult.succeeded', false)) {
+          window.location.replace(`/${locale}/${path}`)
+        } else {
+          throw new Error(_.get(resp, 'data.pages.move.responseResult.message', this.$t('common:error.unexpected')))
+        }
+      } catch (err) {
+        this.$store.commit('pushGraphError', err)
+        this.$store.commit(`loadingStop`, 'page-move')
+      }
+    },
+    goToPreview () {
+      this.viewMode = 'preview'
+    },
+    goToEdit () {
+      this.viewMode = 'edit'
+    },
+    goToSettings () {
+      this.viewMode = 'settings'
+    },
+    pageMove () {
+      this.movePageModal = true
+    },
+    goToSettingSection (sectionId) {
+      const section = document.getElementById(sectionId);
+      section.scrollIntoView({ behavior: "smooth", block: "start" })
     }
   },
   mounted() {
-    console.log('AAAAA')
+    // previewRenderer.init(md, {})
+    videoRenderer.init(md, {})
+
+
     this.$store.set('editor/editorKey', 'markdown')
 
     if (this.mode === 'create' && !this.$store.get('editor/content')) {
       this.$store.set('editor/content', '# Header\nYour content here')
     }
+
+    this.$root.$on('resetEditorConflict', () => {
+      this.isConflict = false
+    })
 
     // Initialize Mermaid API
     mermaid.initialize({
@@ -754,7 +1031,7 @@ export default {
     this.cm = CodeMirror.fromTextArea(this.$refs.cm, {
       tabSize: 2,
       mode: 'text/markdown',
-      theme: 'wikijs-dark',
+      theme: 'wikijs-light',
       lineNumbers: true,
       lineWrapping: true,
       line: true,
@@ -762,7 +1039,7 @@ export default {
       highlightSelectionMatches: {
         annotateScrollbar: true
       },
-      viewportMargin: 50,
+      // viewportMargin: 50,
       inputStyle: 'contenteditable',
       allowDropFileTypes: ['image/jpg', 'image/png', 'image/svg', 'image/jpeg', 'image/gif'],
       direction: siteConfig.rtl ? 'rtl' : 'ltr',
@@ -774,11 +1051,13 @@ export default {
       this.$store.set('editor/content', c.getValue())
       this.onCmInput(this.$store.get('editor/content'))
     })
-    if (this.$vuetify.breakpoint.mdAndUp) {
-      this.cm.setSize(null, 'calc(100vh - 112px - 24px)')
-    } else {
-      this.cm.setSize(null, 'calc(100vh - 112px - 16px)')
-    }
+    // size of the editor
+
+    // if (this.$vuetify.breakpoint.mdAndUp) {
+    //   this.cm.setSize(null, 'calc(100vh - 112px - 24px)')
+    // } else {
+    //   this.cm.setSize(null, 'calc(100vh - 112px - 16px)')
+    // }
 
     // Set Keybindings
 
@@ -822,7 +1101,7 @@ export default {
 
     this.cm.on('cursorActivity', c => {
       this.positionSync(c)
-      this.scrollSync(c)
+      // this.scrollSync(c)
     })
 
     // Handle special paste
@@ -831,8 +1110,27 @@ export default {
 
     // Render initial preview
 
+    // const initialPreviewRender = cheerio.load(md.render(this.$store.get('editor/content')));
+    // const pageTexts = initialPreviewRender('#page-text');
+    // initialPreviewRender('#presentationVideo, #slides-options, .title-container, #page-text').remove();
+    // initialPreviewRender('#page-content').append(pageTexts.html())
+    //
+    // initialPreviewRender('#page-content, #page-slides').css('height', contentHeight + 'px')
+    // initialPreviewRender('#page-content, #page-slides').css('overflow', 'scroll')
+    //
+    // initialPreviewRender('#page-content').css('display', 'none')
+    // initialPreviewRender('#page-content').css('flex', '0')
+    //
+    // initialPreviewRender('#page-slides').css('display', 'block')
+    // initialPreviewRender('#page-slides').css('flex', '1')
+
     this.processContent(this.$store.get('editor/content'))
+    this.resizeComponents() // this call needs to be there because we need to populate 'cm' first so the default value for the 'newContent' argument is not null
+    window.addEventListener('resize', this.resizeComponents)
     this.refresh()
+
+    const pageContent = document.getElementById('page-content');
+    console.log('pageContent after inital render: ', pageContent);
 
     this.$root.$on('editorInsert', opts => {
       switch (opts.kind) {
@@ -885,18 +1183,63 @@ export default {
 $editor-height: calc(100vh - 112px - 24px);
 $editor-height-mobile: calc(100vh - 112px - 16px);
 
+.activeView path {
+  fill: $orange;
+}
+
+.v-btn {
+  letter-spacing: normal;
+}
+
 .editor-markdown {
   &-main {
     display: flex;
     width: 100%;
+
+    & .editor-title-input input {
+      text-align: left;
+      font-size: 2.2rem;
+    }
   }
 
   &-editor {
-    background-color: darken(mc('grey', '900'), 4.5%);
-    flex: 1 1 50%;
+    background-color: white;
     display: block;
+    border-right: 1px solid $gray-300;
+    padding: 1em 3em 1em 3.4em;
     height: $editor-height;
     position: relative;
+    overflow: scroll;
+
+    .editor-title-container {
+      border-bottom: 1px solid $gray-300;
+      display: flex;
+      align-items: center;
+
+      &::before {
+        content: '#';
+        font-size: 2.2rem;
+        margin: -1em 0.6em -1em 0;
+        display: block;
+      }
+    }
+
+    .v-text-field.v-text-field--enclosed:not(.v-text-field--rounded) > .v-input__control > .v-input__slot {
+      padding: 0;
+    }
+
+    .theme--light.v-text-field--solo > .v-input__control > .v-input__slot {
+      background-color: white;
+      font-weight: 600;
+    }
+
+    .v-text-field.v-text-field--solo .v-input__control {
+      min-height: 0;
+    }
+
+    .v-text-field--full-width > .v-input__control > .v-input__slot {
+      min-height: 0;
+    }
 
     @include until($tablet) {
       height: $editor-height-mobile;
@@ -904,12 +1247,11 @@ $editor-height-mobile: calc(100vh - 112px - 16px);
   }
 
   &-preview {
-    flex: 1 1 50%;
-    background-color: mc('grey', '100');
+    // background-color: mc('grey', '100');
     position: relative;
-    height: $editor-height;
-    overflow: hidden;
-    padding: 1rem;
+    // height: $editor-height;
+    overflow: scroll;
+    // padding: 3.4em;
 
     @at-root .theme--dark & {
       background-color: mc('grey', '900');
@@ -932,9 +1274,54 @@ $editor-height-mobile: calc(100vh - 112px - 16px);
       max-width: 0;
     }
 
+    // the spellchecker div
+
+    & > div {
+      display: flex;
+      width: 100%;
+
+      & > #page-content {
+        display: none;
+        flex: 0;
+      }
+
+      & > #page-content.is-preview-mode {
+        display: block;
+        overflow: scroll;
+        flex: .75;
+        border-right: 1px solid $gray-300;
+        padding: 1em 3em 1em 3.4em;
+      }
+
+
+      & > #page-slides {
+        flex: 1;
+        padding-left: 2em;
+        padding: 1em 3.4em 1em 2em;
+        overflow: scroll;
+        display: flex;
+        flex-direction: column;
+        gap: 1.7em;
+
+        .slide {
+          width: 100%
+        }
+        & img {
+          width: 100%
+        }
+
+        &.is-preview-mode {
+          flex: .25;
+          overflow: scroll;
+        }
+      }
+
+
+    }
+
     &-content {
-      height: $editor-height;
-      overflow-y: scroll;
+      // height: $editor-height;
+      // overflow-y: scroll;
       padding: 0;
       width: calc(100% + 17px);
       // -ms-overflow-style: none;
@@ -996,20 +1383,107 @@ $editor-height-mobile: calc(100vh - 112px - 16px);
     }
   }
 
+  &-page-settings {
+    display: flex;
+    width: 100%;
+
+    & .v-dialog__container {
+      display: fixed;
+    }
+
+    & .page-settings-menu {
+      flex: .20;
+      height: 100%;
+      overflow: scroll;
+    }
+    & .page-settings-content {
+      flex: .80;
+      height: 100%;
+      border-left: 1px solid $gray-300;
+      padding: 3em 8em;
+      overflow: scroll;
+
+      & .settings-section {
+        border: 1px solid $gray-300;
+      }
+
+      & h2 {
+        border-bottom: 1px solid $gray-300;
+      }
+
+      & .input-container, h2 {
+        padding: 1em;
+
+      }
+
+      & .input-container {
+
+        & label {
+          display: block;
+        }
+
+        & .d-flex {
+          gap: 2em;
+        }
+
+        & input {
+          display: block;
+          width: 100%;
+          background-color: $gray-300;
+          padding: .9em;
+          border-radius: 5px;
+          flex: .85;
+        }
+        
+        & .v-btn {
+          flex: .15;
+          height: 100%;
+          padding: .9em;
+          background-color: $gray-300;
+          cursor: pointer;
+          text-transform: none;
+          font-weight: 400;
+        }
+
+      }
+
+      & .input-container + .input-container {
+        border-top: 1px solid $gray-300;
+      }
+
+      & section + section {
+        margin-top: 1em;
+      }
+    }
+  }
+
   // editor icons
+
+  .v-btn.save-btn span {
+    text-transform: none;
+    margin-right: 1em;
+  }
+
   .theme--dark.v-btn.v-btn--icon{
     color: $gray-700;
   }
 
+  & .theme--light.v-sheet {
+    border-bottom: 1px solid $gray-300;
+  }
+
   &-toolbar {
-    // background-color: mc('blue', '100');
-    // background-image: linear-gradient(to bottom, mc('blue', '700') 0%, mc('blue','800') 100%);
-    // color: #FFF;
+    & .v-btn.heading-dropdown {
+      text-transform: none;
+      font-weight: 700;
+    }
+
+    & .v-btn.heading-dropdown::before {
+      background-color: transparent
+    }
 
     .v-toolbar__content {
-      padding-left: 64px;
-      background-color: $gray-400;
-      color: red;
+      padding: 0 3.3em;
 
       @include until($tablet) {
         padding-left: 8px;
@@ -1070,6 +1544,14 @@ $editor-height-mobile: calc(100vh - 112px - 16px);
     font-family: 'Roboto Mono', monospace;
     font-size: .9rem;
 
+    &-gutters {
+      background-color: white;
+    }
+    &-linenumber {
+      color: $gray-500;
+      padding: 0;
+      text-align: left;
+    }
     .cm-header-1 {
       font-size: 1.5rem;
     }
@@ -1144,4 +1626,15 @@ li.CodeMirror-hint-active {
   background: mc('blue', '500');
   color: #FFF;
 }
+#page-slides {
+  flex: .2;
+}
+    // & #page-slides {
+    //   position: relative;
+    //   height: 100%;
+    //   overflow: scroll;
+    //   display: flex;
+    //   flex-direction: column;
+    //   gap: 1.7em;
+    // }
 </style>
