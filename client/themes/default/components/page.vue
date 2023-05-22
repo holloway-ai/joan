@@ -59,8 +59,7 @@
                       v-list-item-title {{tocItem.title}}
                   template(v-for='tocSubItem in tocItem.children')
                     v-list-item(@click='goToContent(tocSubItem.anchor)')
-                      v-icon.px-3(color='grey lighten-1', small) {{ $vuetify.rtl ? `mdi-chevron-left` : `mdi-chevron-right` }}
-                      v-list-item-title.px-3.caption.grey--text(:class='$vuetify.theme.dark ? `text--lighten-1` : `text--darken-1`') {{tocSubItem.title}}
+                      v-list-item-title.px-1.grey--text(:class='$vuetify.theme.dark ? `text--lighten-1` : `text--darken-1`') {{tocSubItem.title}}
 
           <!-- contents -->
           v-col.page-col-content.pa-0(
@@ -366,6 +365,10 @@ export default {
         {
           name: 'ASCIIDoc',
           id: 'asciidoc'
+        },
+        {
+          name: 'Video Markdown',
+          id: 'video'
         }
       ],
       selectedEditor: '',
@@ -478,7 +481,6 @@ export default {
   },
   mounted () {
     const TOPBAR_HEIGHT = 100;
-    // const BREADCRUMBS_HEIGHT = 52;
 
     const presentationVideo = document.getElementById('presentationVideo');
     if (presentationVideo) {
@@ -493,24 +495,31 @@ export default {
       })
       toggleExpandBtn.addEventListener('click', this.toggleExpand)
       
-      const headersAndParagraphs = pageContent.querySelectorAll('h2, p');
-      const firstParagraphs = Array.from(headersAndParagraphs).filter((_, idx) => {
+      const headersAndParagraphs = Array.from(pageContent.querySelectorAll('h2, p'));
+      const firstParagraphs = headersAndParagraphs.filter((_, idx) => {
         if (idx === 0) return false;
         if (headersAndParagraphs[idx - 1].tagName === 'H2') {
           return true
         };
       });
+
       const timestamps = firstParagraphs.map(p => {
-        return p.querySelector('span').dataset.start;
+        return p.querySelector('span')?.dataset?.start || null;
       });
       // For now timestamps will only be showed if the browser width is greater than 1270, this is to avoid an error that will be fixed when we implement the mobile version
       if (window.innerWidth > 1270) {
         this.$refs.tocTitleTimestamps.forEach((t, idx) => {
-          const ms = Math.floor(Number(timestamps[idx]) * 1000);
-          const timestamp = msToTime(ms);
-          const span = document.createElement('span');
-          span.innerHTML = timestamp
-          t.appendChild(span);
+          if (timestamps[idx]) {
+            const ms = Math.floor(Number(timestamps[idx]) * 1000);
+            const timestamp = msToTime(ms);
+            const span = document.createElement('span');
+            span.innerHTML = timestamp
+            t.appendChild(span);
+          } else {
+            const span = document.createElement('span');
+            span.innerHTML = '--';
+            t.appendChild(span);
+          };
         })
       };
     };
@@ -647,7 +656,16 @@ export default {
       this.$vuetify.goTo(decodeURIComponent(window.location.hash), this.scrollOpts)
     },
     handleSlideClick (e) {
-      const { id, start } = e.target.parentElement.dataset;
+      const slideContainer = e.target.parentElement;
+      console.log('slideContainer: ', slideContainer.dataset);
+      const { id, start } = slideContainer.dataset;
+      const slides = document.querySelectorAll('#slides-content .slide');
+      slides.forEach(s => {
+        s.classList.remove('selected')
+      })
+
+      slideContainer.classList.add('selected')
+
       if (!start) return; // if there is no data-start attribute, then just do nothing
       const sectionHeader = document.getElementById(id);
       const spans = document.querySelectorAll('#page-text span');
@@ -655,9 +673,10 @@ export default {
       const greaterThanSpans = Array.from(spans).filter(span => Number(span.dataset.start) > Number(start));
       const videoContainer = document.getElementById('presentationVideo');
       const selectedSlideTopPosition = e.target.offsetTop;
-      this.selectedSlideTopPosition = e.target
 
-      sectionHeader.scrollIntoView({ behavior: "smooth", block: "center" })
+      if (lesserThanSpans[0]) {
+        lesserThanSpans[0].scrollIntoView({ behavior: "smooth", block: "center" })
+      };
       e.target.scrollIntoView({ behavior: "smooth", block: "center" })
       videoContainer.style.top = selectedSlideTopPosition + 'px';
       videoContainer.children[0].currentTime = start
@@ -665,13 +684,14 @@ export default {
 
       spans.forEach(s => { s.classList.remove('highlighted-on-select') });
       lesserThanSpans[lesserThanSpans.length - 1].classList.add('highlighted-on-select');
-      greaterThanSpans[0].classList.add('highlighted-on-select');
+      if (greaterThanSpans[0]) {
+        greaterThanSpans[0].classList.add('highlighted-on-select');
+      };
     },
     toggleExpand() {
       this.slidesExpanded = !this.slidesExpanded
     },
     goToContent (contentHash) {
-      // const container = this.$refs.container.childNodes[0];
       const headers = document.querySelectorAll('#page-text h2');
       const selectedContentRef = document.getElementById(contentHash.substring(1));
       selectedContentRef.scrollIntoView({ behavior: "smooth", block: "start" })
@@ -714,6 +734,7 @@ export default {
       const toggleBtnText = document.querySelector('#toggle-expand-btn span');
       const pageContentSection = document.getElementById('page-content');
       const pageSlidesSection = document.getElementById('page-slides');
+      const selectedSlide = document.querySelector('#slides-content .selected');
 
       if (newValue) {
         expandBtn.classList.remove('active')
@@ -732,8 +753,10 @@ export default {
       };
 
       const videoContainer = document.getElementById('presentationVideo');
-      videoContainer.style.top = this.selectedSlideTopPosition.offsetTop + 'px';
-      this.selectedSlideTopPosition.scrollIntoView({ behavior: "smooth", block: "center" })
+      if (selectedSlide) {
+        videoContainer.style.top = selectedSlide.offsetTop + 'px';
+        selectedSlide.scrollIntoView({ behavior: "smooth", block: "center" })
+      };
     }
   },
 }
@@ -746,7 +769,7 @@ export default {
   z-index: 999999;
 }
 path{
-  fill: red;
+  fill: black;
 }
 .toc {
   display: flex;
@@ -761,6 +784,8 @@ path{
     border-bottom: 1px solid $gray-300;
     padding: 1em 0 1em 0;
   }
+
+
   & .v-list#toc-contents {
     display: flex;
     flex-direction: column;
@@ -821,15 +846,6 @@ path{
       margin-top: 2em;
       height: 100%;
       overflow-y: scroll;
-
-      // &::-webkit-scrollbar {
-      //   width: 20px;
-      //   background-color: red;
-      // }
-
-      // & h2 + p, & p + p {
-      //   margin: 0.5em 0 1.5em 0;
-      // }
 
       & p {
         line-height: 1.55;

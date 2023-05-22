@@ -1,50 +1,51 @@
 <template lang="pug">
   v-app.editor(:dark='$vuetify.theme.dark')
-    nav-header(dense)
-      template(slot='mid')
-        v-text-field.editor-title-input(
-          dark
-          solo
-          flat
-          v-model='currentPageTitle'
-          hide-details
-          dense
-          full-width
-        )
-      template(slot='actions')
-        v-btn.mr-3.animated.fadeIn(color='amber', outlined, small, v-if='isConflict', @click='openConflict')
-          .overline.amber--text.mr-3 Conflict
-          status-indicator(intermediary, pulse)
-        v-btn.animated.fadeInDown(
-          text
-          color='green'
-          @click.exact='save'
-          @click.ctrl.exact='saveAndClose'
-          :class='{ "is-icon": $vuetify.breakpoint.mdAndDown }'
-          )
-          v-icon(color='green', :left='$vuetify.breakpoint.lgAndUp') mdi-check
-          span(v-if='$vuetify.breakpoint.lgAndUp && mode !== `create` && !isDirty') {{ $t('editor:save.saved') }}
-          span(v-else-if='$vuetify.breakpoint.lgAndUp') {{ mode === 'create' ? $t('common:actions.create') : $t('common:actions.save') }}
-        v-btn.animated.fadeInDown.wait-p1s(
-          text
-          color='blue'
-          @click='openPropsModal'
-          :class='{ "is-icon": $vuetify.breakpoint.mdAndDown, "mx-0": !welcomeMode, "ml-0": welcomeMode }'
-          )
-          v-icon(color='blue', :left='$vuetify.breakpoint.lgAndUp') mdi-tag-text-outline
-          span(v-if='$vuetify.breakpoint.lgAndUp') {{ $t('common:actions.page') }}
-        v-btn.animated.fadeInDown.wait-p2s(
-          v-if='!welcomeMode'
-          text
-          color='red'
-          :class='{ "is-icon": $vuetify.breakpoint.mdAndDown }'
-          @click='exit'
-          )
-          v-icon(color='red', :left='$vuetify.breakpoint.lgAndUp') mdi-close
-          span(v-if='$vuetify.breakpoint.lgAndUp') {{ $t('common:actions.close') }}
-        v-divider.ml-3(vertical)
-    v-main
-      component(:is='currentEditor', :save='save')
+    nav-header
+    search-results
+      <!-- template(slot='mid') -->
+      <!--   v-text-field.editor-title-input( -->
+      <!--     dark -->
+      <!--     solo -->
+      <!--     flat -->
+      <!--     v-model='currentPageTitle' -->
+      <!--     hide-details -->
+      <!--     dense -->
+      <!--     full-width -->
+      <!--   ) -->
+      <!-- template(slot='actions') -->
+      <!--   v-btn.mr-3.animated.fadeIn(color='amber', outlined, small, v-if='isConflict', @click='openConflict') -->
+      <!--     .overline.amber--text.mr-3 Conflict -->
+      <!--     status-indicator(intermediary, pulse) -->
+      <!--   v-btn.animated.fadeInDown( -->
+      <!--     text -->
+      <!--     color='green' -->
+      <!--     @click.exact='save' -->
+      <!--     @click.ctrl.exact='saveAndClose' -->
+      <!--     :class='{ "is-icon": $vuetify.breakpoint.mdAndDown }' -->
+      <!--     ) -->
+      <!--     v-icon(color='green', :left='$vuetify.breakpoint.lgAndUp') mdi-check -->
+      <!--     span(v-if='$vuetify.breakpoint.lgAndUp && mode !== `create` && !isDirty') {{ $t('editor:save.saved') }} -->
+      <!--     span(v-else-if='$vuetify.breakpoint.lgAndUp') {{ mode === 'create' ? $t('common:actions.create') : $t('common:actions.save') }} -->
+      <!--   v-btn.animated.fadeInDown.wait-p1s( -->
+      <!--     text -->
+      <!--     color='blue' -->
+      <!--     @click='openPropsModal' -->
+      <!--     :class='{ "is-icon": $vuetify.breakpoint.mdAndDown, "mx-0": !welcomeMode, "ml-0": welcomeMode }' -->
+      <!--     ) -->
+      <!--     v-icon(color='blue', :left='$vuetify.breakpoint.lgAndUp') mdi-tag-text-outline -->
+      <!--     span(v-if='$vuetify.breakpoint.lgAndUp') {{ $t('common:actions.page') }} -->
+      <!--   v-btn.animated.fadeInDown.wait-p2s( -->
+      <!--     v-if='!welcomeMode' -->
+      <!--     text -->
+      <!--     color='red' -->
+      <!--     :class='{ "is-icon": $vuetify.breakpoint.mdAndDown }' -->
+      <!--     @click='exit' -->
+      <!--     ) -->
+      <!--     v-icon(color='red', :left='$vuetify.breakpoint.lgAndUp') mdi-close -->
+      <!--     span(v-if='$vuetify.breakpoint.lgAndUp') {{ $t('common:actions.close') }} -->
+      <!--   v-divider.ml-3(vertical) -->
+    v-main(:style="{'padding-top': '100px'}")
+      component(:is='currentEditor', :save='save', :saveAndClose='saveAndClose', :exit='exit', :exitGo='exitGo')
       editor-modal-properties(v-model='dialogProps')
       editor-modal-editorselect(v-model='dialogEditorSelector')
       editor-modal-unsaved(v-model='dialogUnsaved', @discard='exitGo')
@@ -203,7 +204,8 @@ export default {
   },
   watch: {
     currentEditor(newValue, oldValue) {
-      if (newValue !== '' && this.mode === 'create') {
+      console.log('newValue: ', newValue);
+      if (newValue !== '' && newValue !== 'editorMarkdown' && this.mode === 'create') {
         _.delay(() => {
           this.dialogProps = true
         }, 500)
@@ -237,6 +239,7 @@ export default {
     }
   },
   mounted() {
+    console.log('this.currentEditor: ', this.currentEditor);
     this.$store.set('editor/mode', this.initMode || 'create')
 
     this.initContentParsed = this.initContent ? Base64.decode(this.initContent) : ''
@@ -583,7 +586,6 @@ export default {
 <style lang='scss'>
 
   .editor {
-    background-color: mc('grey', '900') !important;
     min-height: 100vh;
 
     .application--wrap {
