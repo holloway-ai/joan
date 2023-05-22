@@ -84,8 +84,6 @@ function formatter (state) {
 
   // video
   const video = state.tokens.filter(t => t.type.includes('video_'));
-  // console.log('video: ', video);
-
   const pageSlidesOptionsOpen = new state.Token('div_open', 'div', 1);
   pageSlidesOptionsOpen.attrs = [ [ 'id', 'slides-options' ] ]
   const pageSlidesOptionsClose = new state.Token('div_close', 'div', -1);
@@ -129,9 +127,6 @@ function formatter (state) {
       testClose,
     ];
   };
-
-  console.log('newTokenChain: ', newTokenChain);
-
   state.tokens = newTokenChain;
 };
 

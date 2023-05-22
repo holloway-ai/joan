@@ -144,6 +144,7 @@ function formatter (state) {
   const pageSlidesContentOpen = new state.Token('div_open', 'div', 1);
   const pageSlidesContentClose = new state.Token('div_close', 'div', -1);
 
+<<<<<<< HEAD
   state.tokens = [
     pageContentOpen,
     pageTitleContainerOpen,
@@ -162,6 +163,37 @@ function formatter (state) {
     pageSlidesClose
   ];
 >>>>>>> 0ff14912 (page redesign implementation at 80%)
+=======
+  if (state.env.clientPage === 'edit') {
+    state.tokens = [
+      pageContentOpen,
+      ...pageText,
+      pageContentClose,
+      pageSlidesOpen,
+      ...slides,
+      pageSlidesClose
+    ];
+  } else {
+    state.tokens = [
+      pageContentOpen,
+      pageTitleContainerOpen,
+      pageTitleContainerClose,
+      pageTextOpen,
+      ...pageText,
+      pageTextClose,
+      pageContentClose,
+      pageSlidesOpen,
+      pageSlidesOptionsOpen,
+      ...createSlidesOptions(state),
+      pageSlidesOptionsClose,
+      pageSlidesContentOpen,
+      ...video,
+      ...slides,
+      pageSlidesContentClose,
+      pageSlidesClose
+    ];
+  };
+>>>>>>> 0720b07e (editor page ui updated and some bug fixes)
 };
 
 module.exports = {

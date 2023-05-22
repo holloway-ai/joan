@@ -496,7 +496,6 @@ export default {
         s.addEventListener('click', this.handleSlideClick, { capture: true })
       })
       toggleExpandBtn.addEventListener('click', this.toggleExpand)
-
       const headersAndParagraphs = Array.from(pageContent.querySelectorAll('h2, p'));
       const firstParagraphs = headersAndParagraphs.filter((_, idx) => {
         if (idx === 0) return false;
