@@ -236,5 +236,7 @@ function timeBlock (state, startLine) {
 };
 
 module.exports = {
-  timeBlock
+  timeBlock,
+  sanitizeContentElements,
+  generateSpans
 }
