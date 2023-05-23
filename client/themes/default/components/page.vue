@@ -127,18 +127,39 @@
 
                 <!-- header buttons -->
 
-                v-menu(v-if='hasAnyPagePermissions && editShortcutsObj.editFab', offset-y, bottom, content-class="header-menu", open-on-hover)
-                  template(v-slot:activator='{ on: edit }')
-                    v-btn(
-                      icon,
-                      tile,
-                      v-on='edit'
-                      v-model='showEditMenu'
-                      :disabled='!hasWritePagesPermission'
-                      :aria-label='$t(`common:page.editPage`)'
-                      @click="pageEdit"
-                      )
-                      icon(name="edit-page")
+                v-btn(
+                  icon,
+                  tile,
+                  v-model='showEditMenu'
+                  :disabled='!hasWritePagesPermission'
+                  :aria-label='$t(`common:page.editPage`)'
+                  @click="pageEdit"
+                  )
+                  icon(name="edit-page")
+                <!-- new page menu -->
+                v-menu(offset-y, bottom, open-on-hover, content-class="header-menu")
+                  template(v-slot:activator='{ on: menu }')
+                    v-btn(icon, tile, v-on='menu', :aria-label='$t(`common:page.share`)')
+                      icon(name='new-page')
+                  v-list
+                    v-list-item(v-for="(editor, idx) in editorOptions", :key="idx", link, @click='pageNew(editor.id)')
+                      v-list-item-title {{ editor.name }}
+                v-menu(offset-y, bottom, min-width='300', content-class="header-menu")
+                  template(v-slot:activator='{ on: menu }')
+                    v-tooltip(bottom)
+                      template(v-slot:activator='{ on: tooltip }')
+                        v-btn(icon, tile, v-on='{ ...menu, ...tooltip }')
+                          icon(name='share')
+                      span {{$t('common:page.share')}}
+                  social-sharing(
+                    :url='pageUrl'
+                    :title='title'
+                    :description='description'
+                  )
+                v-menu(offset-y, bottom, open-on-hover, content-class="header-menu")
+                  template(v-slot:activator='{ on: menu }')
+                    v-btn(icon, tile, v-on='menu', :aria-label='$t(`common:page.share`)')
+                      icon(name='more')
                   v-list
                     v-list-item(link, @click='pageHistory')
                       v-list-item-icon
@@ -169,26 +190,6 @@
                         v-icon(size='20') mdi-trash-can-outline
                       v-list-item-title
                         span {{$t('common:header.delete')}}
-                <!-- new page menu -->
-                v-menu(offset-y, bottom, open-on-hover, content-class="header-menu")
-                  template(v-slot:activator='{ on: menu }')
-                    v-btn(icon, tile, v-on='menu', :aria-label='$t(`common:page.share`)')
-                      icon(name='new-page')
-                  v-list
-                    v-list-item(v-for="(editor, idx) in editorOptions", :key="idx", link, @click='pageNew(editor.id)')
-                      v-list-item-title {{ editor.name }}
-                v-menu(offset-y, bottom, min-width='300', content-class="header-menu")
-                  template(v-slot:activator='{ on: menu }')
-                    v-tooltip(bottom)
-                      template(v-slot:activator='{ on: tooltip }')
-                        v-btn(icon, tile, v-on='{ ...menu, ...tooltip }')
-                          icon(name='share')
-                      span {{$t('common:page.share')}}
-                  social-sharing(
-                    :url='pageUrl'
-                    :title='title'
-                    :description='description'
-                  )
             v-row(no-gutters)
               #page-content-container(ref='container', :style="{'height': `${pageContainerHeight}px`}")
                 slot(name='contents', @slidesScroll="scrollContent")
@@ -483,6 +484,7 @@ export default {
     const TOPBAR_HEIGHT = 100;
 
     const presentationVideo = document.getElementById('presentationVideo');
+    console.log('presentationVideo: ', presentationVideo);
     if (presentationVideo) {
       const pageHeaderSection = document.getElementById('page-header-section');
       const pageContent = document.getElementById('page-content');
@@ -657,7 +659,6 @@ export default {
     },
     handleSlideClick (e) {
       const slideContainer = e.target.parentElement;
-      console.log('slideContainer: ', slideContainer.dataset);
       const { id, start } = slideContainer.dataset;
       const slides = document.querySelectorAll('#slides-content .slide');
       slides.forEach(s => {
@@ -679,8 +680,21 @@ export default {
       };
       e.target.scrollIntoView({ behavior: "smooth", block: "center" })
       videoContainer.style.top = selectedSlideTopPosition + 'px';
-      videoContainer.children[0].currentTime = start
-      videoContainer.children[0].play()
+      console.log(videoContainer.children[0].tagName);
+
+      if (videoContainer.children[0].tagName === 'video') {
+        videoContainer.children[0].currentTime = start
+        videoContainer.children[0].play()
+      };
+
+      if (videoContainer.children[0].tagName === 'IFRAME') {
+        const targetTime = Math.round(Number(e.target.parentElement.dataset.start));
+        const videoSrc = videoContainer.children[0].src;
+        const newVideoSrc = new URL(videoSrc);
+        newVideoSrc.searchParams.set('start', targetTime);
+        newVideoSrc.searchParams.set('autoplay', 1);
+        videoContainer.children[0].src = newVideoSrc
+      };
 
       spans.forEach(s => { s.classList.remove('highlighted-on-select') });
       lesserThanSpans[lesserThanSpans.length - 1].classList.add('highlighted-on-select');
@@ -842,6 +856,7 @@ path{
     border-left: 1px solid $gray-300;
     border-right: 1px solid $gray-300;
 
+
     & #page-text {
       margin-top: 2em;
       height: 100%;
@@ -918,6 +933,11 @@ path{
     flex-direction: column;
     gap: 1.7em;
     // transition: all .3s ease-in;
+
+    & iframe {
+      width: 100%;
+      height: 100%;
+    }
 
     & #slides-options {
       #toggle-expand-btn {

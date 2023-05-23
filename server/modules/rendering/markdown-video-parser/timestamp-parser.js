@@ -124,7 +124,7 @@ function timeBlock (state, startLine) {
     if (t.content.slice(0, 2) === '![') {
       const haveTimestamp = t.content.match(TIME_STAMP_MARK);
       const imgAlt = t.content.slice(t.content.indexOf('[') + 1, haveTimestamp ? t.content.indexOf('{') : t.content.indexOf(']')).trim();
-      const imgAltSanitized = imgAlt.toLowerCase().replaceAll(' ', '-');
+      // const imgAltSanitized = imgAlt.toLowerCase().replaceAll(' ', '-');
       const imgSrc = t.content.slice(t.content.indexOf('(') + 1, t.content.indexOf(')'));
       const slideTimestamp = t.content.slice(t.content.indexOf('~') + 1, t.content.indexOf('}'));
 
@@ -132,7 +132,7 @@ function timeBlock (state, startLine) {
       state.tokens[idx - 1].tag = 'div';
       state.tokens[idx - 1].attrs = [
         [ 'class', 'slide' ], 
-        [ 'data-id', imgAltSanitized ],
+        // [ 'data-id', imgAltSanitized ],
         ...haveTimestamp ? [ [ 'data-start', slideTimestamp ] ] : []
       ];
 
@@ -205,13 +205,21 @@ function timeBlock (state, startLine) {
     const url = new URL(src);
     const videoUid = src.match(youtubeUrl) ? url.searchParams.get('v') : src.substring(src.lastIndexOf('/') + 1);
 
-    const video = state.push('video_open', 'div', 1);
-    video.attrs = [
-      [ 'id', 'presentationVideo' ],
-      [ 'data-source', `https://www.youtube.com/embed/${videoUid}` ],
-      [ 'data-vendor', 'youtube' ],
+    const videoContainer = state.push('video_container_open', 'div', 1);
+    videoContainer.attrs = [
+      [ 'id', 'presentationVideo' ], 
     ]
-    state.push('video_close', 'div', -1)
+
+    const video = state.push('video_open', 'iframe', 1);
+    video.attrs = [
+      [ 'src', `https://www.youtube.com/embed/${videoUid}` ],
+      [ 'frameborder', '2' ],
+      [ 'title', 'YouTube video player' ],
+      [ 'allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' ],
+      [ 'allowfullscreen', true ],
+    ]
+    state.push('video_close', 'iframe', -1)
+    state.push('video_container_close', 'div', -1)
   } else {
     console.log('is not a youtube video');
     const videoType = src.substring(src.lastIndexOf('.') + 1);
