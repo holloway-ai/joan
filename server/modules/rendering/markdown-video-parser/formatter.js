@@ -84,6 +84,7 @@ function formatter (state) {
 
   // video
   const video = state.tokens.filter(t => t.type.includes('video_'));
+  // console.log('video: ', video);
 
   const pageSlidesOptionsOpen = new state.Token('div_open', 'div', 1);
   pageSlidesOptionsOpen.attrs = [ [ 'id', 'slides-options' ] ]
@@ -91,9 +92,14 @@ function formatter (state) {
   const pageSlidesContentOpen = new state.Token('div_open', 'div', 1);
   pageSlidesContentOpen.attrs = [ [ 'id', 'slides-content' ] ]
   const pageSlidesContentClose = new state.Token('div_close', 'div', -1);
+  let newTokenChain;
+
+  const testOpen = new state.Token('my_token_open', 'div', 1);
+  testOpen.attrs = [ [ 'id', 'testToken' ] ]
+  const testClose = new state.Token('my_token_close', 'div', -1);
 
   if (state.env.clientPage === 'edit') {
-    state.tokens = [
+    newTokenChain = [
       pageContentOpen,
       ...pageText,
       pageContentClose,
@@ -102,7 +108,7 @@ function formatter (state) {
       pageSlidesClose
     ];
   } else {
-    state.tokens = [
+    newTokenChain = [
       pageContentOpen,
       pageTitleContainerOpen,
       pageTitleContainerClose,
@@ -118,9 +124,15 @@ function formatter (state) {
       ...video,
       ...slides,
       pageSlidesContentClose,
-      pageSlidesClose
+      pageSlidesClose,
+      testOpen,
+      testClose,
     ];
   };
+
+  console.log('newTokenChain: ', newTokenChain);
+
+  state.tokens = newTokenChain;
 };
 
 module.exports = {
