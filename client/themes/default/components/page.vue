@@ -128,9 +128,9 @@
                 <!-- header buttons -->
 
                 v-btn(
+                  v-if='hasWritePagesPermission'
                   icon,
                   tile,
-                  v-model='showEditMenu'
                   :disabled='!hasWritePagesPermission'
                   :aria-label='$t(`common:page.editPage`)'
                   @click="pageEdit"
