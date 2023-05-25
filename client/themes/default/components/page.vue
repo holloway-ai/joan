@@ -659,7 +659,7 @@ export default {
     },
     handleSlideClick (e) {
       const slideContainer = e.target.parentElement;
-      const { id, start } = slideContainer.dataset;
+      const { start } = slideContainer.dataset;
       const slides = document.querySelectorAll('#slides-content .slide');
       slides.forEach(s => {
         s.classList.remove('selected')
@@ -668,21 +668,19 @@ export default {
       slideContainer.classList.add('selected')
 
       if (!start) return; // if there is no data-start attribute, then just do nothing
-      const sectionHeader = document.getElementById(id);
       const spans = document.querySelectorAll('#page-text span');
-      const lesserThanSpans = Array.from(spans).filter(span => Number(span.dataset.start) <= Number(start));
-      const greaterThanSpans = Array.from(spans).filter(span => Number(span.dataset.start) > Number(start));
+      const beforeSelected = Array.from(spans).filter(span => Number(span.dataset.start) <= Number(start));
+      const afterSelected = Array.from(spans).filter(span => Number(span.dataset.start) > Number(start));
       const videoContainer = document.getElementById('presentationVideo');
       const selectedSlideTopPosition = e.target.offsetTop;
 
-      if (lesserThanSpans[0]) {
-        lesserThanSpans[0].scrollIntoView({ behavior: "smooth", block: "center" })
+      if (beforeSelected.length) {
+        beforeSelected[beforeSelected.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' })
       };
-      e.target.scrollIntoView({ behavior: "smooth", block: "center" })
+      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })
       videoContainer.style.top = selectedSlideTopPosition + 'px';
-      console.log(videoContainer.children[0].tagName);
 
-      if (videoContainer.children[0].tagName === 'video') {
+      if (videoContainer.children[0].tagName === 'VIDEO') {
         videoContainer.children[0].currentTime = start
         videoContainer.children[0].play()
       };
@@ -697,9 +695,9 @@ export default {
       };
 
       spans.forEach(s => { s.classList.remove('highlighted-on-select') });
-      lesserThanSpans[lesserThanSpans.length - 1].classList.add('highlighted-on-select');
-      if (greaterThanSpans[0]) {
-        greaterThanSpans[0].classList.add('highlighted-on-select');
+      beforeSelected[beforeSelected.length - 1].classList.add('highlighted-on-select');
+      if (afterSelected.length) {
+        afterSelected[0].classList.add('highlighted-on-select');
       };
     },
     toggleExpand() {
