@@ -1,7 +1,7 @@
 /* THEME SPECIFIC JAVASCRIPT */
 window.onload = function () {
   function attachEventListeners() {
-    const video = document.querySelector("#presentationVideo");
+    const video = document.querySelector("#presentationVideo")?.children[0];
     const textContainer = document.querySelector('.text-container');
     const highlights = document.querySelectorAll("[data-start]");
 
