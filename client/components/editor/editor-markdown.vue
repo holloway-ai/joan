@@ -525,6 +525,7 @@ export default {
     save: {
       type: Function,
       default: () => {}
+    },
     saveAndClose: {
       type: Function,
       default: () => {}
