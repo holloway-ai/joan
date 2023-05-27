@@ -858,7 +858,7 @@ path{
 
     & .v-list-item__title {
       overflow-x: hidden;
-      overflow-y: visible;
+      // overflow-y: visible;
       height: 1em;
       font-size: 1.11rem;
       font-weight: 400;
