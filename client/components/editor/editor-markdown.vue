@@ -287,8 +287,6 @@
             <!-- v-divider -->
             v-card-actions
               v-btn(text, @click.stop="uploadAttempt = false") accept
-
-
       <!-- #page-slides( -->
       <!--   v-html='previewHTML' -->
       <!-- ) -->
@@ -1006,10 +1004,7 @@ export default {
     }
   },
   mounted() {
-    // previewRenderer.init(md, {})
     videoRenderer.init(md, {})
-
-
     this.$store.set('editor/editorKey', 'markdown')
 
     if (this.mode === 'create' && !this.$store.get('editor/content')) {
@@ -1434,7 +1429,6 @@ $editor-height-mobile: calc(100vh - 112px - 16px);
           border-radius: 5px;
           flex: .85;
         }
-
         & .v-btn {
           flex: .15;
           height: 100%;

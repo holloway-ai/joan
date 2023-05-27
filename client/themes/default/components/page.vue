@@ -484,7 +484,6 @@ export default {
     const TOPBAR_HEIGHT = 100;
 
     const presentationVideo = document.getElementById('presentationVideo');
-    console.log('presentationVideo: ', presentationVideo);
     if (presentationVideo) {
       const pageHeaderSection = document.getElementById('page-header-section');
       const pageContent = document.getElementById('page-content');
@@ -496,7 +495,6 @@ export default {
         s.addEventListener('click', this.handleSlideClick, { capture: true })
       })
       toggleExpandBtn.addEventListener('click', this.toggleExpand)
-
       const headersAndParagraphs = Array.from(pageContent.querySelectorAll('h2, p'));
       const firstParagraphs = headersAndParagraphs.filter((_, idx) => {
         if (idx === 0) return false;
@@ -528,6 +526,36 @@ export default {
 
     // set page height
     this.pageContainerHeight = window.innerHeight - TOPBAR_HEIGHT;
+    
+    const spans = document.querySelectorAll('#page-text span');
+    spans.forEach(s => {
+      s.addEventListener('dblclick', (e) => {
+        e.target.scrollIntoView({ behavior: "smooth", block: "center" })
+        const slides = Array.from(document.querySelectorAll('.slide'));
+        const currentAndPast = slides.filter((s) => Number(s.dataset.start) <= Number(e.target.dataset.start));
+        const nearestSlide = currentAndPast[currentAndPast.length - 1];
+        const videoContainer = document.getElementById('presentationVideo');
+        const start = e.target.dataset.start;
+
+        nearestSlide.scrollIntoView({ behavior: "smooth", block: "center" })
+        videoContainer.style.top = nearestSlide.offsetTop + 'px'
+
+        if (videoContainer.children[0].tagName === 'VIDEO') {
+          videoContainer.children[0].currentTime = start
+          videoContainer.children[0].play()
+        };
+
+        if (videoContainer.children[0].tagName === 'IFRAME') {
+          const targetTime = Math.round(Number(start));
+          const videoSrc = videoContainer.children[0].src;
+          const newVideoSrc = new URL(videoSrc);
+          newVideoSrc.searchParams.set('start', targetTime);
+          newVideoSrc.searchParams.set('autoplay', 1);
+          videoContainer.children[0].src = newVideoSrc
+        };
+      })
+    })
+
 
     if (this.$vuetify.theme.dark) {
       this.scrollStyle.bar.background = '#424242'

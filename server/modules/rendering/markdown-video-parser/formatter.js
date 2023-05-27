@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
 function createSlidesOptions (state) {
   const svgAttrs = [
     [ 'width', '10' ],
@@ -52,6 +56,11 @@ function createSlidesOptions (state) {
   ]
 };
 
+<<<<<<< HEAD
+=======
+>>>>>>> 0ff14912 (page redesign implementation at 80%)
+=======
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
 function formatter (state) {
   // page content
   const pageContentOpen = new state.Token('div_open', 'div', 1);
@@ -84,6 +93,10 @@ function formatter (state) {
 
   // video
   const video = state.tokens.filter(t => t.type.includes('video_'));
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
   // console.log('video: ', video);
 
   const pageSlidesOptionsOpen = new state.Token('div_open', 'div', 1);
@@ -133,6 +146,66 @@ function formatter (state) {
   console.log('newTokenChain: ', newTokenChain);
 
   state.tokens = newTokenChain;
+<<<<<<< HEAD
+=======
+
+  const pageSlidesOptionsOpen = new state.Token('div_open', 'div', 1);
+  const pageSlidesOptionsClose = new state.Token('div_close', 'div', -1);
+  const pageSlidesContentOpen = new state.Token('div_open', 'div', 1);
+  const pageSlidesContentClose = new state.Token('div_close', 'div', -1);
+
+<<<<<<< HEAD
+  state.tokens = [
+    pageContentOpen,
+    pageTitleContainerOpen,
+    pageTitleContainerClose,
+    pageTextOpen,
+    ...pageText,
+    pageTextClose,
+    pageContentClose,
+    pageSlidesOpen,
+    pageSlidesOptionsOpen,
+    pageSlidesOptionsClose,
+    pageSlidesContentOpen,
+    ...video,
+    ...slides,
+    pageSlidesContentClose,
+    pageSlidesClose
+  ];
+>>>>>>> 0ff14912 (page redesign implementation at 80%)
+=======
+  if (state.env.clientPage === 'edit') {
+    state.tokens = [
+      pageContentOpen,
+      ...pageText,
+      pageContentClose,
+      pageSlidesOpen,
+      ...slides,
+      pageSlidesClose
+    ];
+  } else {
+    state.tokens = [
+      pageContentOpen,
+      pageTitleContainerOpen,
+      pageTitleContainerClose,
+      pageTextOpen,
+      ...pageText,
+      pageTextClose,
+      pageContentClose,
+      pageSlidesOpen,
+      pageSlidesOptionsOpen,
+      ...createSlidesOptions(state),
+      pageSlidesOptionsClose,
+      pageSlidesContentOpen,
+      ...video,
+      ...slides,
+      pageSlidesContentClose,
+      pageSlidesClose
+    ];
+  };
+>>>>>>> 0720b07e (editor page ui updated and some bug fixes)
+=======
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
 };
 
 module.exports = {
