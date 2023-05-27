@@ -1,5 +1,6 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 const TIME_STAMP_MARK = /\s?{([^}]*(~\d*(?:\.\d+)?)[^}]*)}\s?/g
 =======
 const TIME_STAMP_MARK = /\s?{([^}]*(~\d*(?:\.\d+)?)[^}]*)}\s?/g;
@@ -7,6 +8,9 @@ const TIME_STAMP_MARK = /\s?{([^}]*(~\d*(?:\.\d+)?)[^}]*)}\s?/g;
 =======
 const TIME_STAMP_MARK = /\s?{([^}]*(~\d*(?:\.\d+)?)[^}]*)}\s?/g
 >>>>>>> a9c93790 (Render crunsh fix #20)
+=======
+const TIME_STAMP_MARK = /\s?{([^}]*(~\d*(?:\.\d+)?)[^}]*)}\s?/g
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
 
 function sanitizeContentElements (arr) {
   return arr.reduce((acc, curr, idx) => {
@@ -15,6 +19,7 @@ function sanitizeContentElements (arr) {
     const emptyString = curr === ''
 
     // omit empty strings and same values
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     if (isFirstIndex && emptyString) return acc
@@ -27,6 +32,10 @@ function sanitizeContentElements (arr) {
     if (isFirstIndex && emptyString) return acc
     if (!isFirstIndex && (emptyString || sameAsLast)) return acc
 >>>>>>> a9c93790 (Render crunsh fix #20)
+=======
+    if (isFirstIndex && emptyString) return acc
+    if (!isFirstIndex && (emptyString || sameAsLast)) return acc
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
 
     return [ ...acc, curr ]
   }, []).map(el => {
@@ -78,12 +87,16 @@ function generateSpans (contents, Token) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
 function timeBlock (state, startLine) {
   // this is the default 'paragraph' rule implementation
   let content; let terminate; let i; let l; let token; let oldParentType
   let nextLine = startLine + 1
   let terminatorRules = state.md.block.ruler.getRules('paragraph')
   let endLine = state.lineMax
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 function getSectionTimestampsOld (src) {
@@ -242,6 +255,8 @@ function timeBlock (state, startLine) {
   state.tokens.forEach((t, idx) => {
     if (idx === 0) return;
 >>>>>>> 36700c30 (page redesign implementation - wip)
+=======
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
 
   oldParentType = state.parentType
   state.parentType = 'paragraph'
@@ -299,6 +314,7 @@ function timeBlock (state, startLine) {
 
   state.tokens.forEach((t, idx) => {
     if (t.content.slice(0, 2) === '![') {
+<<<<<<< HEAD
       const haveTimestamp = t.content.match(TIME_STAMP_MARK)
       const imgAlt = t.content.slice(t.content.indexOf('[') + 1, haveTimestamp ? t.content.indexOf('{') : t.content.indexOf(']')).trim()
       const imgAltSanitized = imgAlt.toLowerCase().replace('/ /g', '-')
@@ -310,6 +326,19 @@ function timeBlock (state, startLine) {
       state.tokens[idx - 1].attrs = [
         [ 'class', 'slide' ],
         [ 'data-id', imgAltSanitized ],
+=======
+      const haveTimestamp = t.content.match(TIME_STAMP_MARK);
+      const imgAlt = t.content.slice(t.content.indexOf('[') + 1, haveTimestamp ? t.content.indexOf('{') : t.content.indexOf(']')).trim();
+      // const imgAltSanitized = imgAlt.toLowerCase().replaceAll(' ', '-');
+      const imgSrc = t.content.slice(t.content.indexOf('(') + 1, t.content.indexOf(')'));
+      const slideTimestamp = t.content.slice(t.content.indexOf('~') + 1, t.content.indexOf('}'));
+
+      state.tokens[idx - 1].type = 'slide_open';
+      state.tokens[idx - 1].tag = 'div';
+      state.tokens[idx - 1].attrs = [
+        [ 'class', 'slide' ], 
+        // [ 'data-id', imgAltSanitized ],
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
         ...haveTimestamp ? [ [ 'data-start', slideTimestamp ] ] : []
       ]
 
@@ -325,9 +354,12 @@ function timeBlock (state, startLine) {
 
   // timestamp parser
 
+<<<<<<< HEAD
 =======
 
 >>>>>>> a9c93790 (Render crunsh fix #20)
+=======
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
   state.tokens.forEach((t, idx) => {
     if (idx === 0) return
 
@@ -343,6 +375,7 @@ function timeBlock (state, startLine) {
 
         if (lineIsEmpty || !lineHasCurlyBrace || !lineHasTilde) return
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         const contentElementsRaw = line.split(TIME_STAMP_MARK)
@@ -363,21 +396,31 @@ function timeBlock (state, startLine) {
         const contentElements = sanitizeContentElements(contentElementsRaw)
         const newTokens = generateSpans(contentElements, state.Token)
 >>>>>>> a9c93790 (Render crunsh fix #20)
+=======
+        const contentElementsRaw = line.split(TIME_STAMP_MARK)
+        const contentElements = sanitizeContentElements(contentElementsRaw)
+        const newTokens = generateSpans(contentElements, state.Token)
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
 
         t.children = newTokens
         t.content = ''
       })
     };
 <<<<<<< HEAD
+<<<<<<< HEAD
   });
 >>>>>>> 36700c30 (page redesign implementation - wip)
 =======
   })
 >>>>>>> a9c93790 (Render crunsh fix #20)
+=======
+  })
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
 
   // video parser
 
   const videoBlockMarker = '?'
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
   const urlFormat = /\[(.*)\]\((.*)\)/
@@ -387,6 +430,9 @@ function timeBlock (state, startLine) {
 =======
   const urlFormat = /\[(.*)\]\((.*)\)/
 >>>>>>> a9c93790 (Render crunsh fix #20)
+=======
+  const urlFormat = /\[(.*)\]\((.*)\)/
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
   let start = state.bMarks[startLine] + state.tShift[startLine]
   let max = state.eMarks[startLine]
 
@@ -396,10 +442,14 @@ function timeBlock (state, startLine) {
       t.type = 'videoblock_content'
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
       t.content = ''
 
       state.tokens[idx - 1].type = 'videoblock_open'
       state.tokens[idx + 1].type = 'videoblock_close'
+<<<<<<< HEAD
 =======
       t.content = '';
 
@@ -412,6 +462,8 @@ function timeBlock (state, startLine) {
       state.tokens[idx - 1].type = 'videoblock_open'
       state.tokens[idx + 1].type = 'videoblock_close'
 >>>>>>> a9c93790 (Render crunsh fix #20)
+=======
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
     };
   })
 
@@ -422,6 +474,9 @@ function timeBlock (state, startLine) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
   const src = state.src.slice(state.src.indexOf('(') + 1, state.src.indexOf(')'))
   const youtubeUrl = new RegExp('(\\w*' + 'youtube.com' + '\\w*)', 'gi')
   const youtubeUrlShort = new RegExp('(\\w*' + 'youtu.be' + '\\w*)', 'gi')
@@ -431,11 +486,26 @@ function timeBlock (state, startLine) {
     const url = new URL(src)
     const videoUid = src.match(youtubeUrl) ? url.searchParams.get('v') : src.substring(src.lastIndexOf('/') + 1)
 
+<<<<<<< HEAD
     const video = state.push('video_open', 'div', 1)
     video.attrs = [
       [ 'id', 'presentationVideo' ],
       [ 'data-source', `https://www.youtube.com/embed/${videoUid}` ],
       [ 'data-vendor', 'youtube' ]
+=======
+    const videoContainer = state.push('video_container_open', 'div', 1);
+    videoContainer.attrs = [
+      [ 'id', 'presentationVideo' ], 
+    ]
+
+    const video = state.push('video_open', 'iframe', 1);
+    video.attrs = [
+      [ 'src', `https://www.youtube.com/embed/${videoUid}` ],
+      [ 'frameborder', '2' ],
+      [ 'title', 'YouTube video player' ],
+      [ 'allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' ],
+      [ 'allowfullscreen', true ],
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
     ]
     state.push('video_close', 'iframe', -1)
     state.push('video_container_close', 'div', -1)
@@ -455,6 +525,7 @@ function timeBlock (state, startLine) {
       [ 'type', `video/${videoType}` ]
     ]
     state.push('video_close', 'video', -1)
+<<<<<<< HEAD
 =======
   const src = state.src.slice(state.src.indexOf('(') + 1, state.src.indexOf(')'));
   const youtubeUrl = new RegExp('(\\w*'+'youtube.com'+'\\w*)','gi');
@@ -495,10 +566,13 @@ function timeBlock (state, startLine) {
     state.push('video_close', 'video', -1)
 
 >>>>>>> 36700c30 (page redesign implementation - wip)
+=======
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
     state.push('video_container_close', 'div', -1)
   };
 
   // console.log('state: ', state);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
   return true
@@ -508,6 +582,9 @@ function timeBlock (state, startLine) {
 =======
   return true
 >>>>>>> a9c93790 (Render crunsh fix #20)
+=======
+  return true
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
 };
 
 module.exports = {

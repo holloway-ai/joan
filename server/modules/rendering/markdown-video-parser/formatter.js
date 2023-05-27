@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
 function createSlidesOptions (state) {
   const svgAttrs = [
     [ 'width', '10' ],
@@ -53,8 +56,11 @@ function createSlidesOptions (state) {
   ]
 };
 
+<<<<<<< HEAD
 =======
 >>>>>>> 0ff14912 (page redesign implementation at 80%)
+=======
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
 function formatter (state) {
   // page content
   const pageContentOpen = new state.Token('div_open', 'div', 1);
@@ -88,6 +94,9 @@ function formatter (state) {
   // video
   const video = state.tokens.filter(t => t.type.includes('video_'));
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
   // console.log('video: ', video);
 
   const pageSlidesOptionsOpen = new state.Token('div_open', 'div', 1);
@@ -137,6 +146,7 @@ function formatter (state) {
   console.log('newTokenChain: ', newTokenChain);
 
   state.tokens = newTokenChain;
+<<<<<<< HEAD
 =======
 
   const pageSlidesOptionsOpen = new state.Token('div_open', 'div', 1);
@@ -194,6 +204,8 @@ function formatter (state) {
     ];
   };
 >>>>>>> 0720b07e (editor page ui updated and some bug fixes)
+=======
+>>>>>>> 06be72a7a4dc71d42ae312b952a1f2e1a7d4a10e
 };
 
 module.exports = {
