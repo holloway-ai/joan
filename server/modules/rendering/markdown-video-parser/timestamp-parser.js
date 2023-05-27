@@ -208,9 +208,17 @@ function timeBlock (state, startLine) {
     const video = state.push('video_open', 'div', 1);
     video.attrs = [
       [ 'id', 'presentationVideo' ],
-      [ 'data-source', `https://www.youtube.com/embed/${videoUid}` ],
-      [ 'data-vendor', 'youtube' ],
+      // [ 'data-source', `https://www.youtube.com/embed/${videoUid}` ],
+      // [ 'data-vendor', 'youtube' ],
     ]
+    const iframeOpen = state.push('video_iframe_open', 'iframe', 1);
+    iframeOpen.attrs = [
+      [ 'src', `https://www.youtube.com/embed/${videoUid}` ],
+      [ 'frameborder', '0' ],
+      [ 'allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' ],
+      [ 'allowfullscreen', 'true' ]
+    ]
+    state.push('video_iframe_close', 'iframe', -1);
     state.push('video_close', 'div', -1)
   } else {
     console.log('is not a youtube video');

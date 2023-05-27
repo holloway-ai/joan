@@ -2,12 +2,12 @@
 window.onload = function () {
   function attachEventListeners() {
     const video = document.querySelector("#presentationVideo")?.children[0];
-    const textContainer = document.querySelector('.text-container');
+    // const textContainer = document.querySelector('.text-container');
     const highlights = document.querySelectorAll("[data-start]");
 
     if (video && highlights.length > 0) {
       video.addEventListener("timeupdate", function () {
-        const currentTime = video.currentTime;
+        const { currentTime } = video;
 
         highlights.forEach(function (highlight) {
           const start = parseFloat(highlight.dataset.start);
@@ -20,24 +20,24 @@ window.onload = function () {
           }
         });
 
-        const highlightedSegment = document.querySelector(".highlighted");
+        // const highlightedSegment = document.querySelector(".highlighted");
 
-        if (textContainer && highlightedSegment) {
-          const textContainerRect = textContainer.getBoundingClientRect();
-          const highlightedSegmentRect = highlightedSegment.getBoundingClientRect();
-          const scrollToY = highlightedSegment.offsetTop - (textContainerRect.height / 2) + (highlightedSegmentRect.height / 2);
-
-          textContainer.scrollTop = scrollToY;
-        }
+        // if (textContainer && highlightedSegment) {
+        //   const textContainerRect = textContainer.getBoundingClientRect();
+        //   const highlightedSegmentRect = highlightedSegment.getBoundingClientRect();
+        //   const scrollToY = highlightedSegment.offsetTop - (textContainerRect.height / 2) + (highlightedSegmentRect.height / 2);
+        //
+        //   textContainer.scrollTop = scrollToY;
+        // }
       });
 
-      highlights.forEach(function (highlight) {
-        highlight.addEventListener("dblclick", function () {
-          const start = parseFloat(highlight.dataset.start);
-          video.currentTime = start;
-          video.play();
-        });
-      });
+      // highlights.forEach(function (highlight) {
+      //   highlight.addEventListener("dblclick", function () {
+      //     const start = parseFloat(highlight.dataset.start);
+      //     video.currentTime = start;
+      //     video.play();
+      //   });
+      // });
 
       return true;
     }
