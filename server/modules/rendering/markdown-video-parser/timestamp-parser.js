@@ -124,7 +124,7 @@ function timeBlock (state, startLine) {
     if (t.content.slice(0, 2) === '![') {
       const haveTimestamp = t.content.match(TIME_STAMP_MARK);
       const imgAlt = t.content.slice(t.content.indexOf('[') + 1, haveTimestamp ? t.content.indexOf('{') : t.content.indexOf(']')).trim();
-      const imgAltSanitized = imgAlt.toLowerCase().replaceAll(' ', '-');
+      // const imgAltSanitized = imgAlt.toLowerCase().replaceAll(' ', '-');
       const imgSrc = t.content.slice(t.content.indexOf('(') + 1, t.content.indexOf(')'));
       const slideTimestamp = t.content.slice(t.content.indexOf('~') + 1, t.content.indexOf('}'));
 
@@ -132,7 +132,7 @@ function timeBlock (state, startLine) {
       state.tokens[idx - 1].tag = 'div';
       state.tokens[idx - 1].attrs = [
         [ 'class', 'slide' ], 
-        [ 'data-id', imgAltSanitized ],
+        // [ 'data-id', imgAltSanitized ],
         ...haveTimestamp ? [ [ 'data-start', slideTimestamp ] ] : []
       ];
 
