@@ -29,7 +29,7 @@ function generateSpans (contents, Token) {
 
       if (isFirst) {
         const spanOpen = new Token('span_open', 'span', 1)
-        spanOpen.attrs = [ [ 'data-end', contents[idx + 2] ], [ 'data-start', curr ] ]
+        spanOpen.attrs = [ [ 'data-end', Number(contents[idx + 2] - 0.01) ], [ 'data-start', curr ] ]
 
         return [ ...acc, spanOpen ];
       };
@@ -42,7 +42,7 @@ function generateSpans (contents, Token) {
       // if the timestamp is between texts
       const spanClose = new Token('span_close', 'span', -1);
       const spanOpen = new Token('span_open', 'span', 1);
-      spanOpen.attrs = [ [ 'data-end', contents[idx + 2] ], [ 'data-start', curr ] ]
+      spanOpen.attrs = [ [ 'data-end', Number(contents[idx + 2] - 0.01) ], [ 'data-start', curr ] ]
 
       return [ ...acc, spanClose, spanOpen ];
     };
