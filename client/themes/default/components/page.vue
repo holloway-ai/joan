@@ -47,6 +47,7 @@
             xl2
             cols="2"
             :style="{'height': `${pageContainerHeight}px`}"
+            ref="tocRef"
             )
               nav-sidebar(:items='sidebarDecoded', :nav-mode='navMode')
               .toc-header.mb-7 {{$t('common:page.toc')}}
@@ -350,6 +351,7 @@ export default {
       selectedSlideTopPosition: 0,
       lastSelectedSlide: null,
       newPageModal: false,
+      ignoreScrollEvent: false,
       editorOptions: [
         {
           name: 'Markdown',
@@ -484,78 +486,103 @@ export default {
     const TOPBAR_HEIGHT = 100;
 
     const presentationVideo = document.getElementById('presentationVideo');
+    const highlights = document.querySelectorAll("[data-start]");
+
     if (presentationVideo) {
+      // move #page-header-section inside #page-content
       const pageHeaderSection = document.getElementById('page-header-section');
       const pageContent = document.getElementById('page-content');
       pageContent.insertBefore(pageHeaderSection, pageContent.firstChild);
 
       const slides = document.querySelectorAll('.slide');
-      const toggleExpandBtn = document.getElementById('toggle-expand-btn');
-      slides.forEach(s =>{
+      slides.forEach(s => {
         s.addEventListener('click', this.handleSlideClick, { capture: true })
       })
-      toggleExpandBtn.addEventListener('click', this.toggleExpand)
-      const headersAndParagraphs = Array.from(pageContent.querySelectorAll('h2, p'));
-      const firstParagraphs = headersAndParagraphs.filter((_, idx) => {
-        if (idx === 0) return false;
-        if (headersAndParagraphs[idx - 1].tagName === 'H2') {
-          return true
-        };
-      });
 
-      const timestamps = firstParagraphs.map(p => {
-        return p.querySelector('span')?.dataset?.start || null;
-      });
-      // For now timestamps will only be showed if the browser width is greater than 1270, this is to avoid an error that will be fixed when we implement the mobile version
-      if (window.innerWidth > 1270) {
-        this.$refs.tocTitleTimestamps.forEach((t, idx) => {
-          if (timestamps[idx]) {
-            const ms = Math.floor(Number(timestamps[idx]) * 1000);
-            const timestamp = msToTime(ms);
-            const span = document.createElement('span');
-            span.innerHTML = timestamp
-            t.appendChild(span);
-          } else {
-            const span = document.createElement('span');
-            span.innerHTML = '--';
-            t.appendChild(span);
-          };
-        })
+      const toggleExpandBtn = document.getElementById('toggle-expand-btn');
+      toggleExpandBtn.addEventListener('click', this.toggleExpand)
+
+      this.insertTimestampsIntoToc()
+      if (highlights.length > 0) {
+        try {
+          presentationVideo.children[0].addEventListener(
+            'timeupdate', 
+            () => { this.highlightCurrentText(presentationVideo.children[0], highlights) }
+          )
+        } catch (err) {
+          throw new Error('video container is empty')
+        }
       };
+    } else {
+      throw new Error('there is no video element')
     };
 
-    // set page height
     this.pageContainerHeight = window.innerHeight - TOPBAR_HEIGHT;
     
     const spans = document.querySelectorAll('#page-text span');
-    spans.forEach(s => {
-      s.addEventListener('dblclick', (e) => {
-        e.target.scrollIntoView({ behavior: "smooth", block: "center" })
-        const slides = Array.from(document.querySelectorAll('.slide'));
-        const currentAndPast = slides.filter((s) => Number(s.dataset.start) <= Number(e.target.dataset.start));
-        const nearestSlide = currentAndPast[currentAndPast.length - 1];
-        const videoContainer = document.getElementById('presentationVideo');
-        const start = e.target.dataset.start;
+    spans.forEach(s => { s.addEventListener('dblclick', e => { this.handleTextDblClick(e) }) })
 
-        nearestSlide.scrollIntoView({ behavior: "smooth", block: "center" })
-        videoContainer.style.top = nearestSlide.offsetTop + 'px'
 
-        if (videoContainer.children[0].tagName === 'VIDEO') {
-          videoContainer.children[0].currentTime = start
-          videoContainer.children[0].play()
-        };
 
-        if (videoContainer.children[0].tagName === 'IFRAME') {
-          const targetTime = Math.round(Number(start));
-          const videoSrc = videoContainer.children[0].src;
-          const newVideoSrc = new URL(videoSrc);
-          newVideoSrc.searchParams.set('start', targetTime);
-          newVideoSrc.searchParams.set('autoplay', 1);
-          videoContainer.children[0].src = newVideoSrc
-        };
-      })
+    const pageText = document.getElementById('page-text');
+    const slidesContent = document.getElementById('slides-content');
+    // this is an alternative way to implement the synchronized scrolling but need a little bit of work
+    // const scrollers = [ pageText, slidesContent ];
+    //
+    // scrollers.forEach(scroller => {
+    //   const anothers = scrollers.filter(another => another !== scroller);
+    //   scroller.addEventListener('scroll', () => {
+    //     if (this.ignoreScrollEvent) return;
+    //     this.ignoreScrollEvent = true
+    //     const scrolledPercentage = this.getScrollPercentage(scroller);
+    //
+    //     anothers.forEach(another => {
+    //       another.scrollTop = scrolledPercentage * (another.scrollHeight - another.offsetHeight);
+    //     })
+    //
+    //     window.setTimeout(() => {
+    //       this.ignoreScrollEvent = false
+    //     }, 0)
+    //   })
+    // })
+
+    pageText.addEventListener('scroll', () => {
+      const ignore = this.ignoreScrollEvent
+      this.ignoreScrollEvent = false
+      if (!ignore) {
+        this.ignoreScrollEvent = true
+        this.$nextTick(() => {
+          const percentage = this.getScrollPercentage(pageText);
+          slidesContent.scrollTop = percentage * (slidesContent.scrollHeight - slidesContent.offsetHeight);
+          // this.$refs.tocRef.scrollTop = percentage * (this.$refs.tocRef.scrollHeight - this.$refs.tocRef.offsetHeight);
+        })
+      };
     })
-
+    slidesContent.addEventListener('scroll', () => {
+      const ignore = this.ignoreScrollEvent
+      this.ignoreScrollEvent = false
+      if (!ignore) {
+        this.ignoreScrollEvent = true
+        this.$nextTick(() => {
+          const percentage = this.getScrollPercentage(slidesContent);
+          pageText.scrollTop = percentage * (pageText.scrollHeight - pageText.offsetHeight);
+          // this.$refs.tocRef.scrollTop = percentage * (this.$refs.tocRef.scrollHeight - this.$refs.tocRef.offsetHeight);
+        })
+      };
+    })
+    // when adding the toc section the synchronization between scrolls becomes glitchy
+    // this.$refs.tocRef.addEventListener('scroll', () => {
+    //   const ignore = this.ignoreScrollEvent
+    //   this.ignoreScrollEvent = false
+    //   if (!ignore) {
+    //     this.ignoreScrollEvent = true
+    //     this.$nextTick(() => {
+    //       const percentage = this.getScrollPercentage(this.$refs.tocRef);
+    //       slidesContent.scrollTop = percentage * (slidesContent.scrollHeight - slidesContent.offsetHeight);
+    //       pageText.scrollTop = percentage * (pageText.scrollHeight - pageText.offsetHeight);
+    //     })
+    //   };
+    // })
 
     if (this.$vuetify.theme.dark) {
       this.scrollStyle.bar.background = '#424242'
@@ -696,15 +723,16 @@ export default {
       slideContainer.classList.add('selected')
 
       if (!start) return; // if there is no data-start attribute, then just do nothing
-      const spans = document.querySelectorAll('#page-text span');
-      const beforeSelected = Array.from(spans).filter(span => Number(span.dataset.start) <= Number(start));
-      const afterSelected = Array.from(spans).filter(span => Number(span.dataset.start) > Number(start));
+      // const spans = document.querySelectorAll('#page-text span');
+      // const beforeSelected = Array.from(spans).filter(span => Number(span.dataset.start) <= Number(start));
+      // const afterSelected = Array.from(spans).filter(span => Number(span.dataset.start) > Number(start));
       const videoContainer = document.getElementById('presentationVideo');
       const selectedSlideTopPosition = e.target.offsetTop;
 
-      if (beforeSelected.length) {
-        beforeSelected[beforeSelected.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' })
-      };
+      // these lines are no longer needed because the synchonized scrolling feature already scrolls the other sections
+      // if (beforeSelected.length) {
+      //   beforeSelected[beforeSelected.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' })
+      // };
       e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })
       videoContainer.style.top = selectedSlideTopPosition + 'px';
 
@@ -722,11 +750,11 @@ export default {
         videoContainer.children[0].src = newVideoSrc
       };
 
-      spans.forEach(s => { s.classList.remove('highlighted-on-select') });
-      beforeSelected[beforeSelected.length - 1].classList.add('highlighted-on-select');
-      if (afterSelected.length) {
-        afterSelected[0].classList.add('highlighted-on-select');
-      };
+      // spans.forEach(s => { s.classList.remove('highlighted-on-select') });
+      // beforeSelected[beforeSelected.length - 1].classList.add('highlighted-on-select');
+      // if (afterSelected.length) {
+      //   afterSelected[0].classList.add('highlighted-on-select');
+      // };
     },
     toggleExpand() {
       this.slidesExpanded = !this.slidesExpanded
@@ -752,6 +780,80 @@ export default {
     pageNewCreate ({ path, locale }) {
       window.location.assign(`/e/${locale}/${path}?editor=${this.selectedEditor}`)
     },
+    getScrollPercentage (element) {
+      return element.scrollTop / (element.scrollHeight - element.offsetHeight);
+    },
+    insertTimestampsIntoToc () {
+      const pageContent = document.getElementById('page-content');
+      const headersAndParagraphs = Array.from(pageContent.querySelectorAll('h2, p'));
+      const firstParagraphs = headersAndParagraphs.filter((_, idx) => {
+        if (idx === 0) return false;
+        if (headersAndParagraphs[idx - 1].tagName === 'H2') {
+          return true
+        };
+      });
+
+      const timestamps = firstParagraphs.map(p => {
+        return p.querySelector('span')?.dataset?.start || null;
+      });
+      // For now timestamps will only be showed if the browser width is greater than 1270, this is to avoid an error that will be fixed when we implement the mobile version
+      if (window.innerWidth > 1270) {
+        this.$refs.tocTitleTimestamps.forEach((t, idx) => {
+          if (timestamps[idx]) {
+            const ms = Math.floor(Number(timestamps[idx]) * 1000);
+            const timestamp = msToTime(ms);
+            const span = document.createElement('span');
+            span.innerHTML = timestamp
+            t.appendChild(span);
+          } else {
+            const span = document.createElement('span');
+            span.innerHTML = '--';
+            t.appendChild(span);
+          };
+        })
+      };
+    },
+    highlightCurrentText(video, highlights) {
+      const { currentTime } = video;
+      console.log('currentTime: ', currentTime);
+      highlights.forEach(highlight => {
+        const start = parseFloat(highlight.dataset.start);
+        const end = parseFloat(highlight.dataset.end);
+
+        if (currentTime >= start && currentTime <= end) {
+          highlight.classList.add("highlighted");
+        } else {
+          highlight.classList.remove("highlighted");
+        }
+      });
+    },
+    handleTextDblClick (e) {
+      e.target.scrollIntoView({ behavior: "smooth", block: "center" })
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const currentAndPast = slides.filter((s) => Number(s.dataset.start) <= Number(e.target.dataset.start));
+      const nearestSlide = currentAndPast[currentAndPast.length - 1];
+      const start = e.target.dataset.start;
+      // const spans = document.querySelectorAll('#page-text span');
+      // spans.forEach(s => s.classList.remove('highlighted-on-select'))
+      // e.target.classList.add('highlighted-on-select')
+
+      nearestSlide.scrollIntoView({ behavior: "smooth", block: "center" })
+      presentationVideo.style.top = nearestSlide.offsetTop + 'px'
+
+      if (presentationVideo.children[0].tagName === 'VIDEO') {
+        presentationVideo.children[0].currentTime = start
+        presentationVideo.children[0].play()
+      };
+
+      if (presentationVideo.children[0].tagName === 'IFRAME') {
+        const targetTime = Math.round(Number(start));
+        const videoSrc = presentationVideo.children[0].src;
+        const newVideoSrc = new URL(videoSrc);
+        newVideoSrc.searchParams.set('start', targetTime);
+        newVideoSrc.searchParams.set('autoplay', 1);
+        presentationVideo.children[0].src = newVideoSrc
+      };
+    }
   },
   watch: {
     upBtnShown(_, newValue) {
