@@ -352,6 +352,7 @@ export default {
       lastSelectedSlide: null,
       newPageModal: false,
       ignoreScrollEvent: false,
+      slidesSectionScrollTop: 0,
       editorOptions: [
         {
           name: 'Markdown',
@@ -493,6 +494,7 @@ export default {
       const pageHeaderSection = document.getElementById('page-header-section');
       const pageContent = document.getElementById('page-content');
       pageContent.insertBefore(pageHeaderSection, pageContent.firstChild);
+      const slidesContent = document.getElementById('slides-content');
 
       const slides = document.querySelectorAll('.slide');
       slides.forEach(s => {
@@ -513,8 +515,11 @@ export default {
           throw new Error('video container is empty')
         }
       };
+
+      slidesContent.addEventListener('scroll', () => { this.handleVideoOverflow() })
+
     } else {
-      throw new Error('there is no video element')
+      console.error('there is no video element')
     };
 
     this.pageContainerHeight = window.innerHeight - TOPBAR_HEIGHT;
@@ -815,7 +820,6 @@ export default {
     },
     highlightCurrentText(video, highlights) {
       const { currentTime } = video;
-      console.log('currentTime: ', currentTime);
       highlights.forEach(highlight => {
         const start = parseFloat(highlight.dataset.start);
         const end = parseFloat(highlight.dataset.end);
@@ -853,6 +857,33 @@ export default {
         newVideoSrc.searchParams.set('autoplay', 1);
         presentationVideo.children[0].src = newVideoSrc
       };
+    },
+    handleVideoOverflow () {
+      const presentationVideo = document.getElementById('presentationVideo');
+      const presentationVideoBox = presentationVideo.getBoundingClientRect();
+      const slidesContent = document.getElementById('slides-content');
+      const slidesContentBox = slidesContent.getBoundingClientRect();
+
+      // console.log('presentationVideo boundingClientRect: ', presentationVideoBox);
+      // console.log('slidesContent boundingClientRect: ', slidesContentBox);
+
+      const scrollDifference = this.slidesSectionScrollTop - slidesContent.scrollTop
+      console.log('scrollDifference: ', scrollDifference);
+
+      // scrolling down
+      if (scrollDifference > 0 && presentationVideoBox.bottom > slidesContentBox.bottom) {
+        console.log('video is overflowing bottom');
+        presentationVideo.style.top = parseInt(presentationVideo.style.top) - scrollDifference + 'px'
+      };
+
+      // scrolling up
+      if (scrollDifference < 0 && presentationVideoBox.top < slidesContentBox.top) {
+        console.log('video is overflowing top');
+        console.log(parseInt(presentationVideo.style.top) || 0);
+        presentationVideo.style.top = parseInt(presentationVideo.style.top.length ? presentationVideo.style.top : 0) - scrollDifference + 'px'
+      };
+
+      this.slidesSectionScrollTop = slidesContent.scrollTop
     }
   },
   watch: {
