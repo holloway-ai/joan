@@ -218,6 +218,7 @@ import ClipboardJS from 'clipboard'
 import Vue from 'vue'
 import Icon from '../../../components/icon'
 import { msToTime } from '../../../helpers/utils'
+import { scaleTime } from 'd3'
 
 Vue.component('Tabset', Tabset)
 Prism.plugins.autoloader.languages_path = '/_assets/js/prism/'
@@ -352,7 +353,9 @@ export default {
       lastSelectedSlide: null,
       newPageModal: false,
       ignoreScrollEvent: false,
+      mainScrolled: null,
       slidesSectionScrollTop: 0,
+      timeScales: {},
       editorOptions: [
         {
           name: 'Markdown',
@@ -531,63 +534,40 @@ export default {
 
     const pageText = document.getElementById('page-text');
     const slidesContent = document.getElementById('slides-content');
-    // this is an alternative way to implement the synchronized scrolling but need a little bit of work
-    // const scrollers = [ pageText, slidesContent ];
-    //
-    // scrollers.forEach(scroller => {
-    //   const anothers = scrollers.filter(another => another !== scroller);
-    //   scroller.addEventListener('scroll', () => {
-    //     if (this.ignoreScrollEvent) return;
-    //     this.ignoreScrollEvent = true
-    //     const scrolledPercentage = this.getScrollPercentage(scroller);
-    //
-    //     anothers.forEach(another => {
-    //       another.scrollTop = scrolledPercentage * (another.scrollHeight - another.offsetHeight);
-    //     })
-    //
-    //     window.setTimeout(() => {
-    //       this.ignoreScrollEvent = false
-    //     }, 0)
-    //   })
-    // })
 
-    pageText.addEventListener('scroll', () => {
-      const ignore = this.ignoreScrollEvent
-      this.ignoreScrollEvent = false
-      if (!ignore) {
-        this.ignoreScrollEvent = true
-        this.$nextTick(() => {
-          const percentage = this.getScrollPercentage(pageText);
-          slidesContent.scrollTop = percentage * (slidesContent.scrollHeight - slidesContent.offsetHeight);
-          // this.$refs.tocRef.scrollTop = percentage * (this.$refs.tocRef.scrollHeight - this.$refs.tocRef.offsetHeight);
-        })
-      };
-    })
-    slidesContent.addEventListener('scroll', () => {
-      const ignore = this.ignoreScrollEvent
-      this.ignoreScrollEvent = false
-      if (!ignore) {
-        this.ignoreScrollEvent = true
-        this.$nextTick(() => {
-          const percentage = this.getScrollPercentage(slidesContent);
-          pageText.scrollTop = percentage * (pageText.scrollHeight - pageText.offsetHeight);
-          // this.$refs.tocRef.scrollTop = percentage * (this.$refs.tocRef.scrollHeight - this.$refs.tocRef.offsetHeight);
-        })
-      };
-    })
-    // when adding the toc section the synchronization between scrolls becomes glitchy
-    // this.$refs.tocRef.addEventListener('scroll', () => {
-    //   const ignore = this.ignoreScrollEvent
-    //   this.ignoreScrollEvent = false
-    //   if (!ignore) {
-    //     this.ignoreScrollEvent = true
-    //     this.$nextTick(() => {
-    //       const percentage = this.getScrollPercentage(this.$refs.tocRef);
-    //       slidesContent.scrollTop = percentage * (slidesContent.scrollHeight - slidesContent.offsetHeight);
-    //       pageText.scrollTop = percentage * (pageText.scrollHeight - pageText.offsetHeight);
-    //     })
-    //   };
-    // })
+    const scrollers = [pageText, slidesContent, this.$refs.tocRef];
+
+    scrollers.forEach((thisScroller) => {
+      // cache another scrollers, prevent create another array when scrolling
+      const anothers = scrollers.filter((scroller) => scroller !== thisScroller);
+
+      thisScroller.addEventListener('scroll', () => {
+        // if mainScroller is already existing, do nothing
+        if (this.mainScroller) {
+          return;
+        }
+
+        // console.log(`Main scroller: ${thisScroller.id}`);
+
+        // mark this scroller as main scroller
+        this.mainScroller = thisScroller;
+
+        const scrolledPercentage = this.getScrollPercentage(thisScroller);
+
+        // scrolling anothers
+        anothers.forEach((scroller) => {
+          const scrollTop =
+            (scroller.scrollHeight - scroller.offsetHeight) * scrolledPercentage;
+
+          scroller.scrollTop = scrollTop;
+        });
+
+        // clear main scroller
+        window.setTimeout(() => {
+          this.mainScroller = null;
+        }, 20); // <-- this delay causes the others sections scrolls to be a bit laggy, but if you set it to 0 then the scroll conflict between the sections appears again
+      });
+    });
 
     if (this.$vuetify.theme.dark) {
       this.scrollStyle.bar.background = '#424242'
@@ -868,22 +848,24 @@ export default {
       // console.log('slidesContent boundingClientRect: ', slidesContentBox);
 
       const scrollDifference = this.slidesSectionScrollTop - slidesContent.scrollTop
-      console.log('scrollDifference: ', scrollDifference);
+      // console.log('scrollDifference: ', scrollDifference);
 
       // scrolling down
       if (scrollDifference > 0 && presentationVideoBox.bottom > slidesContentBox.bottom) {
-        console.log('video is overflowing bottom');
+        // console.log('video is overflowing bottom');
         presentationVideo.style.top = parseInt(presentationVideo.style.top) - scrollDifference + 'px'
       };
 
       // scrolling up
       if (scrollDifference < 0 && presentationVideoBox.top < slidesContentBox.top) {
-        console.log('video is overflowing top');
-        console.log(parseInt(presentationVideo.style.top) || 0);
+        // console.log('video is overflowing top');
         presentationVideo.style.top = parseInt(presentationVideo.style.top.length ? presentationVideo.style.top : 0) - scrollDifference + 'px'
       };
 
       this.slidesSectionScrollTop = slidesContent.scrollTop
+    },
+    printValues () {
+      const slides = document.querySelectorAll('#slides-content .slide');
     }
   },
   watch: {
