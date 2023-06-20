@@ -511,7 +511,7 @@ export default {
       if (highlights.length > 0) {
         try {
           presentationVideo.children[0].addEventListener(
-            'timeupdate', 
+            'timeupdate',
             () => { this.highlightCurrentText(presentationVideo.children[0], highlights) }
           )
         } catch (err) {
@@ -526,7 +526,7 @@ export default {
     };
 
     this.pageContainerHeight = window.innerHeight - TOPBAR_HEIGHT;
-    
+
     const spans = document.querySelectorAll('#page-text span');
     spans.forEach(s => { s.addEventListener('dblclick', e => { this.handleTextDblClick(e) }) })
 
@@ -534,6 +534,15 @@ export default {
 
     const pageText = document.getElementById('page-text');
     const slidesContent = document.getElementById('slides-content');
+    const slides = document.querySelectorAll('.slide');
+    if (slides.length == 0) {
+      //slidesContent.style.display = 'none';
+      const pageContentSection = document.getElementById('page-content');
+      const pageSlidesSection = document.getElementById('page-slides');
+      pageContentSection.style.flex = '1 1'
+      pageSlidesSection.style.display = 'none'
+
+  }
 
     const scrollers = [pageText, slidesContent, this.$refs.tocRef];
 
