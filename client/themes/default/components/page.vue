@@ -218,7 +218,7 @@ import ClipboardJS from 'clipboard'
 import Vue from 'vue'
 import Icon from '../../../components/icon'
 import { msToTime } from '../../../helpers/utils'
-import { scaleTime } from 'd3'
+import { scaleLinear } from 'd3'
 
 Vue.component('Tabset', Tabset)
 Prism.plugins.autoloader.languages_path = '/_assets/js/prism/'
@@ -356,6 +356,9 @@ export default {
       mainScrolled: null,
       slidesSectionScrollTop: 0,
       timeScales: {},
+      slidesTopPos: 0,
+      contentTopPos: 0,
+      tocTopPos: 0,
       editorOptions: [
         {
           name: 'Markdown',
@@ -463,6 +466,17 @@ export default {
       } else {
         return ''
       }
+    },
+    // contentScale () {
+    //   const pageText = document.getElementById('page-text');
+    //   return this.getAreaScale(pageText)
+    // },
+    // rightScale () {
+    //   return this.getAreaScale(this.$refs.rightArea)
+    // },
+    baseOffset () {
+      const slidesSectionContent = document.getElementById('slides-content');
+      return slidesSectionContent.getBoundingClientRect().height * 0.3
     }
   },
   created() {
@@ -530,44 +544,7 @@ export default {
     const spans = document.querySelectorAll('#page-text span');
     spans.forEach(s => { s.addEventListener('dblclick', e => { this.handleTextDblClick(e) }) })
 
-
-
-    const pageText = document.getElementById('page-text');
-    const slidesContent = document.getElementById('slides-content');
-
-    const scrollers = [pageText, slidesContent, this.$refs.tocRef];
-
-    scrollers.forEach((thisScroller) => {
-      // cache another scrollers, prevent create another array when scrolling
-      const anothers = scrollers.filter((scroller) => scroller !== thisScroller);
-
-      thisScroller.addEventListener('scroll', () => {
-        // if mainScroller is already existing, do nothing
-        if (this.mainScroller) {
-          return;
-        }
-
-        // console.log(`Main scroller: ${thisScroller.id}`);
-
-        // mark this scroller as main scroller
-        this.mainScroller = thisScroller;
-
-        const scrolledPercentage = this.getScrollPercentage(thisScroller);
-
-        // scrolling anothers
-        anothers.forEach((scroller) => {
-          const scrollTop =
-            (scroller.scrollHeight - scroller.offsetHeight) * scrolledPercentage;
-
-          scroller.scrollTop = scrollTop;
-        });
-
-        // clear main scroller
-        window.setTimeout(() => {
-          this.mainScroller = null;
-        }, 20); // <-- this delay causes the others sections scrolls to be a bit laggy, but if you set it to 0 then the scroll conflict between the sections appears again
-      });
-    });
+    this.synchronizeScrolls()
 
     if (this.$vuetify.theme.dark) {
       this.scrollStyle.bar.background = '#424242'
@@ -864,8 +841,76 @@ export default {
 
       this.slidesSectionScrollTop = slidesContent.scrollTop
     },
-    printValues () {
-      const slides = document.querySelectorAll('#slides-content .slide');
+    getAreaScale (element) {
+      const offset = element.getBoundingClientRect().y - element.scrollTop
+      const items = Array.from(element.querySelectorAll("[data-start]"))
+      
+      if (!items) return d3.scaleLinear()  
+      
+      const pos = items.reduce((acc, curr, idx) => {
+        const y = curr.getBoundingClientRect().y - offset                   
+        const lastY = acc[acc.length - 1];
+        // return [ ...acc, y ];
+        if (idx === 0 || y > lastY){
+          return [ ...acc, y ];
+        } else {
+          return acc;
+        }
+      }, [])
+      
+      const val = items.reduce((acc, curr, idx) => {          
+        const y = curr.getBoundingClientRect().y - offset                   
+        const start = parseFloat(curr.dataset.start); 
+        if (idx === 0 || y > acc[acc.length - 1]){
+          return [ ...acc, start ];
+        } else {
+          return acc;
+        }
+      }, [])
+
+      const last = items[items.length - 1]
+      const rect = last.getBoundingClientRect()
+      pos.push(rect.y + element.clientHeight - offset)
+      val.push(parseFloat(last.dataset.end))
+
+      const scale = scaleLinear().domain(val).range(pos)  
+      return scale 
+      
+    },
+    clearMainScroller () {
+      window.setTimeout(() => {
+        this.mainScroller = null;
+      }, 20); // <-- this delay causes the others sections scrolls to be a bit laggy, but if you set it to 0 then the scroll conflict between the sections appears again
+    },
+    synchronizeScrolls () {
+      const pageText = document.getElementById('page-text');
+      const slidesContent = document.getElementById('slides-content');
+
+      const scrollers = [ pageText, slidesContent, /* this.$refs.tocRef */ ]; // to make this work with the toc section (the table of contents) I will need to set a data-start attr in every item
+
+      scrollers.forEach((thisScroller) => {
+        const anothers = scrollers.filter((scroller) => scroller !== thisScroller);
+
+        thisScroller.addEventListener('scroll', () => {
+          // if mainScroller is already existing, do nothing
+          if (this.mainScroller) {
+            return;
+          }
+
+          // mark thisScroller as main scroller
+          this.mainScroller = thisScroller;
+
+          const y = thisScroller.scrollTop + this.baseOffset
+          const topPos = this.getAreaScale(thisScroller).invert(y)
+
+          // scroll the others scrollers
+          anothers.forEach((scroller, idx) => {
+            const newScrollTop = Math.ceil(this.getAreaScale(scroller)(topPos));
+            scroller.scrollTop = (newScrollTop) 
+          });
+          this.clearMainScroller()
+        });
+      });
     }
   },
   watch: {
