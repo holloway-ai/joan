@@ -51,16 +51,12 @@
             )
               nav-sidebar(:items='sidebarDecoded', :nav-mode='navMode')
               .toc-header.mb-7 {{$t('common:page.toc')}}
-              v-list#toc-contents.pa-0(dense, flat, nav, :class='$vuetify.theme.dark ? `darken-3-d3` : ``')
-                template(v-for='(tocItem, tocIdx) in tocDecoded')
-                  <!-- v-list-item.pa-0.ma-0(@click='$vuetify.goTo(tocItem.anchor, { ...scrollOpts, container: refs.container.childNodes[0] })') -->
-                  v-list-item.pa-0.ma-0(@click='goToContent(tocItem.anchor)')
-                    v-list-item-content.pa-0
-                      .toc-title-timestamp(ref="tocTitleTimestamps")
-                      v-list-item-title {{tocItem.title}}
-                  template(v-for='tocSubItem in tocItem.children')
-                    v-list-item(@click='goToContent(tocSubItem.anchor)')
-                      v-list-item-title.px-1.grey--text(:class='$vuetify.theme.dark ? `text--lighten-1` : `text--darken-1`') {{tocSubItem.title}}
+              v-list#toc-contents.pa-0(dense, flat, nav, :subheader = 'hasTimestamps', :two-line="hasTimestamps" :class='$vuetify.theme.dark ? `darken-3-d3` : ``')
+                v-list-item.pa-0.ma-0( v-for='header in tocs', :key='header.prefix')
+                  v-list-item-avatar.pa-0 {{header.prefix}}
+                  v-list-item-content
+                    v-list-item-title  {{header.header}}
+                    v-list-item-subtitle {{header.start_time}}
 
           <!-- contents -->
           v-col.page-col-content.pa-0(
@@ -402,7 +398,9 @@ export default {
           }
         }
       },
-      winWidth: 0
+      winWidth: 0,
+      tocs: [],
+      hasTimestamps: false,
     }
   },
   computed: {
@@ -486,11 +484,50 @@ export default {
     }
     this.$store.set('page/mode', 'view')
   },
+  beforeMount () {
+    // console.log(Array.from(document.querySelectorAll('#page-text h2, #page-text [data-start]')));
+  },
   mounted () {
     const TOPBAR_HEIGHT = 100;
 
     const presentationVideo = document.getElementById('presentationVideo');
     const highlights = document.querySelectorAll("[data-start]");
+
+    const headersAndStarts = Array.from(document.querySelectorAll('#page-text h2, #page-text [data-start]'));
+    let headers = [];
+    for (let i = 0; i < headersAndStarts.length;i++) {
+      let timestamp = null
+      if (headersAndStarts[i].tagName === 'H2') {
+        const h2 = headersAndStarts[i];
+        if (i < headersAndStarts.length - 1) {
+          timestamp = headersAndStarts[i + 1].dataset?.start;
+          if (timestamp) {
+            this.hasTimestamps = true;
+          }
+        }
+        const prefix = (headers.length + 1).toString().padStart(2, "0");
+
+        headers.push({
+          header: h2.textContent,
+          start: timestamp,
+          start_time: timestamp? new Date(Number(timestamp)*1000).toISOString().slice(11, -1): '',
+          id: h2.id,
+          end: null,
+          prefix: prefix,
+        })
+        let element = document.createElement('span');
+        element.textContent = prefix;
+        element.classList.add('header-number');
+        h2.prepend(element);
+      } else {
+        if (headers.length > 0) {
+          const end = headersAndStarts[i].dataset?.end;
+          if (end) headers[headers.length - 1].end = end;
+        }
+      }
+      this.tocs = headers;
+    }
+    //console.log(headers);
 
     if (presentationVideo) {
       // move #page-header-section inside #page-content
@@ -507,7 +544,7 @@ export default {
       const toggleExpandBtn = document.getElementById('toggle-expand-btn');
       toggleExpandBtn.addEventListener('click', this.toggleExpand)
 
-      this.insertTimestampsIntoToc()
+
       if (highlights.length > 0) {
         try {
           presentationVideo.children[0].addEventListener(
@@ -542,7 +579,7 @@ export default {
       pageContentSection.style.flex = '1 1'
       pageSlidesSection.style.display = 'none'
 
-  }
+   }
 
     const scrollers = [pageText, slidesContent, this.$refs.tocRef];
 
@@ -777,36 +814,7 @@ export default {
     getScrollPercentage (element) {
       return element.scrollTop / (element.scrollHeight - element.offsetHeight);
     },
-    insertTimestampsIntoToc () {
-      const pageContent = document.getElementById('page-content');
-      const headersAndParagraphs = Array.from(pageContent.querySelectorAll('h2, p'));
-      const firstParagraphs = headersAndParagraphs.filter((_, idx) => {
-        if (idx === 0) return false;
-        if (headersAndParagraphs[idx - 1].tagName === 'H2') {
-          return true
-        };
-      });
 
-      const timestamps = firstParagraphs.map(p => {
-        return p.querySelector('span')?.dataset?.start || null;
-      });
-      // For now timestamps will only be showed if the browser width is greater than 1270, this is to avoid an error that will be fixed when we implement the mobile version
-      if (window.innerWidth > 1270) {
-        this.$refs.tocTitleTimestamps.forEach((t, idx) => {
-          if (timestamps[idx]) {
-            const ms = Math.floor(Number(timestamps[idx]) * 1000);
-            const timestamp = msToTime(ms);
-            const span = document.createElement('span');
-            span.innerHTML = timestamp
-            t.appendChild(span);
-          } else {
-            const span = document.createElement('span');
-            span.innerHTML = '--';
-            t.appendChild(span);
-          };
-        })
-      };
-    },
     highlightCurrentText(video, highlights) {
       const { currentTime } = video;
       highlights.forEach(highlight => {
@@ -1023,24 +1031,17 @@ path{
       & * + h2 {
         margin-top: 1.3em;
       }
+      & .header-number {
+          font-weight: 700;
+          margin-right: .6em;
+          color: $orange;
+      }
 
       & h2 {
         display: flex;
         font-size: 1.5rem;
         font-weight: 600;
-        counter-increment: headerCounter;
         margin-bottom: .5em;
-
-        &::before {
-          content: "0" counter(headerCounter);
-          font-size: .9em;
-          font-weight: 700;
-          padding-top: 0.13em;
-          margin-right: .8em;
-          counter-increment: h2;
-          color: $orange;
-        }
-
         & .toc-anchor {
           display: flex;
           align-items: center;

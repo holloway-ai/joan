@@ -22,6 +22,7 @@ process.noDeprecation = true
 fs.emptyDirSync(path.join(process.cwd(), 'assets'))
 
 module.exports = {
+  devtool: 'source-map',
   mode: 'development',
   entry: {
     app: ['./client/index-app.js', 'webpack-hot-middleware/client'],
