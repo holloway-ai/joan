@@ -1,203 +1,134 @@
 <template lang="pug">
-  v-app(v-scroll='upBtnScroll', :dark='$vuetify.theme.dark', :class='$vuetify.rtl ? `is-rtl` : `is-ltr`')
+  v-app.overflow-hidden.fill-height(:dark='$vuetify.theme.dark', :class='$vuetify.rtl ? `is-rtl` : `is-ltr`')
     nav-header(v-if='!printView')
-    <!-- v-navigation-drawer( -->
-    <!--       v-if='navMode !== `NONE` && !printView' -->
-    <!--       :class='$vuetify.theme.dark ? `grey darken-4-d4` : `primary`' -->
-    <!--       dark -->
-    <!--       app -->
-    <!--       clipped -->
-    <!--       mobile-breakpoint='600' -->
-    <!--       :temporary='$vuetify.breakpoint.smAndDown' -->
-    <!--       v-model='navShown' -->
-    <!--       :right='$vuetify.rtl' -->
-    <!--       ) -->
-    <!--       vue-scroll(:ops='scrollStyle') -->
-    <!--         nav-sidebar-old(:color='$vuetify.theme.dark ? `grey darken-4-d4` : `primary`', :items='sidebarDecoded', :nav-mode='navMode') -->
+    v-main.overflow-hidden.fill-height(ref='content')
+      v-row.no-gutters.overflow-y-hidden.fill-height
+        <!-- toc -->
+        v-col.toc.pa-4.col-2.overflow-y-hidden.fill-height#toc-col(
+          v-if='tocPosition !== `off` && $vuetify.breakpoint.lgAndUp'
+          :order-xs1='tocPosition !== `right`'
+          :order-xs2='tocPosition === `right`'
+          ref="tocRef"
+          )
+            nav-sidebar(:items='sidebarDecoded', :nav-mode='navMode')
+            .toc-header.mb-7 {{$t('common:page.toc')}}
+            v-list#toc-contents.pa-0.overflow-y-auto(dense, flat, nav, :subheader = 'hasTimestamps', :two-line="hasTimestamps" :class='$vuetify.theme.dark ? `darken-3-d3` : ``')
+              v-list-item.pa-0.ma-0( v-for='header in tocs', :key='header.prefix')
+                v-avatar {{header.prefix}}
+                v-list-item-content
+                  v-list-item-title  {{header.header}}
+                  v-list-item-subtitle( v-if="header.start_time") {{header.start_time}}
 
-    v-main(ref='content', style="padding-top: 100px")
-      // breadcrumbs
-      <!-- v-toolbar.breadcrumbs-container.px-3(height="75" flat, dense) -->
-      <!--   v-btn.mr-3( -->
-      <!--     small -->
-      <!--     icon -->
-      <!--     @click='navShown = !navShown' -->
-      <!--     ) -->
-      <!--     v-icon mdi-menu -->
-      <!--   v-breadcrumbs.breadcrumbs-nav.pa-0.ma-0( -->
-      <!--     :items='breadcrumbs' -->
-      <!--     divider='/' -->
-      <!--     ) -->
-      <!--     template(slot='item', slot-scope='props') -->
-      <!--       v-icon(v-if='props.item.path === "/"', small, @click='goHome') mdi-home -->
-      <!--       v-btn.pa-0.ma-0(v-else, :href='props.item.path', small, text) {{props.item.name}} -->
-      <!--   template(v-if='!isPublished') -->
-      <!--     v-spacer -->
-      <!--     .caption.red--text {{$t('common:page.unpublished')}} -->
-      <!--     status-indicator.ml-3(negative, pulse) -->
-      v-container(fluid, grid-list-xl)
-        v-layout(row)
-
-          <!-- toc -->
-          v-col.toc(
-            v-if='tocPosition !== `off` && $vuetify.breakpoint.lgAndUp'
-            :order-xs1='tocPosition !== `right`'
-            :order-xs2='tocPosition === `right`'
-            lg3
-            xl2
-            cols="2"
-            :style="{'height': `${pageContainerHeight}px`}"
-            ref="tocRef"
-            )
-              nav-sidebar(:items='sidebarDecoded', :nav-mode='navMode')
-              .toc-header.mb-7 {{$t('common:page.toc')}}
-              v-list#toc-contents.pa-0(dense, flat, nav, :subheader = 'hasTimestamps', :two-line="hasTimestamps" :class='$vuetify.theme.dark ? `darken-3-d3` : ``')
-                v-list-item.pa-0.ma-0( v-for='header in tocs', :key='header.prefix')
-                  v-list-item-avatar.pa-0 {{header.prefix}}
-                  v-list-item-content
-                    v-list-item-title  {{header.header}}
-                    v-list-item-subtitle {{header.start_time}}
-
-          <!-- contents -->
-          v-col.page-col-content.pa-0(
-            cols="10"
-            )
-            v-alert.mb-5(v-if='!isPublished', color='red', outlined, icon='mdi-minus-circle', dense)
-              .caption {{$t('common:page.unpublishedWarning')}}
-            v-row#page-header-section.py-4(no-gutters, ref='headerRef')
-              v-col.page-col-content.is-page-header.pa-0.ma-0(
-                :xl='tocPosition === `right` ? 10 : false'
-                :lg='tocPosition === `right` ? 9 : false'
-                style='margin-top: auto; margin-bottom: auto;'
+        <!-- contents -->
+        v-col.col-9.pa-0.overflow-y-hidden.fill-height#content-col
+          v-alert.mb-5(v-if='!isPublished', color='red', outlined, icon='mdi-minus-circle', dense)
+            .caption {{$t('common:page.unpublishedWarning')}}
+          v-row.pa-4#page-header-section(no-gutters, ref='headerRef')
+            v-col.is-page-header.ps-3.ma-0(
+              :xl='tocPosition === `right` ? 10 : false'
+              :lg='tocPosition === `right` ? 9 : false'
+              style='margin-top: auto; margin-bottom: auto;'
+              )
+              .page-header-headings
+                h1 {{title}}
+                .caption.grey--text.text--darken-1 {{description}}
+              .page-edit-shortcuts(
+                v-if='editShortcutsObj.editMenuBar'
+                :class='tocPosition === `right` ? `is-right` : ``'
                 )
-                .page-header-headings
-                  h1 {{title}}
-                  .caption.grey--text.text--darken-1 {{description}}
-                .page-edit-shortcuts(
-                  v-if='editShortcutsObj.editMenuBar'
-                  :class='tocPosition === `right` ? `is-right` : ``'
-                  )
-                  v-btn(
-                    v-if='editShortcutsObj.editMenuBtn'
-                    @click='pageEdit'
-                    depressed
-                    small
-                    )
-                    v-icon.mr-2(small) mdi-pencil
-                    icon(name='edit-page')
-                    span.text-none {{$t(`common:actions.edit`)}}
-                  v-btn(
-                    v-if='editShortcutsObj.editMenuExternalBtn'
-                    :href='editMenuExternalUrl'
-                    target='_blank'
-                    depressed
-                    small
-                    )
-                    v-icon.mr-2(small) {{ editShortcutsObj.editMenuExternalIcon }}
-                    span.text-none {{$t(`common:page.editExternal`, { name: editShortcutsObj.editMenuExternalName })}}
-              v-col.page-info.pa-0
-                <!-- v-tooltip(bottom, v-if='isAuthenticated') -->
-                <!--   template(v-slot:activator='{ on }') -->
-                <!--     v-btn.btn-animate-edit( -->
-                <!--       icon -->
-                <!--       :href='"/h/" + locale + "/" + path' -->
-                <!--       v-on='on' -->
-                <!--       x-small -->
-                <!--       v-if='hasReadHistoryPermission' -->
-                <!--       :aria-label='$t(`common:header.history`)' -->
-                <!--       ) -->
-                <!--       icon(name='history') -->
-                <!--   span {{$t('common:header.history')}} -->
-                <!-- span {{ authorName }} -->
-                <!-- span {{ updatedAt | moment('DD/MM/YYYY') }} -->
-                <!-- v-tooltip(bottom, v-if='commentsPerms.write') -->
-                <!--   template(v-slot:activator='{ on }') -->
-                <!--     v-btn( -->
-                <!--       icon -->
-                <!--       tile -->
-                <!--       @click='goToComments(true)' -->
-                <!--       v-on='on' -->
-                <!--       :aria-label='$t(`common:comments.newComment`)' -->
-                <!--       ) -->
-                <!--       icon(name='comment') -->
-                <!--   span {{$t('common:comments.newComment')}} -->
-
-                <!-- header buttons -->
-
                 v-btn(
-                  v-if='hasWritePagesPermission'
-                  icon,
-                  tile,
-                  :disabled='!hasWritePagesPermission'
-                  :aria-label='$t(`common:page.editPage`)'
-                  @click="pageEdit"
+                  v-if='editShortcutsObj.editMenuBtn'
+                  @click='pageEdit'
+                  depressed
+                  small
                   )
-                  icon(name="edit-page")
-                <!-- new page menu -->
-                v-menu(offset-y, bottom, open-on-hover, content-class="header-menu")
-                  template(v-slot:activator='{ on: menu }')
-                    v-btn(icon, tile, v-on='menu', :aria-label='$t(`common:page.share`)')
-                      icon(name='new-page')
-                  v-list
-                    v-list-item(v-for="(editor, idx) in editorOptions", :key="idx", link, @click='pageNew(editor.id)')
-                      v-list-item-title {{ editor.name }}
-                v-menu(offset-y, bottom, min-width='300', content-class="header-menu")
-                  template(v-slot:activator='{ on: menu }')
-                    v-tooltip(bottom)
-                      template(v-slot:activator='{ on: tooltip }')
-                        v-btn(icon, tile, v-on='{ ...menu, ...tooltip }')
-                          icon(name='share')
-                      span {{$t('common:page.share')}}
-                  social-sharing(
-                    :url='pageUrl'
-                    :title='title'
-                    :description='description'
+                  v-icon.mr-2(small) mdi-pencil
+                  icon(name='edit-page')
+                  span.text-none {{$t(`common:actions.edit`)}}
+                v-btn(
+                  v-if='editShortcutsObj.editMenuExternalBtn'
+                  :href='editMenuExternalUrl'
+                  target='_blank'
+                  depressed
+                  small
                   )
-                v-menu(offset-y, bottom, open-on-hover, content-class="header-menu")
-                  template(v-slot:activator='{ on: menu }')
-                    v-btn(icon, tile, v-on='menu', :aria-label='$t(`common:page.share`)')
-                      icon(name='more')
-                  v-list
-                    v-list-item(link, @click='pageHistory')
-                      v-list-item-icon
-                        v-icon(size='20') mdi-history
-                      v-list-item-title {{$t('common:header.history')}}
-                    v-list-item(link, @click='pageSource')
-                      v-list-item-icon
-                        v-icon(size='20') mdi-code-tags
-                      v-list-item-title
-                        span {{$t('common:header.viewSource')}}
-                    v-list-item(link, @click='pageConvert', small)
-                      v-list-item-icon
-                        v-icon(size='20') mdi-lightning-bolt
-                      v-list-item-title
-                        span {{$t('common:header.convert')}}
-                    v-list-item(link, @click='pageDuplicate')
-                      v-list-item-icon
-                        v-icon(size='20') mdi-content-duplicate
-                      v-list-item-title
-                        span {{$t('common:header.duplicate')}}
-                    v-list-item(link, @click='pageMove')
-                      v-list-item-icon
-                        v-icon(size='20') mdi-content-save-move-outline
-                      v-list-item-title
-                        span {{$t('common:header.move')}}
-                    v-list-item(link, @click='pageDelete')
-                      v-list-item-icon
-                        v-icon(size='20') mdi-trash-can-outline
-                      v-list-item-title
-                        span {{$t('common:header.delete')}}
-            v-row(no-gutters)
-              #page-content-container(ref='container', :style="{'height': `${pageContainerHeight}px`}")
-                slot(name='contents', @slidesScroll="scrollContent")
-              .text-center
-                v-snackbar.copiedMsg(v-model="snackbar", :timeout="2000", light, rounded) Copied to clipboard...
-                <!-- .comments-container#discussion(v-if='commentsEnabled && commentsPerms.read && !printView') -->
-                  <!-- .comments-header -->
-                  <!--   v-icon.mr-2(dark) mdi-comment-text-outline -->
-                  <!--   span {{$t('common:comments.title')}} -->
-              <!--     .comments-main -->
-              <!--       slot(name='comments') -->
+                  v-icon.mr-2(small) {{ editShortcutsObj.editMenuExternalIcon }}
+                  span.text-none {{$t(`common:page.editExternal`, { name: editShortcutsObj.editMenuExternalName })}}
+            v-col.page-info.pa-0
+              v-btn(
+                v-if='hasWritePagesPermission'
+                icon,
+                tile,
+                :disabled='!hasWritePagesPermission'
+                :aria-label='$t(`common:page.editPage`)'
+                @click="pageEdit"
+                )
+                icon(name="edit-page")
+              <!-- new page menu -->
+              v-menu(offset-y, bottom, open-on-hover, content-class="header-menu")
+                template(v-slot:activator='{ on: menu }')
+                  v-btn(icon, tile, v-on='menu', :aria-label='$t(`common:page.share`)')
+                    icon(name='new-page')
+                v-list
+                  v-list-item(v-for="(editor, idx) in editorOptions", :key="idx", link, @click='pageNew(editor.id)')
+                    v-list-item-title {{ editor.name }}
+              v-menu(offset-y, bottom, min-width='300', content-class="header-menu")
+                template(v-slot:activator='{ on: menu }')
+                  v-tooltip(bottom)
+                    template(v-slot:activator='{ on: tooltip }')
+                      v-btn(icon, tile, v-on='{ ...menu, ...tooltip }')
+                        icon(name='share')
+                    span {{$t('common:page.share')}}
+                social-sharing(
+                  :url='pageUrl'
+                  :title='title'
+                  :description='description'
+                )
+              v-menu(offset-y, bottom, open-on-hover, content-class="header-menu")
+                template(v-slot:activator='{ on: menu }')
+                  v-btn(icon, tile, v-on='menu', :aria-label='$t(`common:page.share`)')
+                    icon(name='more')
+                v-list
+                  v-list-item(link, @click='pageHistory')
+                    v-list-item-icon
+                      v-icon(size='20') mdi-history
+                    v-list-item-title {{$t('common:header.history')}}
+                  v-list-item(link, @click='pageSource')
+                    v-list-item-icon
+                      v-icon(size='20') mdi-code-tags
+                    v-list-item-title
+                      span {{$t('common:header.viewSource')}}
+                  v-list-item(link, @click='pageConvert', small)
+                    v-list-item-icon
+                      v-icon(size='20') mdi-lightning-bolt
+                    v-list-item-title
+                      span {{$t('common:header.convert')}}
+                  v-list-item(link, @click='pageDuplicate')
+                    v-list-item-icon
+                      v-icon(size='20') mdi-content-duplicate
+                    v-list-item-title
+                      span {{$t('common:header.duplicate')}}
+                  v-list-item(link, @click='pageMove')
+                    v-list-item-icon
+                      v-icon(size='20') mdi-content-save-move-outline
+                    v-list-item-title
+                      span {{$t('common:header.move')}}
+                  v-list-item(link, @click='pageDelete')
+                    v-list-item-icon
+                      v-icon(size='20') mdi-trash-can-outline
+                    v-list-item-title
+                      span {{$t('common:header.delete')}}
+          v-row.no-gutters.overflow-y-auto.fill-height
+            #page-content-container(ref='container')
+              slot(name='contents')
+            .text-center
+              v-snackbar.copiedMsg(v-model="snackbar", :timeout="2000", light, rounded) Copied to clipboard...
+              <!-- .comments-container#discussion(v-if='commentsEnabled && commentsPerms.read && !printView') -->
+                <!-- .comments-header -->
+                <!--   v-icon.mr-2(dark) mdi-comment-text-outline -->
+                <!--   span {{$t('common:comments.title')}} -->
+            <!--     .comments-main -->
+            <!--       slot(name='comments') -->
     search-results
     page-selector(mode='create', v-model='newPageModal', :open-handler='pageNewCreate', :locale='locale')
 </template>
@@ -487,7 +418,7 @@ export default {
   beforeMount () {
     // console.log(Array.from(document.querySelectorAll('#page-text h2, #page-text [data-start]')));
   },
-  mounted () {
+  mounted() {
     const TOPBAR_HEIGHT = 100;
 
     const presentationVideo = document.getElementById('presentationVideo');
@@ -495,7 +426,7 @@ export default {
 
     const headersAndStarts = Array.from(document.querySelectorAll('#page-text h2, #page-text [data-start]'));
     let headers = [];
-    for (let i = 0; i < headersAndStarts.length;i++) {
+    for (let i = 0; i < headersAndStarts.length; i++) {
       let timestamp = null
       if (headersAndStarts[i].tagName === 'H2') {
         const h2 = headersAndStarts[i];
@@ -510,7 +441,7 @@ export default {
         headers.push({
           header: h2.textContent,
           start: timestamp,
-          start_time: timestamp? new Date(Number(timestamp)*1000).toISOString().slice(11, -1): '',
+          start_time: timestamp ? new Date(Number(timestamp) * 1000).toISOString().slice(11, -1) : '',
           id: h2.id,
           end: null,
           prefix: prefix,
@@ -529,47 +460,17 @@ export default {
     }
     //console.log(headers);
 
-    if (presentationVideo) {
-      // move #page-header-section inside #page-content
-      const pageHeaderSection = document.getElementById('page-header-section');
-      const pageContent = document.getElementById('page-content');
-      pageContent.insertBefore(pageHeaderSection, pageContent.firstChild);
-      const slidesContent = document.getElementById('slides-content');
 
-      const slides = document.querySelectorAll('.slide');
-      slides.forEach(s => {
-        s.addEventListener('click', this.handleSlideClick, { capture: true })
-      })
-
-      const toggleExpandBtn = document.getElementById('toggle-expand-btn');
-      toggleExpandBtn.addEventListener('click', this.toggleExpand)
-
-
-      if (highlights.length > 0) {
-        try {
-          presentationVideo.children[0].addEventListener(
-            'timeupdate',
-            () => { this.highlightCurrentText(presentationVideo.children[0], highlights) }
-          )
-        } catch (err) {
-          throw new Error('video container is empty')
-        }
-      };
-
-      slidesContent.addEventListener('scroll', () => { this.handleVideoOverflow() })
-
-    } else {
-      console.error('there is no video element')
-    };
-
-    this.pageContainerHeight = window.innerHeight - TOPBAR_HEIGHT;
 
     const spans = document.querySelectorAll('#page-text span');
     spans.forEach(s => { s.addEventListener('dblclick', e => { this.handleTextDblClick(e) }) })
 
+    const slidesBlock = document.getElementById('page-slides');
+    slidesBlock.parentElement.removeChild(slidesBlock);
 
+    //"page-slides"
 
-    const pageText = document.getElementById('page-text');
+/*     const pageText = document.getElementById('page-text');
     const slidesContent = document.getElementById('slides-content');
     const slides = document.querySelectorAll('.slide');
     if (slides.length == 0) {
@@ -579,44 +480,14 @@ export default {
       pageContentSection.style.flex = '1 1'
       pageSlidesSection.style.display = 'none'
 
-   }
+    } */
 
-    const scrollers = [pageText, slidesContent, this.$refs.tocRef];
 
-    scrollers.forEach((thisScroller) => {
-      // cache another scrollers, prevent create another array when scrolling
-      const anothers = scrollers.filter((scroller) => scroller !== thisScroller);
 
-      thisScroller.addEventListener('scroll', () => {
-        // if mainScroller is already existing, do nothing
-        if (this.mainScroller) {
-          return;
-        }
-
-        // console.log(`Main scroller: ${thisScroller.id}`);
-
-        // mark this scroller as main scroller
-        this.mainScroller = thisScroller;
-
-        const scrolledPercentage = this.getScrollPercentage(thisScroller);
-
-        // scrolling anothers
-        anothers.forEach((scroller) => {
-          const scrollTop =
-            (scroller.scrollHeight - scroller.offsetHeight) * scrolledPercentage;
-
-          scroller.scrollTop = scrollTop;
-        });
-
-        // clear main scroller
-        window.setTimeout(() => {
-          this.mainScroller = null;
-        }, 20); // <-- this delay causes the others sections scrolls to be a bit laggy, but if you set it to 0 then the scroll conflict between the sections appears again
-      });
-    });
 
     if (this.$vuetify.theme.dark) {
       this.scrollStyle.bar.background = '#424242'
+
     }
     // -> Check side navigation visibility
     this.handleSideNavVisibility()
@@ -643,32 +514,6 @@ export default {
         })
       }
     }
-    // -> Handle anchor links within the page contents
-    this.$nextTick(() => {
-      const headers = document.querySelectorAll('#page-content h2');
-      const anchors = this.$refs.container.querySelectorAll(`a[href^="#"], a[href^="${window.location.href.replace(window.location.hash, '')}#"]`);
-      anchors.forEach(el => {
-        el.onclick = ev => {
-          ev.preventDefault()
-          ev.stopPropagation()
-          navigator.clipboard.writeText(window.location + ev.currentTarget.hash);
-          this.snackbar = true
-          el.scrollIntoView({ behavior: "smooth", block: "start" })
-          this.$vuetify.goTo(decodeURIComponent(ev.currentTarget.hash), {
-            ...this.scrollOpts,
-            container: this.$refs.container
-          })
-          headers.forEach(h => {
-            if (h.id !== ev.currentTarget.hash.substring(1)) {
-              h.classList.remove('highlighted-on-select')
-            } else {
-              h.classList.add('highlighted-on-select')
-            };
-          })
-        }
-      })
-      window.boot.notify('page-ready')
-    })
   },
   beforeUnmount() {
     window.removeEventListener('hashchange', () => this.navigateToResult())
@@ -730,8 +575,9 @@ export default {
         document.querySelector('#discussion-new').focus()
       }
     },
-    navigateToResult () {
-      const elements = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6, .content'));
+    navigateToResult() {
+
+/*       const elements = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6, .content'));
       const location = String(window.location);
       const searchResultId = location.substring(location.indexOf('#') + 1);
       elements.forEach(element => {
@@ -741,7 +587,7 @@ export default {
           element.classList.remove('highlighted-on-select')
         };
       })
-      this.$vuetify.goTo(decodeURIComponent(window.location.hash), this.scrollOpts)
+      this.$vuetify.goTo(decodeURIComponent(window.location.hash), this.scrollOpts) */
     },
     handleSlideClick (e) {
       const slideContainer = e.target.parentElement;
@@ -855,7 +701,8 @@ export default {
         presentationVideo.children[0].src = newVideoSrc
       };
     },
-    handleVideoOverflow () {
+    handleVideoOverflow() {
+      /*
       const presentationVideo = document.getElementById('presentationVideo');
       const presentationVideoBox = presentationVideo.getBoundingClientRect();
       const slidesContent = document.getElementById('slides-content');
@@ -880,6 +727,7 @@ export default {
       };
 
       this.slidesSectionScrollTop = slidesContent.scrollTop
+      */
     },
     printValues () {
       const slides = document.querySelectorAll('#slides-content .slide');
@@ -887,6 +735,7 @@ export default {
   },
   watch: {
     upBtnShown(_, newValue) {
+      /*
       if (newValue) {
         const paragraphs = Array.from(document.querySelectorAll('.text-container p'));
         const location = String(window.location);
@@ -899,6 +748,7 @@ export default {
           };
         })
       };
+      */
     },
     slidesExpanded (newValue, oldValue) {
       const expandBtn = document.getElementById('expand-btn');
@@ -936,6 +786,7 @@ export default {
 
 <style lang="scss">
 @import '../../../scss/joan-styles.scss';
+html, body,#root, #app{margin: 0; height: 100%; overflow: hidden}
 
 .v-navigation-drawer {
   z-index: 999999;
@@ -1001,6 +852,17 @@ path{
 .theme--light.v-toolbar.v-sheet {
   background-color: $gray-200;
 }
+#toc-col {
+  border-right: 1px solid $gray-300;
+}
+#slides-col {
+  border-left: 1px solid $gray-300;
+}
+
+#content-col {
+    flex-direction: column;
+    display: flex;
+}
 #page-content-container {
   display: flex;
   overflow: hidden;
@@ -1008,11 +870,10 @@ path{
   & #page-content {
     display: flex;
     flex-direction: column;
-    flex: .75;
+    flex: 1;
     height: 100%;
     padding: 0 3em;
-    border-left: 1px solid $gray-300;
-    border-right: 1px solid $gray-300;
+
 
 
     & #page-text {
@@ -1152,18 +1013,7 @@ path{
     padding: 0 6px 0 12px;
   }
 }
-.page-col-sd {
-  margin-top: -90px;
-  align-self: flex-start;
-  position: sticky;
-  top: 64px;
-  max-height: calc(100vh - 64px);
-  overflow-y: auto;
-  -ms-overflow-style: none;
-}
-.page-col-sd::-webkit-scrollbar {
-  display: none;
-}
+
 #page-header-section {
   padding: 2em 0;
   border-bottom: 1px solid $gray-300;
