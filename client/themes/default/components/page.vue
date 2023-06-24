@@ -13,14 +13,14 @@
             nav-sidebar(:items='sidebarDecoded', :nav-mode='navMode')
             .toc-header.mb-7 {{$t('common:page.toc')}}
             v-list#toc-contents.pa-0.overflow-y-auto(dense, flat, nav, :subheader = 'hasTimestamps', :two-line="hasTimestamps" :class='$vuetify.theme.dark ? `darken-3-d3` : ``')
-              v-list-item.pa-0.ma-0( v-for='header in tocs', :key='header.prefix')
+              v-list-item.pa-0.ma-0( v-for='header in headers', :key='header.prefix')
                 v-avatar {{header.prefix}}
                 v-list-item-content
                   v-list-item-title  {{header.header}}
                   v-list-item-subtitle( v-if="header.start_time") {{header.start_time}}
 
         <!-- contents -->
-        v-col.col-9.pa-0.overflow-y-hidden.fill-height#content-col
+        v-col.col-7.pa-0.overflow-y-hidden.fill-height#content-col
           v-alert.mb-5(v-if='!isPublished', color='red', outlined, icon='mdi-minus-circle', dense)
             .caption {{$t('common:page.unpublishedWarning')}}
           v-row.pa-4#page-header-section(no-gutters, ref='headerRef')
@@ -129,6 +129,27 @@
                 <!--   span {{$t('common:comments.title')}} -->
             <!--     .comments-main -->
             <!--       slot(name='comments') -->
+        <!-- media -->
+        v-col.col-3.pa-0.overflow-y-hidden.fill-height#media-col
+          v-row.no-gutters
+            v-btn(
+              @click='currentPlayTime+=60'
+              depressed
+              small
+              )
+              v-icon.mr-2(small) mdi-chevron-left
+              span.text-none {{$t(`common:actions.edit`)}}
+          v-row.no-gutters.fill-height
+            v-col.col-12.pa-3.overflow-y-auto.fill-height
+              template( width="100%"  v-for="slide in slides" )
+                v-img(
+                  v-if="currentPlayTime<slide.start || currentPlayTime > slide.end" :src="slide.src" width="100%", :key = "slide.number")
+                v-sheet(v-else, id = "media-container"  )
+                p {{slide.startTime}}
+
+
+
+
     search-results
     page-selector(mode='create', v-model='newPageModal', :open-handler='pageNewCreate', :locale='locale')
 </template>
@@ -330,7 +351,19 @@ export default {
         }
       },
       winWidth: 0,
-      tocs: [],
+      headers: [],
+      slides: [{
+        src: null,
+        title: "",
+        number: 0,
+        start: -1.,
+        startTime: '',
+        end: 10000,
+      }],
+      videoSrc: null,
+      videoSrcType: 'video/mp4',
+      mediaObject: null,
+      currentPlayTime: 120.0,
       hasTimestamps: false,
     }
   },
@@ -426,6 +459,7 @@ export default {
 
     const headersAndStarts = Array.from(document.querySelectorAll('#page-text h2, #page-text [data-start]'));
     let headers = [];
+    let maxTime = 0.0;
     for (let i = 0; i < headersAndStarts.length; i++) {
       let timestamp = null
       if (headersAndStarts[i].tagName === 'H2') {
@@ -434,13 +468,14 @@ export default {
           timestamp = headersAndStarts[i + 1].dataset?.start;
           if (timestamp) {
             this.hasTimestamps = true;
+            maxTime = Math.max(maxTime, Number(timestamp));
           }
         }
         const prefix = (headers.length + 1).toString().padStart(2, "0");
 
         headers.push({
           header: h2.textContent,
-          start: timestamp,
+          start: timestamp ? Number(timestamp): null,
           start_time: timestamp ? new Date(Number(timestamp) * 1000).toISOString().slice(11, -1) : '',
           id: h2.id,
           end: null,
@@ -453,11 +488,14 @@ export default {
       } else {
         if (headers.length > 0) {
           const end = headersAndStarts[i].dataset?.end;
-          if (end) headers[headers.length - 1].end = end;
+          if (end) {
+            headers[headers.length - 1].end = Number(end);
+            maxTime = Math.max(maxTime, Number(end));
+          }
         }
       }
-      this.tocs = headers;
     }
+
     //console.log(headers);
 
 
@@ -466,6 +504,78 @@ export default {
     spans.forEach(s => { s.addEventListener('dblclick', e => { this.handleTextDblClick(e) }) })
 
     const slidesBlock = document.getElementById('page-slides');
+    const slidesSource = Array.from(slidesBlock.querySelectorAll('.slide')).sort(
+      (a, b)=>{return Number(a.dataset?.start) - Number(b.dataset?.start)});
+    let slides =  [{
+      src: null,
+      title: "",
+      number: 0,
+      start: -1.,
+      startTime: '',
+      end: 0.,
+    }];
+    for (let i = 0; i < slidesSource.length; i++) {
+      const slide = slidesSource[i]
+      const slideImg = slidesSource[i].querySelector('img');
+      if (!slideImg) continue;
+
+      let timestamp = slide.dataset?.start;
+      timestamp = timestamp ? Number(timestamp) : null;
+      if (timestamp) {
+        this.hasTimestamps = true;
+        maxTime = Math.max(maxTime, Number(timestamp));
+        if (slides.length>0) slides[slides.length-1].end = timestamp;
+      }
+      slides.push({
+        src: slideImg.src,
+        title: slide.textContent,
+        number: slides.length + 1,
+        start: timestamp,
+        startTime: timestamp ? new Date(timestamp * 1000).toISOString().slice(11, -1) : '',
+        end: null,
+      })
+    }
+    if (slides.length > 1) {
+      slides[slides.length - 1].end = maxTime;
+      slides.push({
+          src: null,
+          title: "",
+          number: slides.length+1,
+          start: maxTime,
+          startTime: '',
+          end: 100000,
+      });
+      this.slides = slides;
+      slides.forEach(s => console.log(s.start, s.end));
+
+    }
+    if (headers.length > 0) {
+      headers[headers.length - 1].end = maxTime;
+      // console.log(headers);
+      this.headers = headers;
+    }
+
+    if (presentationVideo) {
+      const video = presentationVideo.querySelector('video')
+      if (video) {
+        video.addEventListener('timeupdate', (ev) => {
+          this.currentPlayTime = ev.target.currentTime;
+        })
+
+      }
+
+      const mediaContainer = document.getElementById('media-container');
+      if (mediaContainer) {
+        mediaContainer.prepend(...presentationVideo.children)
+      }
+
+    }
+
+
+    // mediaContainer.prepend(...presentationVideo.children)
+
+    console.log(presentationVideo);
+
     slidesBlock.parentElement.removeChild(slidesBlock);
 
     //"page-slides"
@@ -855,7 +965,7 @@ path{
 #toc-col {
   border-right: 1px solid $gray-300;
 }
-#slides-col {
+#media-col {
   border-left: 1px solid $gray-300;
 }
 
@@ -999,6 +1109,22 @@ path{
     }
   }
 }
+
+#media-container {
+  position: sticky;
+  top: 0px;
+  bottom: 0px;
+  z-index: 100;
+  align-self: flex-center;
+    & iframe {
+      width: 100%;
+      height: 100%;
+    }
+    & video {
+       width: 100%;
+        // width: calc(100% - 3rem);
+    }
+  }
 .breadcrumbs-nav {
   .v-btn {
     min-width: 0;
