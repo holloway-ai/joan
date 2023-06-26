@@ -139,21 +139,25 @@
               )
               v-icon.mr-2(small) mdi-chevron-left
               span.text-none {{$t(`common:actions.edit`)}}
-            #media-ancher(ref='mediaAncher')
+            #media-ancher(ref='mediaAncher' v-on:wheel="onMediaWheel")
               v-sheet(id = "media-container"  )
           v-row.no-gutters.fill-height.overflow-y-hidden
             v-col.col-12.pa-3.overflow-y-auto.fill-height.slides_container(
                 ref="slidesContainer"
                 v-on:scroll="onSlidesScroll"
                 v-on:scrollend="onSlidesScrollEnd"
+                v-on:wheel="onSlidesWheel"
               )
 
               template( width="100%"  v-for="(slide, slideIdx) in slides" )
                 v-sheet.slide(
                     :key = "slide.number"
-                    v-on:click="onSlideClick(slideIdx)"
+                    v-on:click="onSlideClick(slide.number)",
+                    :class="slide.type"
                   )
-                  v-img.slide_img(:src="slide.src" width="100%",)
+                  v-responsive( width="100%",:aspect-ratio="16/9" )
+                    v-img.slide_img(:src="slide.src" width="100%")
+
                   p {{slide.startTime}}
 
     search-results
@@ -358,18 +362,13 @@ export default {
       },
       winWidth: 0,
       headers: [],
-      slides: [{
-        src: null,
-        title: "",
-        number: 0,
-        start: -1.,
-        startTime: '',
-        end: 10000,
-      }],
+      slides: [
+       { src: null, title: '', number: 0, start: -1.0, type: 'service', startTime: "00:00:00.000", end: 100000 }
+      ],
       videoSrc: null,
       videoSrcType: 'video/mp4',
       mediaObject: null,
-      currentPlayTime: 120.0,
+      currentPlayTime: null,
       hasTimestamps: false,
     }
   },
@@ -462,6 +461,23 @@ export default {
   beforeMount () {
     // console.log(Array.from(document.querySelectorAll('#page-text h2, #page-text [data-start]')));
   },
+  updated () {
+    if (this.currentPlayTime === null) {
+      const meadiaContainer = document.getElementById('media-container')
+      const slideElements = document.querySelectorAll('.slide')
+      const activeSlide = slideElements[0]
+
+      activeSlide.classList.add('active')
+
+      const activePos = (
+        activeSlide.getBoundingClientRect().top
+        + this.$refs.slidesContainer.scrollTop
+        - this.$refs.mediaCol.getBoundingClientRect().top
+      )
+      meadiaContainer.style.top = `${activePos}px`
+      this.setPlayTime(0.0)
+    }
+  },
   mounted() {
     const TOPBAR_HEIGHT = 100;
 
@@ -517,13 +533,14 @@ export default {
     const slidesBlock = document.getElementById('page-slides');
     const slidesSource = Array.from(slidesBlock.querySelectorAll('.slide')).sort(
       (a, b)=>{return Number(a.dataset?.start) - Number(b.dataset?.start)});
-    let slides =  [{
+    let slides = [{
       src: null,
-      title: "",
+      title: '',
       number: 0,
-      start: -1.,
-      startTime: '',
-      end: 0.,
+      start: -1.0,
+      type: 'service',
+      startTime: "00:00:00.000",
+      end: null
     }];
     for (let i = 0; i < slidesSource.length; i++) {
       const slide = slidesSource[i]
@@ -540,26 +557,27 @@ export default {
       slides.push({
         src: slideImg.src,
         title: slide.textContent,
-        number: slides.length + 1,
+        number: slides.length ,
         start: timestamp,
+        type: 'image',
         startTime: timestamp ? new Date(timestamp * 1000).toISOString().slice(11, -1) : '',
         end: null,
       })
     }
-    if (slides.length > 1) {
-      slides[slides.length - 1].end = maxTime;
-      slides.push({
-          src: null,
-          title: "",
-          number: slides.length+1,
-          start: maxTime,
-          startTime: '',
-          end: 100000,
-      });
-      this.slides = slides;
-      slides.forEach(s => console.log(s.start, s.end));
 
-    }
+    slides[slides.length - 1].end = maxTime;
+
+    if (slides.length > 1) slides.push({
+        src: null,
+        title: '',
+        number: slides.length,
+        start: maxTime,
+        type: 'service',
+        startTime: new Date(maxTime * 1000).toISOString().slice(11, -1),
+        end: 1000000
+    });
+    this.slides = slides;
+
     if (headers.length > 0) {
       headers[headers.length - 1].end = maxTime;
       // console.log(headers);
@@ -588,6 +606,8 @@ export default {
     console.log(presentationVideo);
 
     slidesBlock.parentElement.removeChild(slidesBlock);
+    //ugly hack to make it work
+    //window.setTimeout(()=>this.onSlideClick(0), 1000);
 
     //"page-slides"
 
@@ -656,8 +676,19 @@ export default {
       console.log("scroll ");
 
     },
+    onMediaWheel(e) {
+      console.log("media wheel");
+      // return this.$refs.slidesContainer.dispatchEvent(new WheelEvent(e.type, e))
+    },
+    onSlidesWheel(e) {
+      console.log("slides wheel");
+      this.autoScroll = false
+    },
     onSlidesScroll(e) {
-      if (this.autoScroll) return
+      if (this.autoScroll) {
+        console.log("auto scroll");
+        return
+      }
       this.startScrollingWithSlide(document.querySelector('.slide.active'))
 
     },
@@ -681,9 +712,10 @@ export default {
     },
     onSlideClick(newActiveSlideIdx) {
       //this.autoScroll = true;
-
+      console.log("slide click", newActiveSlideIdx);
       const meadiaContainer = document.getElementById('media-container')
       const slideElements = document.querySelectorAll('.slide')
+      console.log(slideElements);
       const activeSlide = slideElements[newActiveSlideIdx]
       const firstSlide = slideElements[0]
       const lastSlide = slideElements[slideElements.length - 1]
@@ -916,8 +948,10 @@ export default {
       console.log(this.slides[newValue].startTime);
 
       const container = this.$refs.slidesContainer
-      const activeSlide = container.querySelectorAll('.slide')[newValue]
-      const oldSlide = container.querySelectorAll('.slide')[oldValue]
+      const slideElements = container.querySelectorAll('.slide')
+      console.log(slideElements);
+      const activeSlide = slideElements[newValue]
+      const oldSlide = slideElements[oldValue]
       if (oldSlide) {
         oldSlide.classList.remove('active')
       }
@@ -951,14 +985,16 @@ export default {
           behavior: 'smooth'
         })
         this.autoScroll = true
+      } else {
+        console.log('no active');
       }
       console.log("endSlideIndex");
     },
     currentPlayTime(newValue, oldValue) {
       const spans = document.querySelectorAll('#page-text span').forEach(s => {
-        s.classList.remove('highlighted-on-select')
+        s.classList.remove('highlighted')
         if (s.dataset?.start <= newValue && s.dataset?.end >= newValue) {
-          s.classList.add('highlighted-on-select')
+          s.classList.add('highlighted')
         };
       });
 
@@ -1178,13 +1214,18 @@ path{
   flex-direction: column;
 
   .slides_container {
-
     display: flex;
     flex-direction: column;
     gap: 1.7em;
+    .service{
+      display: none;
+      &.active{
+        display: block;
+      }
+    }
     .slide{
       position: relative;
-      opacity: .3;
+      opacity: .6;
       &.active{
         opacity: 1;
         position: sticky;
@@ -1199,13 +1240,15 @@ path{
     }
     &.scrolling{
       .slide{
+        opacity: 1;
         &.active{
-          opacity: .9;
+          opacity: .3;
           #media-container {
               position: absolute;
-              top: 0px;
               z-index: 110;
-              width: 70%;
+              left: 0;
+              width: 100%;
+              pointer-events: none;
               }
         }
       }
@@ -1213,9 +1256,11 @@ path{
   }
   #media-container {
       position: absolute;
-      top: 50%;
+      top: 0px;
+      left: 0px;
       z-index: 110;
-      width: 50%;
+      width: 100%;
+      pointer-events: none;
         & iframe {
           width: 100%;
           height: 100%;
