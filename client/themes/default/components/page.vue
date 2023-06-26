@@ -130,8 +130,8 @@
             <!--     .comments-main -->
             <!--       slot(name='comments') -->
         <!-- media -->
-        v-col.col-3.pa-0.overflow-y-hidden.fill-height#media-col
-          v-row.no-gutters
+        v-col.col-3.pa-0.overflow-y-hidden.fill-height#media-col(ref='mediaCol')
+          v-row.no-gutters.overflow-y-hidden
             v-btn(
               @click='currentPlayTime+=60'
               depressed
@@ -139,16 +139,22 @@
               )
               v-icon.mr-2(small) mdi-chevron-left
               span.text-none {{$t(`common:actions.edit`)}}
-          v-row.no-gutters.fill-height
-            v-col.col-12.pa-3.overflow-y-auto.fill-height
-              template( width="100%"  v-for="slide in slides" )
-                v-img(
-                  v-if="currentPlayTime<slide.start || currentPlayTime > slide.end" :src="slide.src" width="100%", :key = "slide.number")
-                v-sheet(v-else, id = "media-container"  )
-                p {{slide.startTime}}
+            #media-ancher(ref='mediaAncher')
+              v-sheet(id = "media-container"  )
+          v-row.no-gutters.fill-height.overflow-y-hidden
+            v-col.col-12.pa-3.overflow-y-auto.fill-height.slides_container(
+                ref="slidesContainer"
+                v-on:scroll="onSlidesScroll"
+                v-on:scrollend="onSlidesScrollEnd"
+              )
 
-
-
+              template( width="100%"  v-for="(slide, slideIdx) in slides" )
+                v-sheet.slide(
+                    :key = "slide.number"
+                    v-on:click="onSlideClick(slideIdx)"
+                  )
+                  v-img.slide_img(:src="slide.src" width="100%",)
+                  p {{slide.startTime}}
 
     search-results
     page-selector(mode='create', v-model='newPageModal', :open-handler='pageNewCreate', :locale='locale')
@@ -425,7 +431,12 @@ export default {
       } else {
         return ''
       }
-    }
+    },
+    activeSlideIndex () {
+      return _.findIndex(this.slides, (slide) => {
+        return slide.start <= this.currentPlayTime && slide.end > this.currentPlayTime
+      })
+    },
   },
   created() {
     this.$store.set('page/authorId', this.authorId)
@@ -629,6 +640,102 @@ export default {
     window.removeEventListener('hashchange', () => this.navigateToResult())
   },
   methods: {
+    getActiveSlideElement () {
+      const activeSlide = document.querySelector('.slide.active')
+      //console.log(activeSlide);
+      return activeSlide
+
+    },
+    startScrollingWithSlide(slide) {
+      if (!slide) return
+      this.$refs.slidesContainer.classList.add('scrolling')
+      const meadiaContainer = document.getElementById('media-container')
+      meadiaContainer.style.top = 0
+      //meadiaContainer.parentElement.removeChild(meadiaContainer)
+      slide.prepend(meadiaContainer)
+      console.log("scroll ");
+
+    },
+    onSlidesScroll(e) {
+      if (this.autoScroll) return
+      this.startScrollingWithSlide(document.querySelector('.slide.active'))
+
+    },
+    onSlidesScrollEnd(e) {
+      this.autoScroll = false;
+      if (!this.$refs.slidesContainer.classList.contains ('scrolling')) return
+      this.$refs.slidesContainer.classList.remove('scrolling')
+      const meadiaContainer = document.getElementById('media-container')
+      const activeSlide = document.querySelector('.slide.active')
+      const activeTop = (
+        activeSlide.getBoundingClientRect().top
+        - this.$refs.mediaCol.getBoundingClientRect().top
+      )
+      //const activeTop = 20;
+      console.log("activeTop",activeTop);
+      console.log("activeBottom",activeTop+ activeSlide.getBoundingClientRect().height);
+      meadiaContainer.style.top = `${activeTop}px`
+      this.$refs.mediaAncher.prepend(meadiaContainer)
+      this.userScroll = true;
+      console.log("scroll end");
+    },
+    onSlideClick(newActiveSlideIdx) {
+      //this.autoScroll = true;
+
+      const meadiaContainer = document.getElementById('media-container')
+      const slideElements = document.querySelectorAll('.slide')
+      const activeSlide = slideElements[newActiveSlideIdx]
+      const firstSlide = slideElements[0]
+      const lastSlide = slideElements[slideElements.length - 1]
+
+      const topPos = (
+        firstSlide.getBoundingClientRect().top
+        + this.$refs.slidesContainer.scrollTop
+        - this.$refs.mediaCol.getBoundingClientRect().top
+      )
+
+      let activePos = (
+        activeSlide.getBoundingClientRect().top
+        //+ this.$refs.slidesContainer.scrollTop
+        - this.$refs.mediaCol.getBoundingClientRect().top
+      )
+      const bottomPos = (
+        this.$refs.slidesContainer.getBoundingClientRect().height
+        - this.$refs.slidesContainer.scrollHeight
+        + lastSlide.getBoundingClientRect().bottom
+        + this.$refs.slidesContainer.scrollTop
+        - activeSlide.getBoundingClientRect().height
+        - this.$refs.mediaCol.getBoundingClientRect().top
+      )
+      activePos =Math.min( Math.max( activePos,topPos), bottomPos )
+      // this.$refs.slidesContainer.getBoundingClientRect().bottom- ((this.$refs.slidesContainer.scrollHeight + this.$refs.slidesContainer.getBoundingClientRect().top) - (lastSlide.getBoundingClientRect().bottom + this.$refs.slidesContainer.scrollTop)) - activeSlide.getBoundingClientRect().height - this.$refs.mediaCol.getBoundingClientRect().top
+      console.log("Pos",topPos, activePos, bottomPos);
+      meadiaContainer.style.top = `${activePos}px`
+      const newTime = this.slides[newActiveSlideIdx].start;
+      this.setPlayTime(newTime)
+      console.log("click-finished");
+
+    },
+    setPlayTime(startTime) {
+      const meadiaContainer = document.getElementById('media-container')
+
+      if (meadiaContainer.children[0].tagName === 'VIDEO') {
+        const player = meadiaContainer.children[0]
+        player.currentTime = startTime
+        this.currentPlayTime = startTime; //?
+        player.play()
+
+      } else if (meadiaContainer.children[0].tagName === 'IFRAME') {
+        //Youtube??
+        const targetTime = startTime;
+        const videoSrc = meadiaContainer.children[0].src;
+        const newVideoSrc = new URL(videoSrc);
+        newVideoSrc.searchParams.set('start', targetTime);
+        newVideoSrc.searchParams.set('autoplay', 1);
+        meadiaContainer.children[0].src = newVideoSrc
+      };
+      this.currentPlayTime = startTime;
+    },
     goHome () {
       window.location.assign('/')
     },
@@ -698,50 +805,6 @@ export default {
         };
       })
       this.$vuetify.goTo(decodeURIComponent(window.location.hash), this.scrollOpts) */
-    },
-    handleSlideClick (e) {
-      const slideContainer = e.target.parentElement;
-      const { start } = slideContainer.dataset;
-      const slides = document.querySelectorAll('#slides-content .slide');
-      slides.forEach(s => {
-        s.classList.remove('selected')
-      })
-
-      slideContainer.classList.add('selected')
-
-      if (!start) return; // if there is no data-start attribute, then just do nothing
-      // const spans = document.querySelectorAll('#page-text span');
-      // const beforeSelected = Array.from(spans).filter(span => Number(span.dataset.start) <= Number(start));
-      // const afterSelected = Array.from(spans).filter(span => Number(span.dataset.start) > Number(start));
-      const videoContainer = document.getElementById('presentationVideo');
-      const selectedSlideTopPosition = e.target.offsetTop;
-
-      // these lines are no longer needed because the synchonized scrolling feature already scrolls the other sections
-      // if (beforeSelected.length) {
-      //   beforeSelected[beforeSelected.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' })
-      // };
-      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      videoContainer.style.top = selectedSlideTopPosition + 'px';
-
-      if (videoContainer.children[0].tagName === 'VIDEO') {
-        videoContainer.children[0].currentTime = start
-        videoContainer.children[0].play()
-      };
-
-      if (videoContainer.children[0].tagName === 'IFRAME') {
-        const targetTime = Math.round(Number(e.target.parentElement.dataset.start));
-        const videoSrc = videoContainer.children[0].src;
-        const newVideoSrc = new URL(videoSrc);
-        newVideoSrc.searchParams.set('start', targetTime);
-        newVideoSrc.searchParams.set('autoplay', 1);
-        videoContainer.children[0].src = newVideoSrc
-      };
-
-      // spans.forEach(s => { s.classList.remove('highlighted-on-select') });
-      // beforeSelected[beforeSelected.length - 1].classList.add('highlighted-on-select');
-      // if (afterSelected.length) {
-      //   afterSelected[0].classList.add('highlighted-on-select');
-      // };
     },
     toggleExpand() {
       this.slidesExpanded = !this.slidesExpanded
@@ -844,6 +907,64 @@ export default {
     }
   },
   watch: {
+    activeSlideIndex(newValue, oldValue) {
+
+      const meadiaContainer = document.getElementById('media-container')
+      const rect = meadiaContainer.getBoundingClientRect()
+
+      console.log(`slides: ${oldValue} => ${newValue}` );
+      console.log(this.slides[newValue].startTime);
+
+      const container = this.$refs.slidesContainer
+      const activeSlide = container.querySelectorAll('.slide')[newValue]
+      const oldSlide = container.querySelectorAll('.slide')[oldValue]
+      if (oldSlide) {
+        oldSlide.classList.remove('active')
+      }
+
+      if (activeSlide) {
+        console.log(activeSlide.textContent);
+        activeSlide.classList.add('active')
+        const scrollTo = (
+          activeSlide.getBoundingClientRect().top
+          - meadiaContainer.getBoundingClientRect().top
+          + container.scrollTop
+        )
+        console.log(scrollTo);
+
+        if (container.scrollHeight - Math.round(scrollTo) < container.clientHeight) {
+
+          const activePos = (
+            container.getBoundingClientRect().height
+            - container.scrollHeight
+            + activeSlide.getBoundingClientRect().top
+            + container.scrollTop
+            - this.$refs.mediaCol.getBoundingClientRect().top
+          )
+          meadiaContainer.style.top = `${activePos}px`
+          console.log('scroll to bottom');
+
+        }
+
+        this.$refs.slidesContainer.scrollTo({
+          top: scrollTo,
+          behavior: 'smooth'
+        })
+        this.autoScroll = true
+      }
+      console.log("endSlideIndex");
+    },
+    currentPlayTime(newValue, oldValue) {
+      const spans = document.querySelectorAll('#page-text span').forEach(s => {
+        s.classList.remove('highlighted-on-select')
+        if (s.dataset?.start <= newValue && s.dataset?.end >= newValue) {
+          s.classList.add('highlighted-on-select')
+        };
+      });
+
+
+
+    },
     upBtnShown(_, newValue) {
       /*
       if (newValue) {
@@ -965,9 +1086,6 @@ path{
 #toc-col {
   border-right: 1px solid $gray-300;
 }
-#media-col {
-  border-left: 1px solid $gray-300;
-}
 
 #content-col {
     flex-direction: column;
@@ -1049,82 +1167,70 @@ path{
     padding: 2em 13em 2em 13em;
   }
 
-  & #page-slides {
-    flex: .25;
-    height: 100%;
-    padding: 2em 3em 2em 2em;
+
+
+}
+#media-col {
+  border-left: 1px solid $gray-300;
+  position: relative;
+  padding: 2em 3em 2em 2em;
+  display: flex;
+  flex-direction: column;
+
+  .slides_container {
+
     display: flex;
     flex-direction: column;
     gap: 1.7em;
-    // transition: all .3s ease-in;
-
-    & iframe {
-      width: 100%;
-      height: 100%;
-    }
-
-    & #slides-options {
-      #toggle-expand-btn {
-        display: flex;
-        align-items: center;
-        gap: .5em;
-      }
-
-      #expand-btn, #restore-btn {
-        display: none;
-      }
-
-      & #expand-btn.active, & #restore-btn.active {
-        display: block;
-      }
-    }
-
-    & #slides-content {
+    .slide{
       position: relative;
-      height: 100%;
-      overflow: scroll;
-      display: flex;
-      flex-direction: column;
-      gap: 1.7em;
-    }
-
-    & .slide {
       opacity: .3;
-      cursor: pointer;
-      width: 100%;
+      &.active{
+        opacity: 1;
+        position: sticky;
+        top: 0px;
+        bottom: 0px;
+        z-index: 100;
 
-      & img {
+      }
+      .slide_img{
         width: 100%;
       }
     }
-
-    & #presentationVideo {
-      position: absolute;
-      z-index: 5;
-
-      & video {
-        width: 100%;
-        // width: calc(100% - 3rem);
+    &.scrolling{
+      .slide{
+        &.active{
+          opacity: .9;
+          #media-container {
+              position: absolute;
+              top: 0px;
+              z-index: 110;
+              width: 70%;
+              }
+        }
       }
     }
   }
+  #media-container {
+      position: absolute;
+      top: 50%;
+      z-index: 110;
+      width: 50%;
+        & iframe {
+          width: 100%;
+          height: 100%;
+        }
+        & video {
+          width: 100%;
+            // width: calc(100% - 3rem);
+        }
+      }
 }
 
-#media-container {
-  position: sticky;
-  top: 0px;
-  bottom: 0px;
-  z-index: 100;
-  align-self: flex-center;
-    & iframe {
-      width: 100%;
-      height: 100%;
-    }
-    & video {
-       width: 100%;
-        // width: calc(100% - 3rem);
-    }
-  }
+
+
+
+
 .breadcrumbs-nav {
   .v-btn {
     min-width: 0;
