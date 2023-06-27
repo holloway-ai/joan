@@ -20,11 +20,11 @@
                   v-list-item-subtitle( v-if="header.start_time") {{header.start_time}}
 
         <!-- contents -->
-        v-col.col-7.pa-0.overflow-y-hidden.fill-height#content-col
+        v-col.col.pa-0.overflow-y-hidden.fill-height#content-col
           v-alert.mb-5(v-if='!isPublished', color='red', outlined, icon='mdi-minus-circle', dense)
             .caption {{$t('common:page.unpublishedWarning')}}
-          v-row.pa-4#page-header-section.overflow-y-hidden(no-gutters, ref='headerRef')
-            v-col.is-page-header.ps-3.ma-0(
+          v-row.px-0.py-5#page-header-section.overflow-y-hidden(no-gutters, ref='headerRef')
+            v-col.is-page-header.px-0.ma-0(
               :xl='tocPosition === `right` ? 10 : false'
               :lg='tocPosition === `right` ? 9 : false'
               style='margin-top: auto; margin-bottom: auto;'
@@ -135,17 +135,19 @@
             <!--     .comments-main -->
             <!--       slot(name='comments') -->
         <!-- media -->
-        v-col.col-3.pa-0.overflow-y-hidden.fill-height#media-col(ref='mediaCol')
+        v-col.col-2.pa-0.overflow-y-hidden.fill-height#media-col(
+            ref='mediaCol',
+            v-if='isMediaPage && !printView'
+          )
           v-row.no-gutters.overflow-y-hidden
             v-col.col-12.pa-0.overflow-y-hidden
-              v-toolbar.flat.dense.short.elevation-0
-                v-btn.flat.small.depressed.text(
-                  plain = true
-                  @click='currentPlayTime-=60'
-                  )
-                  v-icon.mr-2(small) mdi-chevron-left
-                  span.text-none extend
-                v-btn.flat.small.depressed {{currentPlayTimeText}}
+              v-toolbar(flat, dense, small, depressed, text, plain, short, elevation=0)
+                v-btn.pa-0(
+                  small, depressed, text, plain,
+                )
+                  icon(name='expand')
+                  span.px-1.text-none expand
+                v-btn(small, depressed, text, plain) {{currentPlayTimeText}}
           v-row.no-gutters.overflow-y-visible
             v-col.col-12.mx-2.py-0.overflow-y-visible#media-ancher(ref='mediaAncher' v-on:wheel="onMediaWheel")
                 v-sheet(id = "media-container"  )
@@ -375,9 +377,7 @@ export default {
       slides: [
         { src: null, title: '', number: 0, start: -1.0, type: 'service', startTime: "00:00:00.000", end: 100000 }
       ],
-      videoSrc: null,
-      videoSrcType: 'video/mp4',
-      mediaObject: null,
+      isMediaPage: true,
       currentPlayTime: null,
       hasTimestamps: false,
     }
@@ -475,7 +475,7 @@ export default {
     // console.log(Array.from(document.querySelectorAll('#page-text h2, #page-text [data-start]')));
   },
   updated() {
-    if (this.currentPlayTime === null) {
+    if (this.isMediaPage && this.currentPlayTime === null) {
       const meadiaContainer = document.getElementById('media-container')
       const slideElements = document.querySelectorAll('.slide')
       const activeSlide = slideElements[0]
@@ -584,7 +584,7 @@ export default {
       start: maxTime,
       type: 'service',
       startTime: new Date(maxTime * 1000).toISOString().slice(11, -1),
-      end: 1000000
+      end: Infinity
     });
     this.slides = slides;
 
@@ -607,7 +607,11 @@ export default {
       if (mediaContainer) {
         mediaContainer.prepend(...presentationVideo.children)
       }
+      this.isMediaPage = mediaContainer && mediaContainer.children.length > 0;
+      console.log('isMediaPage: ', this.isMediaPage);
 
+    } else {
+      this.isMediaPage = false;
     }
 
 
@@ -734,13 +738,13 @@ export default {
     setPlayTime(startTime) {
       const meadiaContainer = document.getElementById('media-container')
 
-      if (meadiaContainer.children[0].tagName === 'VIDEO') {
+      if (meadiaContainer.children[0]?.tagName === 'VIDEO') {
         const player = meadiaContainer.children[0]
         player.currentTime = startTime
         this.currentPlayTime = startTime; //?
         player.play()
 
-      } else if (meadiaContainer.children[0].tagName === 'IFRAME') {
+      } else if (meadiaContainer.children[0]?.tagName === 'IFRAME') {
         //Youtube??
         const targetTime = startTime;
         const videoSrc = meadiaContainer.children[0].src;
@@ -881,7 +885,7 @@ export default {
       const mediaContainer = document.getElementById('media-container')
 
       console.log(`slides: ${oldValue} => ${newValue}` );
-      console.log(this.slides[newValue].startTime);
+      // console.log(this.slides[newValue].startTime);
 
       const container = this.$refs.slidesContainer
       const slideElements = container.querySelectorAll('.slide')
@@ -1085,6 +1089,7 @@ path{
 #content-col {
     flex-direction: column;
     display: flex;
+    margin: 0 3em;
 }
 #page-content-container {
   display: flex;
@@ -1094,7 +1099,7 @@ path{
     display: flex;
     flex-direction: column;
     flex: 1;
-    padding: 0 3em;
+
     overflow:visible;
 
 
@@ -1185,12 +1190,12 @@ path{
     }
     .slide{
       position: relative;
-
       color: $gray-500;
       font-size: 0.7em;
       .slide_img {
           opacity: .4;
           transition: opacity 0.3s linear;
+          border: 1px solid $gray-300;
         }
       &.active{
         opacity: 1;
