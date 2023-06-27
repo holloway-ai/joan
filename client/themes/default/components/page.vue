@@ -144,8 +144,8 @@
           v-row.no-gutters.overflow-y-visible
             v-col.col-12.mx-2.py-0.overflow-y-visible#media-ancher(ref='mediaAncher' v-on:wheel="onMediaWheel")
                 v-sheet(id = "media-container"  )
-          v-row.no-gutters.fill-height.overflow-y-hidden
-            v-col.col-12.my-3.px-3.overflow-y-auto.fill-height.slides_container(
+          v-row.no-gutters.fill-height.overflow-y-hidden.overflow-x-visible
+            v-col.col-12.my-3.px-3.overflow-y-auto.fill-height.slides_container.overflow-x-visible(
                 ref="slidesContainer"
                 v-on:scroll="onSlidesScroll"
                 v-on:scrollend="onSlidesScrollEnd"
@@ -153,15 +153,16 @@
               )
 
               template( width="100%"  v-for="(slide, slideIdx) in slides" )
-                v-sheet.slide(
+                v-sheet.slide.pb-1(
                     :key = "slide.number"
                     v-on:click="onSlideClick(slide.number)",
-                    :class="slide.type"
-                  )
+                    :class="slide.type",
+                    v-intersect="{handler: (([e])=>e.target.classList.toggle('stuck', e.intersectionRatio < 1)), options: {threshold: [1]} }"
+                )
                   v-responsive( width="100%",:aspect-ratio="16/9" )
                     v-img.slide_img(:src="slide.src" width="100%")
 
-                  p {{slide.startTime}}
+                  p.pa-1.ma-0 {{slide.startTime}}
 
     search-results
     page-selector(mode='create', v-model='newPageModal', :open-handler='pageNewCreate', :locale='locale')
@@ -671,7 +672,9 @@ export default {
     },
     onSlidesWheel(e) {
       console.log("slides wheel");
-      const activeSlide = document.querySelector('.slide.active')
+      if (this.autoScroll) { // user scroll while auto scroll
+        this.mountVideoToActiveSlide()
+      }
       this.autoScroll = false
     },
     onSlidesScroll(e) {
@@ -684,14 +687,19 @@ export default {
         console.log("auto scroll ");
       }
     },
-    onSlidesScrollEnd(e) {
-
-      if (this.autoScroll) {
-        const meadiaContainer = document.getElementById('media-container')
-        const activeSlide = document.querySelector('.slide.active')
+    mountVideoToActiveSlide() {
+      const meadiaContainer = document.getElementById('media-container')
+      const activeSlide = document.querySelector('.slide.active')
+      if (activeSlide && meadiaContainer &&  meadiaContainer.parentElement != activeSlide) {
         meadiaContainer.parentElement.removeChild(meadiaContainer)
         meadiaContainer.style.top = 0
         activeSlide.prepend(meadiaContainer)
+      }
+    },
+    onSlidesScrollEnd(e) {
+
+      if (this.autoScroll) {
+        this.mountVideoToActiveSlide()
         this.autoScroll = false;
         console.log("auto scroll end");
       } else {
@@ -711,9 +719,7 @@ export default {
       if (activeSlide) activeSlide.classList.remove('active')
 
       newSlide.classList.add('active')
-      mediaContainer.parentElement.removeChild(mediaContainer)
-      mediaContainer.style.top = 0
-      newSlide.prepend(mediaContainer)
+      this.mountVideoToActiveSlide()
 
       const newTime = this.slides[newActiveSlideIdx].start;
       this.setPlayTime(newTime)
@@ -947,13 +953,7 @@ export default {
           || (scrollTo == container.scrollTop)
           || (container.scrollHeight - Math.round(scrollTo) <= container.clientHeight)
         ) {
-          if (mediaContainer.parentNode != activeSlide) {
-            mediaContainer.parentNode.removeChild(mediaContainer)
-            mediaContainer.style.top = '0px'
-            activeSlide.prepend(mediaContainer)
-
-          }
-
+          this.mountVideoToActiveSlide()
         } else {
 
           const activePos = (
@@ -963,7 +963,7 @@ export default {
           mediaContainer.parentNode.removeChild(mediaContainer)
           mediaContainer.style.top = `${activePos}px`
           this.$refs.mediaAncher.prepend(mediaContainer)
-          console.log("top: ", mediaContainer.style.top, "parent:", mediaContainer.parentNode);
+          // console.log("top: ", mediaContainer.style.top, "parent:", mediaContainer.parentNode);
 
           this.autoScroll = true
           this.$refs.slidesContainer.scrollTo({
@@ -1204,7 +1204,6 @@ path{
   .slides_container {
     display: flex;
     flex-direction: column;
-    gap: 1.7em;
     .service{
       display: none;
       &.active{
@@ -1213,11 +1212,18 @@ path{
     }
     .slide{
       position: relative;
-      opacity: .6;
+
+      color: $gray-500;
+      font-size: 0.7em;
+      .slide_img {
+          opacity: .4;
+          transition: opacity 0.3s linear;
+        }
       &.active{
         opacity: 1;
+        transition: opacity 0.3s linear;
         position: sticky;
-        top: 0px;
+        top: -1px; // allows to handle the sticky effect
         bottom: 0px;
         z-index: 100;
         #media-container {
@@ -1232,9 +1238,12 @@ path{
     }
     &.scrolling{
       .slide{
-        opacity: 1;
+        .slide_img {
+          opacity: 1;
+          transition: opacity 0.3s linear;
+        }
         &.active{
-          opacity: .3;
+          top: -1px;
           #media-container {
               position: absolute;
               z-index: 110;
@@ -1243,6 +1252,13 @@ path{
               pointer-events: all;
               box-shadow: none;
               }
+          &.stuck{
+            opacity: 0.2;
+            transition: opacity 0.3s linear;
+            box-shadow: 0.3em 0.3em 0.5em hsl(0deg 0% 0% / 0.3);
+            //left: -1em;
+            //width: calc(100% + 2em);
+          }
         }
       }
     }
@@ -1255,7 +1271,7 @@ path{
       width: 100%;
       pointer-events: none;
       // margin: -1em -1em 0 0;
-      box-shadow: 0 6px 6px hsl(0deg 0% 0% / 0.3);
+      box-shadow: 0.3em 0.3em 0.5em hsl(0deg 0% 0% / 0.3);
         & iframe {
           width: 100%;
           height: 100%;
