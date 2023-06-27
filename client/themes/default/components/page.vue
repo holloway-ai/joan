@@ -23,7 +23,7 @@
         v-col.col-7.pa-0.overflow-y-hidden.fill-height#content-col
           v-alert.mb-5(v-if='!isPublished', color='red', outlined, icon='mdi-minus-circle', dense)
             .caption {{$t('common:page.unpublishedWarning')}}
-          v-row.pa-4#page-header-section(no-gutters, ref='headerRef')
+          v-row.pa-4#page-header-section.overflow-y-hidden(no-gutters, ref='headerRef')
             v-col.is-page-header.ps-3.ma-0(
               :xl='tocPosition === `right` ? 10 : false'
               :lg='tocPosition === `right` ? 9 : false'
@@ -118,8 +118,13 @@
                       v-icon(size='20') mdi-trash-can-outline
                     v-list-item-title
                       span {{$t('common:header.delete')}}
-          v-row.no-gutters.overflow-y-auto.fill-height
-            #page-content-container(ref='container')
+          v-row.no-gutters.overflow-y-hidden.fill-height
+            v-col.no-gutters.col-12.overflow-y-auto.fill-height#page-content-container(
+                ref='textContainer'
+                @scroll.passive="onTextScroll"
+                @scrollend.passive="onTextScrollEnd"
+                @wheel.passive="onTextWheel"
+              )
               slot(name='contents')
             .text-center
               v-snackbar.copiedMsg(v-model="snackbar", :timeout="2000", light, rounded) Copied to clipboard...
@@ -147,9 +152,9 @@
           v-row.no-gutters.fill-height.overflow-y-hidden.overflow-x-visible
             v-col.col-12.my-3.px-3.overflow-y-auto.fill-height.slides_container.overflow-x-visible(
                 ref="slidesContainer"
-                v-on:scroll="onSlidesScroll"
-                v-on:scrollend="onSlidesScrollEnd"
-                v-on:wheel="onSlidesWheel"
+                @scroll.passive="onSlidesScroll"
+                @scrollend.passive="onSlidesScrollEnd"
+                @wheel.passive="onSlidesWheel"
               )
 
               template( width="100%"  v-for="(slide, slideIdx) in slides" )
@@ -368,7 +373,7 @@ export default {
       winWidth: 0,
       headers: [],
       slides: [
-       { src: null, title: '', number: 0, start: -1.0, type: 'service', startTime: "00:00:00.000", end: 100000 }
+        { src: null, title: '', number: 0, start: -1.0, type: 'service', startTime: "00:00:00.000", end: 100000 }
       ],
       videoSrc: null,
       videoSrcType: 'video/mp4',
@@ -380,7 +385,7 @@ export default {
   computed: {
     mode: get('page/mode'),
     isAuthenticated: get('user/authenticated'),
-    hasNewPagePermission () {
+    hasNewPagePermission() {
       return this.hasAdminPermission || _.intersection(this.permissions, ['write:pages']).length > 0
     },
     commentsCount: get('page/commentsCount'),
@@ -388,10 +393,10 @@ export default {
     editShortcutsObj: get('page/editShortcuts'),
     currentEditor: sync('editor/editor'),
     rating: {
-      get () {
+      get() {
         return 3.5
       },
-      set (val) {
+      set(val) {
       }
     },
     breadcrumbs() {
@@ -403,18 +408,18 @@ export default {
         return result
       }, []))
     },
-    pageUrl () { return window.location.href },
-    upBtnPosition () {
+    pageUrl() { return window.location.href },
+    upBtnPosition() {
       if (this.$vuetify.breakpoint.mdAndUp) {
         return this.$vuetify.rtl ? `right: 235px;` : `left: 235px;`
       } else {
         return this.$vuetify.rtl ? `right: 65px;` : `left: 65px;`
       }
     },
-    sidebarDecoded () {
+    sidebarDecoded() {
       return JSON.parse(Buffer.from(this.sidebar, 'base64').toString())
     },
-    tocDecoded () {
+    tocDecoded() {
       return JSON.parse(Buffer.from(this.toc, 'base64').toString())
     },
     tocPosition: get('site/tocPosition'),
@@ -424,19 +429,19 @@ export default {
     hasDeletePagesPermission: get('page/effectivePermissions@pages.delete'),
     hasReadSourcePermission: get('page/effectivePermissions@source.read'),
     hasReadHistoryPermission: get('page/effectivePermissions@history.read'),
-    hasAnyPagePermissions () {
+    hasAnyPagePermissions() {
       return this.hasAdminPermission || this.hasWritePagesPermission || this.hasManagePagesPermission ||
         this.hasDeletePagesPermission || this.hasReadSourcePermission || this.hasReadHistoryPermission
     },
     printView: sync('site/printView'),
-    editMenuExternalUrl () {
+    editMenuExternalUrl() {
       if (this.editShortcutsObj.editMenuBar && this.editShortcutsObj.editMenuExternalBtn) {
         return this.editShortcutsObj.editMenuExternalUrl.replace('{filename}', this.filename)
       } else {
         return ''
       }
     },
-    activeSlideIndex () {
+    activeSlideIndex() {
       return _.findIndex(this.slides, (slide) => {
         return slide.start <= this.currentPlayTime && slide.end > this.currentPlayTime
       })
@@ -466,10 +471,10 @@ export default {
     }
     this.$store.set('page/mode', 'view')
   },
-  beforeMount () {
+  beforeMount() {
     // console.log(Array.from(document.querySelectorAll('#page-text h2, #page-text [data-start]')));
   },
-  updated () {
+  updated() {
     if (this.currentPlayTime === null) {
       const meadiaContainer = document.getElementById('media-container')
       const slideElements = document.querySelectorAll('.slide')
@@ -508,7 +513,7 @@ export default {
 
         headers.push({
           header: h2.textContent,
-          start: timestamp ? Number(timestamp): null,
+          start: timestamp ? Number(timestamp) : null,
           start_time: timestamp ? new Date(Number(timestamp) * 1000).toISOString().slice(11, -1) : '',
           id: h2.id,
           end: null,
@@ -537,7 +542,7 @@ export default {
 
     const slidesBlock = document.getElementById('page-slides');
     const slidesSource = Array.from(slidesBlock.querySelectorAll('.slide')).sort(
-      (a, b)=>{return Number(a.dataset?.start) - Number(b.dataset?.start)});
+      (a, b) => { return Number(a.dataset?.start) - Number(b.dataset?.start) });
     let slides = [{
       src: null,
       title: '',
@@ -557,12 +562,12 @@ export default {
       if (timestamp) {
         this.hasTimestamps = true;
         maxTime = Math.max(maxTime, Number(timestamp));
-        if (slides.length>0) slides[slides.length-1].end = timestamp;
+        if (slides.length > 0) slides[slides.length - 1].end = timestamp;
       }
       slides.push({
         src: slideImg.src,
         title: slide.textContent,
-        number: slides.length ,
+        number: slides.length,
         start: timestamp,
         type: 'image',
         startTime: timestamp ? new Date(timestamp * 1000).toISOString().slice(11, -1) : '',
@@ -573,13 +578,13 @@ export default {
     slides[slides.length - 1].end = maxTime;
 
     if (slides.length > 1) slides.push({
-        src: null,
-        title: '',
-        number: slides.length,
-        start: maxTime,
-        type: 'service',
-        startTime: new Date(maxTime * 1000).toISOString().slice(11, -1),
-        end: 1000000
+      src: null,
+      title: '',
+      number: slides.length,
+      start: maxTime,
+      type: 'service',
+      startTime: new Date(maxTime * 1000).toISOString().slice(11, -1),
+      end: 1000000
     });
     this.slides = slides;
 
@@ -616,17 +621,17 @@ export default {
 
     //"page-slides"
 
-/*     const pageText = document.getElementById('page-text');
-    const slidesContent = document.getElementById('slides-content');
-    const slides = document.querySelectorAll('.slide');
-    if (slides.length == 0) {
-      //slidesContent.style.display = 'none';
-      const pageContentSection = document.getElementById('page-content');
-      const pageSlidesSection = document.getElementById('page-slides');
-      pageContentSection.style.flex = '1 1'
-      pageSlidesSection.style.display = 'none'
+    /*     const pageText = document.getElementById('page-text');
+        const slidesContent = document.getElementById('slides-content');
+        const slides = document.querySelectorAll('.slide');
+        if (slides.length == 0) {
+          //slidesContent.style.display = 'none';
+          const pageContentSection = document.getElementById('page-content');
+          const pageSlidesSection = document.getElementById('page-slides');
+          pageContentSection.style.flex = '1 1'
+          pageSlidesSection.style.display = 'none'
 
-    } */
+        } */
 
 
 
@@ -641,7 +646,7 @@ export default {
       this.handleSideNavVisibility()
     }, 500))
     // -> Highlight Code Blocks
-    Prism.highlightAllUnder(this.$refs.container)
+    Prism.highlightAllUnder(this.$refs.textContainer)
     // -> Render Mermaid diagrams
     mermaid.mermaidAPI.initialize({
       startOnLoad: true,
@@ -690,7 +695,7 @@ export default {
     mountVideoToActiveSlide() {
       const meadiaContainer = document.getElementById('media-container')
       const activeSlide = document.querySelector('.slide.active')
-      if (activeSlide && meadiaContainer &&  meadiaContainer.parentElement != activeSlide) {
+      if (activeSlide && meadiaContainer && meadiaContainer.parentElement != activeSlide) {
         meadiaContainer.parentElement.removeChild(meadiaContainer)
         meadiaContainer.style.top = 0
         activeSlide.prepend(meadiaContainer)
@@ -745,6 +750,21 @@ export default {
         meadiaContainer.children[0].src = newVideoSrc
       };
       this.currentPlayTime = startTime;
+      this.userTextScroll = false;
+    },
+
+
+    onTextScroll() { },
+    onTextScrollEnd() {
+      window.setTimeout(() => {
+        this.userTextScroll = false;
+        console.log("text scroll end");
+      }, 3000);
+
+    },
+    onTextWheel() {
+      this.userTextScroll = true;
+      console.log("text wheel");
     },
     goHome () {
       window.location.assign('/')
@@ -844,74 +864,13 @@ export default {
       return element.scrollTop / (element.scrollHeight - element.offsetHeight);
     },
 
-    highlightCurrentText(video, highlights) {
-      const { currentTime } = video;
-      highlights.forEach(highlight => {
-        const start = parseFloat(highlight.dataset.start);
-        const end = parseFloat(highlight.dataset.end);
+    handleTextDblClick(e) {
+      const newTime = Number(e.target.dataset.start)
+      this.setPlayTime(newTime)
+      this.currentPlayTime = newTime;
 
-        if (currentTime >= start && currentTime <= end) {
-          highlight.classList.add("highlighted");
-        } else {
-          highlight.classList.remove("highlighted");
-        }
-      });
     },
-    handleTextDblClick (e) {
-      e.target.scrollIntoView({ behavior: "smooth", block: "center" })
-      const slides = Array.from(document.querySelectorAll('.slide'));
-      const currentAndPast = slides.filter((s) => Number(s.dataset.start) <= Number(e.target.dataset.start));
-      const nearestSlide = currentAndPast[currentAndPast.length - 1];
-      const start = e.target.dataset.start;
-      // const spans = document.querySelectorAll('#page-text span');
-      // spans.forEach(s => s.classList.remove('highlighted-on-select'))
-      // e.target.classList.add('highlighted-on-select')
 
-      nearestSlide.scrollIntoView({ behavior: "smooth", block: "center" })
-      presentationVideo.style.top = nearestSlide.offsetTop + 'px'
-
-      if (presentationVideo.children[0].tagName === 'VIDEO') {
-        presentationVideo.children[0].currentTime = start
-        presentationVideo.children[0].play()
-      };
-
-      if (presentationVideo.children[0].tagName === 'IFRAME') {
-        const targetTime = Math.round(Number(start));
-        const videoSrc = presentationVideo.children[0].src;
-        const newVideoSrc = new URL(videoSrc);
-        newVideoSrc.searchParams.set('start', targetTime);
-        newVideoSrc.searchParams.set('autoplay', 1);
-        presentationVideo.children[0].src = newVideoSrc
-      };
-    },
-    handleVideoOverflow() {
-      /*
-      const presentationVideo = document.getElementById('presentationVideo');
-      const presentationVideoBox = presentationVideo.getBoundingClientRect();
-      const slidesContent = document.getElementById('slides-content');
-      const slidesContentBox = slidesContent.getBoundingClientRect();
-
-      // console.log('presentationVideo boundingClientRect: ', presentationVideoBox);
-      // console.log('slidesContent boundingClientRect: ', slidesContentBox);
-
-      const scrollDifference = this.slidesSectionScrollTop - slidesContent.scrollTop
-      // console.log('scrollDifference: ', scrollDifference);
-
-      // scrolling down
-      if (scrollDifference > 0 && presentationVideoBox.bottom > slidesContentBox.bottom) {
-        // console.log('video is overflowing bottom');
-        presentationVideo.style.top = parseInt(presentationVideo.style.top) - scrollDifference + 'px'
-      };
-
-      // scrolling up
-      if (scrollDifference < 0 && presentationVideoBox.top < slidesContentBox.top) {
-        // console.log('video is overflowing top');
-        presentationVideo.style.top = parseInt(presentationVideo.style.top.length ? presentationVideo.style.top : 0) - scrollDifference + 'px'
-      };
-
-      this.slidesSectionScrollTop = slidesContent.scrollTop
-      */
-    },
     printValues () {
       const slides = document.querySelectorAll('#slides-content .slide');
     }
@@ -976,14 +935,29 @@ export default {
       console.log("end slide change");
     },
     currentPlayTime(newValue, oldValue) {
+      let highlightedTop = Infinity
       const spans = document.querySelectorAll('#page-text span').forEach(s => {
         s.classList.remove('highlighted')
-        if (s.dataset?.start <= newValue && s.dataset?.end >= newValue) {
+        if (Number(s.dataset?.start) <= newValue && newValue < Number(s.dataset?.end)) {
           s.classList.add('highlighted')
+          highlightedTop = s.getBoundingClientRect().top
         };
       });
 
+      if (highlightedTop < Infinity &&  !this.userTextScroll) {
 
+        const container = this.$refs.textContainer
+        highlightedTop -= container.getBoundingClientRect().top
+        //console.log('ht: ', highlightedTop,"ct: ", container.getBoundingClientRect().top, "ch: ", container.clientHeight);
+        if (highlightedTop < container.clientHeight * 0.2 ||highlightedTop > container.clientHeight * 0.7) {
+          const scrollTo = container.scrollTop + highlightedTop - container.clientHeight * 0.3
+          console.log('scrolling up text', scrollTo);
+          container.scrollTo({
+            top: scrollTo,
+            behavior: 'smooth'
+          })
+        }
+      }
 
     },
     upBtnShown(_, newValue) {
@@ -1114,21 +1088,20 @@ path{
 }
 #page-content-container {
   display: flex;
-  overflow: hidden;
+  overflow: auto;
 
   & #page-content {
     display: flex;
     flex-direction: column;
     flex: 1;
-    height: 100%;
     padding: 0 3em;
-
+    overflow:visible;
 
 
     & #page-text {
       margin-top: 2em;
-      height: 100%;
-      overflow-y: scroll;
+
+      overflow-y:visible;
 
       & p {
         line-height: 1.55;
