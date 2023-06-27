@@ -132,17 +132,20 @@
         <!-- media -->
         v-col.col-3.pa-0.overflow-y-hidden.fill-height#media-col(ref='mediaCol')
           v-row.no-gutters.overflow-y-hidden
-            v-btn(
-              @click='currentPlayTime+=60'
-              depressed
-              small
-              )
-              v-icon.mr-2(small) mdi-chevron-left
-              span.text-none {{$t(`common:actions.edit`)}}
-            #media-ancher(ref='mediaAncher' v-on:wheel="onMediaWheel")
-              v-sheet(id = "media-container"  )
+            v-col.col-12.pa-0.overflow-y-hidden
+              v-toolbar.flat.dense.short.elevation-0
+                v-btn.flat.small.depressed.text(
+                  plain = true
+                  @click='currentPlayTime-=60'
+                  )
+                  v-icon.mr-2(small) mdi-chevron-left
+                  span.text-none extend
+                v-btn.flat.small.depressed {{currentPlayTimeText}}
+          v-row.no-gutters.overflow-y-visible
+            v-col.col-12.mx-2.py-0.overflow-y-visible#media-ancher(ref='mediaAncher' v-on:wheel="onMediaWheel")
+                v-sheet(id = "media-container"  )
           v-row.no-gutters.fill-height.overflow-y-hidden
-            v-col.col-12.pa-3.overflow-y-auto.fill-height.slides_container(
+            v-col.col-12.my-3.px-3.overflow-y-auto.fill-height.slides_container(
                 ref="slidesContainer"
                 v-on:scroll="onSlidesScroll"
                 v-on:scrollend="onSlidesScrollEnd"
@@ -177,6 +180,7 @@ import Vue from 'vue'
 import Icon from '../../../components/icon'
 import { msToTime } from '../../../helpers/utils'
 import { scaleTime } from 'd3'
+import { collectFields } from 'graphql/execution/execute'
 
 Vue.component('Tabset', Tabset)
 Prism.plugins.autoloader.languages_path = '/_assets/js/prism/'
@@ -436,6 +440,9 @@ export default {
         return slide.start <= this.currentPlayTime && slide.end > this.currentPlayTime
       })
     },
+    currentPlayTimeText() {
+      return new Date(this.currentPlayTime * 1000).toISOString().slice(11, -1)
+    }
   },
   created() {
     this.$store.set('page/authorId', this.authorId)
@@ -468,13 +475,11 @@ export default {
       const activeSlide = slideElements[0]
 
       activeSlide.classList.add('active')
+      meadiaContainer.style.top = "0px"
+      activeSlide.prepend(meadiaContainer)
+      console.log('parent: ', meadiaContainer.parentElement)
+      this.$refs.slidesContainer.scrollTo(0, 0)
 
-      const activePos = (
-        activeSlide.getBoundingClientRect().top
-        + this.$refs.slidesContainer.scrollTop
-        - this.$refs.mediaCol.getBoundingClientRect().top
-      )
-      meadiaContainer.style.top = `${activePos}px`
       this.setPlayTime(0.0)
     }
   },
@@ -492,11 +497,11 @@ export default {
       if (headersAndStarts[i].tagName === 'H2') {
         const h2 = headersAndStarts[i];
         if (i < headersAndStarts.length - 1) {
-          timestamp = headersAndStarts[i + 1].dataset?.start;
+          timestamp = Number(headersAndStarts[i + 1].dataset?.start);
           if (timestamp) {
             this.hasTimestamps = true;
             maxTime = Math.max(maxTime, Number(timestamp));
-          }
+          } else console.log(headersAndStarts[i + 1]);
         }
         const prefix = (headers.length + 1).toString().padStart(2, "0");
 
@@ -514,11 +519,10 @@ export default {
         h2.prepend(element);
       } else {
         if (headers.length > 0) {
-          const end = headersAndStarts[i].dataset?.end;
-          if (end) {
-            headers[headers.length - 1].end = Number(end);
-            maxTime = Math.max(maxTime, Number(end));
-          }
+          const end = Number(headersAndStarts[i].dataset?.end);
+          if (end) maxTime = Math.max(maxTime, Number(end));
+          else console.log(headersAndStarts[i]);
+          if (maxTime) headers[headers.length - 1].end = maxTime;
         }
       }
     }
@@ -660,92 +664,60 @@ export default {
     window.removeEventListener('hashchange', () => this.navigateToResult())
   },
   methods: {
-    getActiveSlideElement () {
-      const activeSlide = document.querySelector('.slide.active')
-      //console.log(activeSlide);
-      return activeSlide
 
-    },
-    startScrollingWithSlide(slide) {
-      if (!slide) return
-      this.$refs.slidesContainer.classList.add('scrolling')
-      const meadiaContainer = document.getElementById('media-container')
-      meadiaContainer.style.top = 0
-      //meadiaContainer.parentElement.removeChild(meadiaContainer)
-      slide.prepend(meadiaContainer)
-      console.log("scroll ");
-
-    },
     onMediaWheel(e) {
       console.log("media wheel");
       // return this.$refs.slidesContainer.dispatchEvent(new WheelEvent(e.type, e))
     },
     onSlidesWheel(e) {
       console.log("slides wheel");
+      const activeSlide = document.querySelector('.slide.active')
       this.autoScroll = false
     },
     onSlidesScroll(e) {
-      if (this.autoScroll) {
-        console.log("auto scroll");
-        return
-      }
-      this.startScrollingWithSlide(document.querySelector('.slide.active'))
 
+      if (!this.autoScroll) {
+        this.$refs.slidesContainer.classList.add('scrolling')
+        const meadiaContainer = document.getElementById('media-container')
+        console.log('scroll parent: ', meadiaContainer.parentElement)
+      } else {
+        console.log("auto scroll ");
+      }
     },
     onSlidesScrollEnd(e) {
-      this.autoScroll = false;
-      if (!this.$refs.slidesContainer.classList.contains ('scrolling')) return
-      this.$refs.slidesContainer.classList.remove('scrolling')
-      const meadiaContainer = document.getElementById('media-container')
-      const activeSlide = document.querySelector('.slide.active')
-      const activeTop = (
-        activeSlide.getBoundingClientRect().top
-        - this.$refs.mediaCol.getBoundingClientRect().top
-      )
-      //const activeTop = 20;
-      console.log("activeTop",activeTop);
-      console.log("activeBottom",activeTop+ activeSlide.getBoundingClientRect().height);
-      meadiaContainer.style.top = `${activeTop}px`
-      this.$refs.mediaAncher.prepend(meadiaContainer)
-      this.userScroll = true;
-      console.log("scroll end");
+
+      if (this.autoScroll) {
+        const meadiaContainer = document.getElementById('media-container')
+        const activeSlide = document.querySelector('.slide.active')
+        meadiaContainer.parentElement.removeChild(meadiaContainer)
+        meadiaContainer.style.top = 0
+        activeSlide.prepend(meadiaContainer)
+        this.autoScroll = false;
+        console.log("auto scroll end");
+      } else {
+        this.$refs.slidesContainer.classList.remove('scrolling')
+      }
+
+
     },
     onSlideClick(newActiveSlideIdx) {
       //this.autoScroll = true;
       console.log("slide click", newActiveSlideIdx);
-      const meadiaContainer = document.getElementById('media-container')
+      const mediaContainer = document.getElementById('media-container')
+      const activeSlide = document.querySelector('.slide.active')
       const slideElements = document.querySelectorAll('.slide')
-      console.log(slideElements);
-      const activeSlide = slideElements[newActiveSlideIdx]
-      const firstSlide = slideElements[0]
-      const lastSlide = slideElements[slideElements.length - 1]
+      // console.log(slideElements);
+      const newSlide = slideElements[newActiveSlideIdx]
+      if (activeSlide) activeSlide.classList.remove('active')
 
-      const topPos = (
-        firstSlide.getBoundingClientRect().top
-        + this.$refs.slidesContainer.scrollTop
-        - this.$refs.mediaCol.getBoundingClientRect().top
-      )
+      newSlide.classList.add('active')
+      mediaContainer.parentElement.removeChild(mediaContainer)
+      mediaContainer.style.top = 0
+      newSlide.prepend(mediaContainer)
 
-      let activePos = (
-        activeSlide.getBoundingClientRect().top
-        //+ this.$refs.slidesContainer.scrollTop
-        - this.$refs.mediaCol.getBoundingClientRect().top
-      )
-      const bottomPos = (
-        this.$refs.slidesContainer.getBoundingClientRect().height
-        - this.$refs.slidesContainer.scrollHeight
-        + lastSlide.getBoundingClientRect().bottom
-        + this.$refs.slidesContainer.scrollTop
-        - activeSlide.getBoundingClientRect().height
-        - this.$refs.mediaCol.getBoundingClientRect().top
-      )
-      activePos =Math.min( Math.max( activePos,topPos), bottomPos )
-      // this.$refs.slidesContainer.getBoundingClientRect().bottom- ((this.$refs.slidesContainer.scrollHeight + this.$refs.slidesContainer.getBoundingClientRect().top) - (lastSlide.getBoundingClientRect().bottom + this.$refs.slidesContainer.scrollTop)) - activeSlide.getBoundingClientRect().height - this.$refs.mediaCol.getBoundingClientRect().top
-      console.log("Pos",topPos, activePos, bottomPos);
-      meadiaContainer.style.top = `${activePos}px`
       const newTime = this.slides[newActiveSlideIdx].start;
       this.setPlayTime(newTime)
-      console.log("click-finished");
+      //console.log("click-finished");
 
     },
     setPlayTime(startTime) {
@@ -941,54 +913,67 @@ export default {
   watch: {
     activeSlideIndex(newValue, oldValue) {
 
-      const meadiaContainer = document.getElementById('media-container')
-      const rect = meadiaContainer.getBoundingClientRect()
+      const mediaContainer = document.getElementById('media-container')
 
       console.log(`slides: ${oldValue} => ${newValue}` );
       console.log(this.slides[newValue].startTime);
 
       const container = this.$refs.slidesContainer
       const slideElements = container.querySelectorAll('.slide')
-      console.log(slideElements);
+
       const activeSlide = slideElements[newValue]
       const oldSlide = slideElements[oldValue]
+      let oldTop = slideElements[0].getBoundingClientRect().top
       if (oldSlide) {
+        oldTop = oldSlide.getBoundingClientRect().top
         oldSlide.classList.remove('active')
-      }
+      } else oldSlide = slideElements[0]
 
       if (activeSlide) {
-        console.log(activeSlide.textContent);
-        activeSlide.classList.add('active')
-        const scrollTo = (
-          activeSlide.getBoundingClientRect().top
-          - meadiaContainer.getBoundingClientRect().top
-          + container.scrollTop
-        )
-        console.log(scrollTo);
-
-        if (container.scrollHeight - Math.round(scrollTo) < container.clientHeight) {
-
-          const activePos = (
-            container.getBoundingClientRect().height
-            - container.scrollHeight
-            + activeSlide.getBoundingClientRect().top
-            + container.scrollTop
-            - this.$refs.mediaCol.getBoundingClientRect().top
-          )
-          meadiaContainer.style.top = `${activePos}px`
-          console.log('scroll to bottom');
-
+        if (activeSlide.classList.contains('active')) {
+          console.log('already active');
+          return
         }
 
-        this.$refs.slidesContainer.scrollTo({
-          top: scrollTo,
-          behavior: 'smooth'
-        })
-        this.autoScroll = true
-      } else {
-        console.log('no active');
+        const scrollTo = (
+          activeSlide.getBoundingClientRect().top
+          - oldTop
+          + container.scrollTop
+        )
+        activeSlide.classList.add('active')
+
+        if (
+          this.$refs.slidesContainer.classList.contains('scrolling')
+          || (scrollTo == container.scrollTop)
+          || (container.scrollHeight - Math.round(scrollTo) <= container.clientHeight)
+        ) {
+          if (mediaContainer.parentNode != activeSlide) {
+            mediaContainer.parentNode.removeChild(mediaContainer)
+            mediaContainer.style.top = '0px'
+            activeSlide.prepend(mediaContainer)
+
+          }
+
+        } else {
+
+          const activePos = (
+            oldTop
+            - this.$refs.mediaAncher.getBoundingClientRect().top
+          )
+          mediaContainer.parentNode.removeChild(mediaContainer)
+          mediaContainer.style.top = `${activePos}px`
+          this.$refs.mediaAncher.prepend(mediaContainer)
+          console.log("top: ", mediaContainer.style.top, "parent:", mediaContainer.parentNode);
+
+          this.autoScroll = true
+          this.$refs.slidesContainer.scrollTo({
+            top: scrollTo,
+            behavior: 'smooth'
+          })
+        }
+
       }
-      console.log("endSlideIndex");
+      console.log("end slide change");
     },
     currentPlayTime(newValue, oldValue) {
       const spans = document.querySelectorAll('#page-text span').forEach(s => {
@@ -1212,6 +1197,9 @@ path{
   padding: 2em 3em 2em 2em;
   display: flex;
   flex-direction: column;
+  #media-ancher{
+    position: relative;
+  }
 
   .slides_container {
     display: flex;
@@ -1232,6 +1220,10 @@ path{
         top: 0px;
         bottom: 0px;
         z-index: 100;
+        #media-container {
+          pointer-events: all;
+          box-shadow: none;
+        }
 
       }
       .slide_img{
@@ -1248,7 +1240,8 @@ path{
               z-index: 110;
               left: 0;
               width: 100%;
-              pointer-events: none;
+              pointer-events: all;
+              box-shadow: none;
               }
         }
       }
@@ -1261,6 +1254,8 @@ path{
       z-index: 110;
       width: 100%;
       pointer-events: none;
+      // margin: -1em -1em 0 0;
+      box-shadow: 0 6px 6px hsl(0deg 0% 0% / 0.3);
         & iframe {
           width: 100%;
           height: 100%;
