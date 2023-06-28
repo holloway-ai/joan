@@ -4,20 +4,29 @@
     v-main.overflow-hidden.fill-height(ref='content')
       v-row.no-gutters.overflow-y-hidden.fill-height
         <!-- toc -->
-        v-col.toc.pa-4.col-2.overflow-y-hidden.fill-height#toc-col(
+        v-col.toc.pa-5.col-2.overflow-y-hidden.fill-height#toc-col(
           v-if='tocPosition !== `off` && $vuetify.breakpoint.lgAndUp'
           :order-xs1='tocPosition !== `right`'
           :order-xs2='tocPosition === `right`'
           ref="tocRef"
           )
             nav-sidebar(:items='sidebarDecoded', :nav-mode='navMode')
-            .toc-header.mb-7 {{$t('common:page.toc')}}
-            v-list#toc-contents.pa-0.overflow-y-auto(dense, flat, nav, :subheader = 'hasTimestamps', :two-line="hasTimestamps" :class='$vuetify.theme.dark ? `darken-3-d3` : ``')
-              v-list-item.pa-0.ma-0( v-for='header in headers', :key='header.prefix')
-                v-avatar {{header.prefix}}
-                v-list-item-content
-                  v-list-item-title  {{header.header}}
-                  v-list-item-subtitle( v-if="header.start_time") {{header.start_time}}
+            v-list#toc-contents.pa-0.overflow-y-hidden(dense, flat, nav, :subheader = 'hasTimestamps', :two-line="hasTimestamps" :class='$vuetify.theme.dark ? `darken-3-d3` : ``')
+              v-list-group#content-toggler.fill-height(active-class="active-group" value = "content")
+                template(v-slot:activator)
+                  v-list-item-content
+                    v-list-item-title.toc-header Content
+                v-list-item.pa-0.ma-0(
+                    v-for='header in headers',
+                    :key='header.prefix'
+                    :class="header.start<=currentPlayTime && currentPlayTime < header.end? 'active' : ''"
+                    @click="onTocClick(header.start,false,header.id)",
+                    @dblclick="onTocClick(header.start, true,header.id)",
+                  )
+                  .prefix {{header.prefix}}
+                  v-list-item-content
+                    v-list-item-title  {{header.header}}
+                    v-list-item-subtitle( v-if="header.start_time") {{header.start_time}}
 
         <!-- contents -->
         v-col.col.pa-0.overflow-y-hidden.fill-height#content-col
@@ -376,11 +385,11 @@ export default {
       winWidth: 0,
       headers: [],
       slides: [
-        { src: null, title: '', number: 0, start: -1.0, type: 'service', startTime: "00:00:00.000", end: 100000 }
+        { src: null, title: '', number: 0, start: -1.0, type: 'service', startTime: '00:00:00.000', end: 100000 }
       ],
       isMediaPage: true,
       currentPlayTime: null,
-      hasTimestamps: false,
+      hasTimestamps: false
     }
   },
   computed: {
@@ -482,7 +491,7 @@ export default {
       const activeSlide = slideElements[0]
 
       activeSlide.classList.add('active')
-      meadiaContainer.style.top = "0px"
+      meadiaContainer.style.top = '0px'
       activeSlide.prepend(meadiaContainer)
       console.log('parent: ', meadiaContainer.parentElement)
       this.$refs.slidesContainer.scrollTo(0, 0)
@@ -491,81 +500,77 @@ export default {
     }
   },
   mounted() {
-    const TOPBAR_HEIGHT = 100;
+    const presentationVideo = document.getElementById('presentationVideo')
 
-    const presentationVideo = document.getElementById('presentationVideo');
-
-    const headersAndStarts = Array.from(document.querySelectorAll('#page-text h2, #page-text [data-start]'));
-    let headers = [];
-    let maxTime = 0.0;
+    const headersAndStarts = Array.from(document.querySelectorAll('#page-text h2, #page-text [data-start]'))
+    let headers = []
+    let maxTime = 0.0
     for (let i = 0; i < headersAndStarts.length; i++) {
       let timestamp = null
       if (headersAndStarts[i].tagName === 'H2') {
-        const h2 = headersAndStarts[i];
+        const h2 = headersAndStarts[i]
         if (i < headersAndStarts.length - 1) {
-          timestamp = Number(headersAndStarts[i + 1].dataset?.start);
-          if (timestamp) {
-            this.hasTimestamps = true;
-            maxTime = Math.max(maxTime, Number(timestamp));
-          } else console.log(headersAndStarts[i + 1]);
+          timestamp = Number(headersAndStarts[i + 1].dataset?.start)
+          if (timestamp != null && !isNaN(timestamp)) {
+            this.hasTimestamps = true
+            maxTime = Math.max(maxTime, Number(timestamp))
+          } else console.log(headersAndStarts[i + 1])
         }
-        const prefix = (headers.length + 1).toString().padStart(2, "0");
+        const prefix = (headers.length + 1).toString().padStart(2, '0')
 
         headers.push({
           header: h2.textContent,
-          start: timestamp ? Number(timestamp) : null,
-          start_time: timestamp ? new Date(Number(timestamp) * 1000).toISOString().slice(11, -1) : '',
+          start: timestamp != null && !isNaN(timestamp) ? Number(timestamp) : null,
+          start_time: timestamp != null && !isNaN(timestamp) ? new Date(Number(timestamp) * 1000).toISOString().slice(11, -1) : '',
           id: h2.id,
           end: null,
-          prefix: prefix,
+          prefix: prefix
         })
-        let element = document.createElement('span');
-        element.textContent = prefix;
-        element.classList.add('header-number');
-        h2.prepend(element);
+        let element = document.createElement('span')
+        element.textContent = prefix
+        element.classList.add('header-number')
+        h2.prepend(element)
       } else {
         if (headers.length > 0) {
-          const end = Number(headersAndStarts[i].dataset?.end);
-          if (end) maxTime = Math.max(maxTime, Number(end));
-          else console.log(headersAndStarts[i]);
-          if (maxTime) headers[headers.length - 1].end = maxTime;
+          const end = Number(headersAndStarts[i].dataset?.end)
+          if (end) maxTime = Math.max(maxTime, Number(end))
+          else console.log(headersAndStarts[i])
+          if (maxTime) headers[headers.length - 1].end = maxTime
         }
       }
     }
 
-    //console.log(headers);
+    // console.log(headers);
 
-
-
-    const spans = document.querySelectorAll('#page-text [data-start]');
+    const spans = document.querySelectorAll('#page-text [data-start]')
     spans.forEach(s => {
-      s.addEventListener('dblclick', e => { this.handleTextDblClick(e) });
-      s.addEventListener('click', e => { this.handleTextClick(e) });
+      s.addEventListener('dblclick', e => { this.handleTextDblClick(e) })
+      s.addEventListener('click', e => { this.handleTextClick(e) })
     })
 
-    const slidesBlock = document.getElementById('page-slides');
+    const slidesBlock = document.getElementById('page-slides')
     const slidesSource = Array.from(slidesBlock.querySelectorAll('.slide')).sort(
-      (a, b) => { return Number(a.dataset?.start) - Number(b.dataset?.start) });
+      (a, b) => { return Number(a.dataset?.start) - Number(b.dataset?.start) })
     let slides = [{
       src: null,
       title: '',
       number: 0,
       start: -1.0,
       type: 'service',
-      startTime: "00:00:00.000",
+      startTime: '00:00:00.000',
       end: null
-    }];
+    }]
     for (let i = 0; i < slidesSource.length; i++) {
       const slide = slidesSource[i]
-      const slideImg = slidesSource[i].querySelector('img');
-      if (!slideImg) continue;
+      const slideImg = slidesSource[i].querySelector('img')
+      if (!slideImg) continue
 
-      let timestamp = slide.dataset?.start;
-      timestamp = timestamp ? Number(timestamp) : null;
+      let timestamp = slide.dataset?.start
+      timestamp = timestamp ? Number(timestamp) : null
       if (timestamp) {
-        this.hasTimestamps = true;
-        maxTime = Math.max(maxTime, Number(timestamp));
-        if (slides.length > 0) slides[slides.length - 1].end = timestamp;
+        this.hasTimestamps = true
+        maxTime = Math.max(maxTime, Number(timestamp))
+        if (slides.length > 0) slides[slides.length - 1].end = timestamp
       }
       slides.push({
         src: slideImg.src,
@@ -574,59 +579,58 @@ export default {
         start: timestamp,
         type: 'image',
         startTime: timestamp ? new Date(timestamp * 1000).toISOString().slice(11, -1) : '',
-        end: null,
+        end: null
       })
     }
 
-    slides[slides.length - 1].end = maxTime;
+    slides[slides.length - 1].end = maxTime
 
-    if (slides.length > 1) slides.push({
-      src: null,
-      title: '',
-      number: slides.length,
-      start: maxTime,
-      type: 'service',
-      startTime: new Date(maxTime * 1000).toISOString().slice(11, -1),
-      end: Infinity
-    });
-    this.slides = slides;
+    if (slides.length > 1) {
+      slides.push({
+        src: null,
+        title: '',
+        number: slides.length,
+        start: maxTime,
+        type: 'service',
+        startTime: new Date(maxTime * 1000).toISOString().slice(11, -1),
+        end: Infinity
+      })
+    }
+    this.slides = slides
 
     if (headers.length > 0) {
-      headers[headers.length - 1].end = maxTime;
+      headers[headers.length - 1].end = maxTime
       // console.log(headers);
-      this.headers = headers;
+      this.headers = headers
     }
 
     if (presentationVideo) {
       const video = presentationVideo.querySelector('video')
       if (video) {
         video.addEventListener('timeupdate', (ev) => {
-          this.currentPlayTime = ev.target.currentTime;
+          this.currentPlayTime = ev.target.currentTime
         })
-
       }
 
-      const mediaContainer = document.getElementById('media-container');
+      const mediaContainer = document.getElementById('media-container')
       if (mediaContainer) {
         mediaContainer.prepend(...presentationVideo.children)
       }
-      this.isMediaPage = mediaContainer && mediaContainer.children.length > 0;
-      console.log('isMediaPage: ', this.isMediaPage);
-
+      this.isMediaPage = mediaContainer && mediaContainer.children.length > 0
+      console.log('isMediaPage: ', this.isMediaPage)
     } else {
-      this.isMediaPage = false;
+      this.isMediaPage = false
     }
-
 
     // mediaContainer.prepend(...presentationVideo.children)
 
-    console.log(presentationVideo);
+    console.log(presentationVideo)
 
-    slidesBlock.parentElement.removeChild(slidesBlock);
-    //ugly hack to make it work
-    //window.setTimeout(()=>this.onSlideClick(0), 1000);
+    slidesBlock.parentElement.removeChild(slidesBlock)
+    // ugly hack to make it work
+    // window.setTimeout(()=>this.onSlideClick(0), 1000);
 
-    //"page-slides"
+    // "page-slides"
 
     /*     const pageText = document.getElementById('page-text');
         const slidesContent = document.getElementById('slides-content');
@@ -640,12 +644,8 @@ export default {
 
         } */
 
-
-
-
     if (this.$vuetify.theme.dark) {
       this.scrollStyle.bar.background = '#424242'
-
     }
     // -> Check side navigation visibility
     this.handleSideNavVisibility()
@@ -663,11 +663,11 @@ export default {
     if (window.location.hash && window.location.hash.length > 1) {
       if (document.readyState === 'complete') {
         this.$nextTick(() => {
-          this.navigateToResult();
+          this.navigateToResult()
         })
       } else {
         window.addEventListener('load', () => {
-          this.navigateToResult();
+          this.navigateToResult()
           window.addEventListener('hashchange', () => this.navigateToResult())
         })
       }
@@ -679,24 +679,23 @@ export default {
   methods: {
 
     onMediaWheel(e) {
-      console.log("media wheel");
+      console.log('media wheel')
       // return this.$refs.slidesContainer.dispatchEvent(new WheelEvent(e.type, e))
     },
     onSlidesWheel(e) {
-      console.log("slides wheel");
+      console.log('slides wheel')
       if (this.autoScroll) { // user scroll while auto scroll
         this.mountVideoToActiveSlide()
       }
       this.autoScroll = false
     },
     onSlidesScroll(e) {
-
       if (!this.autoScroll) {
         this.$refs.slidesContainer.classList.add('scrolling')
         const meadiaContainer = document.getElementById('media-container')
         console.log('scroll parent: ', meadiaContainer.parentElement)
       } else {
-        console.log("auto scroll ");
+        console.log('auto scroll ')
       }
     },
     mountVideoToActiveSlide() {
@@ -709,20 +708,17 @@ export default {
       }
     },
     onSlidesScrollEnd(e) {
-
       if (this.autoScroll) {
         this.mountVideoToActiveSlide()
-        this.autoScroll = false;
-        console.log("auto scroll end");
+        this.autoScroll = false
+        console.log('auto scroll end')
       } else {
         this.$refs.slidesContainer.classList.remove('scrolling')
       }
-
-
     },
     onSlideClick(newActiveSlideIdx, togglePlay = false) {
-      //this.autoScroll = true;
-      console.log("slide click", newActiveSlideIdx);
+      // this.autoScroll = true;
+      console.log('slide click', newActiveSlideIdx)
       const mediaContainer = document.getElementById('media-container')
       const activeSlide = document.querySelector('.slide.active')
       const slideElements = document.querySelectorAll('.slide')
@@ -733,48 +729,55 @@ export default {
       newSlide.classList.add('active')
       this.mountVideoToActiveSlide()
 
-      const newTime = this.slides[newActiveSlideIdx].start;
+      const newTime = this.slides[newActiveSlideIdx].start
       this.setPlayTime(newTime, togglePlay)
-      //console.log("click-finished");
-
+      // console.log("click-finished");
     },
     setPlayTime(startTime, togglePlay = null) {
       const meadiaContainer = document.getElementById('media-container')
 
       if (meadiaContainer.children[0]?.tagName === 'VIDEO') {
         const player = meadiaContainer.children[0]
-        let paused = player.paused;
+        let paused = player.paused
         player.pause()
         player.currentTime = startTime
-        this.currentPlayTime = startTime; //?
-        if (togglePlay != null && togglePlay) paused = !paused;
+        this.currentPlayTime = startTime // ?
+        if (togglePlay != null && togglePlay) paused = !paused
         if (!paused) player.play()
-
       } else if (meadiaContainer.children[0]?.tagName === 'IFRAME') {
-        //Youtube??
-        const targetTime = startTime;
-        const videoSrc = meadiaContainer.children[0].src;
-        const newVideoSrc = new URL(videoSrc);
-        newVideoSrc.searchParams.set('start', targetTime);
-        newVideoSrc.searchParams.set('autoplay', 1);
+        // Youtube??
+        const targetTime = startTime
+        const videoSrc = meadiaContainer.children[0].src
+        const newVideoSrc = new URL(videoSrc)
+        newVideoSrc.searchParams.set('start', targetTime)
+        newVideoSrc.searchParams.set('autoplay', 1)
         meadiaContainer.children[0].src = newVideoSrc
       };
-      this.currentPlayTime = startTime;
-      this.userTextScroll = false;
+      this.currentPlayTime = startTime
+      this.userTextScroll = false
     },
-
 
     onTextScroll() { },
     onTextScrollEnd() {
       window.setTimeout(() => {
-        this.userTextScroll = false;
-        console.log("text scroll end");
-      }, 3000);
-
+        this.userTextScroll = false
+        console.log('text scroll end')
+      }, 3000)
     },
     onTextWheel() {
-      this.userTextScroll = true;
-      console.log("text wheel");
+      this.userTextScroll = true
+      console.log('text wheel')
+    },
+
+    onTocClick(start, toggle, headerId) {
+      if (start == null) {
+        const header = document.getElementById(headerId)
+        if (header) {
+          header.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      } else {
+        this.setPlayTime(start, toggle)
+      }
     },
     goHome () {
       window.location.assign('/')
@@ -834,7 +837,7 @@ export default {
     },
     navigateToResult() {
 
-/*       const elements = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6, .content'));
+      /*       const elements = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6, .content'));
       const location = String(window.location);
       const searchResultId = location.substring(location.indexOf('#') + 1);
       elements.forEach(element => {
@@ -850,9 +853,9 @@ export default {
       this.slidesExpanded = !this.slidesExpanded
     },
     goToContent (contentHash) {
-      const headers = document.querySelectorAll('#page-text h2');
-      const selectedContentRef = document.getElementById(contentHash.substring(1));
-      selectedContentRef.scrollIntoView({ behavior: "smooth", block: "start" })
+      const headers = document.querySelectorAll('#page-text h2')
+      const selectedContentRef = document.getElementById(contentHash.substring(1))
+      selectedContentRef.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
       headers.forEach((h) => {
         if (h.id !== contentHash.substring(1)) {
@@ -861,7 +864,6 @@ export default {
           h.classList.add('highlighted-on-select')
         };
       })
-
     },
     pageNew (editorId) {
       this.newPageModal = true
@@ -871,32 +873,29 @@ export default {
       window.location.assign(`/e/${locale}/${path}?editor=${this.selectedEditor}`)
     },
     getScrollPercentage (element) {
-      return element.scrollTop / (element.scrollHeight - element.offsetHeight);
+      return element.scrollTop / (element.scrollHeight - element.offsetHeight)
     },
 
     handleTextDblClick(e) {
       const newTime = Number(e.target.dataset.start)
       this.setPlayTime(newTime, true)
-      this.currentPlayTime = newTime;
-
+      this.currentPlayTime = newTime
     },
-      handleTextClick(e) {
+    handleTextClick(e) {
       const newTime = Number(e.target.dataset.start)
       this.setPlayTime(newTime)
-      this.currentPlayTime = newTime;
-
+      this.currentPlayTime = newTime
     },
 
     printValues () {
-      const slides = document.querySelectorAll('#slides-content .slide');
+      const slides = document.querySelectorAll('#slides-content .slide')
     }
   },
   watch: {
     activeSlideIndex(newValue, oldValue) {
-
       const mediaContainer = document.getElementById('media-container')
 
-      console.log(`slides: ${oldValue} => ${newValue}` );
+      console.log(`slides: ${oldValue} => ${newValue}`)
       // console.log(this.slides[newValue].startTime);
 
       const container = this.$refs.slidesContainer
@@ -912,29 +911,27 @@ export default {
 
       if (activeSlide) {
         if (activeSlide.classList.contains('active')) {
-          console.log('already active');
+          console.log('already active')
           return
         }
 
         const scrollTo = (
-          activeSlide.getBoundingClientRect().top
-          - oldTop
-          + container.scrollTop
+          activeSlide.getBoundingClientRect().top -
+          oldTop +
+          container.scrollTop
         )
         activeSlide.classList.add('active')
 
         if (
-          this.$refs.slidesContainer.classList.contains('scrolling')
-          || (scrollTo == container.scrollTop)
-          || (container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight)
+          this.$refs.slidesContainer.classList.contains('scrolling') ||
+          (scrollTo == container.scrollTop) ||
+          (container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight)
         ) {
-
           this.mountVideoToActiveSlide()
         } else {
-
           const activePos = (
-            oldTop
-            - this.$refs.mediaAncher.getBoundingClientRect().top
+            oldTop -
+            this.$refs.mediaAncher.getBoundingClientRect().top
           )
           mediaContainer.parentNode.removeChild(mediaContainer)
           mediaContainer.style.top = `${activePos}px`
@@ -947,9 +944,8 @@ export default {
             behavior: 'smooth'
           })
         }
-
       }
-      console.log("end slide change");
+      console.log('end slide change')
     },
     currentPlayTime(newValue, oldValue) {
       let highlightedTop = Infinity
@@ -959,23 +955,21 @@ export default {
           s.classList.add('highlighted')
           highlightedTop = s.getBoundingClientRect().top
         };
-      });
+      })
 
-      if (highlightedTop < Infinity &&  !this.userTextScroll) {
-
+      if (highlightedTop < Infinity && !this.userTextScroll) {
         const container = this.$refs.textContainer
         highlightedTop -= container.getBoundingClientRect().top
-        //console.log('ht: ', highlightedTop,"ct: ", container.getBoundingClientRect().top, "ch: ", container.clientHeight);
-        if (highlightedTop < container.clientHeight * 0.2 ||highlightedTop > container.clientHeight * 0.7) {
+        // console.log('ht: ', highlightedTop,"ct: ", container.getBoundingClientRect().top, "ch: ", container.clientHeight);
+        if (highlightedTop < container.clientHeight * 0.2 || highlightedTop > container.clientHeight * 0.7) {
           const scrollTo = container.scrollTop + highlightedTop - container.clientHeight * 0.3
-          console.log('scrolling up text', scrollTo);
+          console.log('scrolling up text', scrollTo)
           container.scrollTo({
             top: scrollTo,
             behavior: 'smooth'
           })
         }
       }
-
     },
     upBtnShown(_, newValue) {
       /*
@@ -994,12 +988,12 @@ export default {
       */
     },
     slidesExpanded (newValue, oldValue) {
-      const expandBtn = document.getElementById('expand-btn');
-      const restoreBtn = document.getElementById('restore-btn');
-      const toggleBtnText = document.querySelector('#toggle-expand-btn span');
-      const pageContentSection = document.getElementById('page-content');
-      const pageSlidesSection = document.getElementById('page-slides');
-      const selectedSlide = document.querySelector('#slides-content .selected');
+      const expandBtn = document.getElementById('expand-btn')
+      const restoreBtn = document.getElementById('restore-btn')
+      const toggleBtnText = document.querySelector('#toggle-expand-btn span')
+      const pageContentSection = document.getElementById('page-content')
+      const pageSlidesSection = document.getElementById('page-slides')
+      const selectedSlide = document.querySelector('#slides-content .selected')
 
       if (newValue) {
         expandBtn.classList.remove('active')
@@ -1017,19 +1011,23 @@ export default {
         pageSlidesSection.style.flex = '0.25 1'
       };
 
-      const videoContainer = document.getElementById('presentationVideo');
+      const videoContainer = document.getElementById('presentationVideo')
       if (selectedSlide) {
-        videoContainer.style.top = selectedSlide.offsetTop + 'px';
-        selectedSlide.scrollIntoView({ behavior: "smooth", block: "center" })
+        videoContainer.style.top = selectedSlide.offsetTop + 'px'
+        selectedSlide.scrollIntoView({ behavior: 'smooth', block: 'center' })
       };
     }
-  },
+  }
 }
 </script>
 
 <style lang="scss">
 @import '../../../scss/joan-styles.scss';
 html, body,#root, #app{margin: 0; height: 100%; overflow: hidden}
+.v-main__wrap {
+
+ padding: 0px 30px 30px 30px ;
+}
 
 .v-navigation-drawer {
   z-index: 999999;
@@ -1037,72 +1035,80 @@ html, body,#root, #app{margin: 0; height: 100%; overflow: hidden}
 path{
   fill: black;
 }
-.toc {
-  display: flex;
-  flex-direction: column;
-  padding: 1em 3em;
-  overflow: scroll;
 
-  & .toc-header {
-    color: black;
-    font-size: 1.11rem;
-    font-weight: 600;
-    border-bottom: 1px solid $gray-300;
-    padding: 1em 0 1em 0;
-  }
-
-
-  & .v-list#toc-contents {
-    display: flex;
-    flex-direction: column;
-    gap: 3em;
-    counter-set: toc-counter;
-  }
-
-  & #toc-contents .v-list-item {
-    min-height: 0px;
-
-    & .toc-title-timestamp {
-      display: flex;
-      margin: 0 0 1.5em 0;
-
-      & span {
-        &::before {
-          content: '·';
-          margin-right: .5em;
-        }
-      }
-
-      &::before {
-        counter-increment: toc-counter;
-        content: "0" counter(toc-counter);
-        margin-right: .5em;
-        color: black;
-        font-weight: 600;
-      }
-    }
-
-    & .v-list-item__title {
-      overflow-x: hidden;
-      // overflow-y: visible;
-      height: 1em;
-      font-size: 1.11rem;
-      font-weight: 400;
-
-    }
-  }
-}
 .theme--light.v-toolbar.v-sheet {
   background-color: $gray-200;
 }
 #toc-col {
   border-right: 1px solid $gray-300;
+  padding: 1em 3em;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  #content-toggler {
+    & .v-list-group__items {
+      min-width: 0;
+      overflow: auto;
+      height: 100%;
+    }
+    .v-list-group__header {
+      border-bottom: 1px solid $gray-300;
+      border-radius: 0;
+      min-height: 44px;
+      .toc-header{
+        font-size: 1.11rem;
+        font-weight: 600;
+        padding-bottom: 0;
+        color: black;
+      }
+      .v-list-group__header__append-icon{
+        color: black;
+      }
+    }
+  }
+}
+
+#toc-contents.v-list--two-line .prefix{
+  margin-top: -0.65em;
+}
+#toc-contents {
+  flex-wrap: nowrap;
+  overflow: visible;
+  align-content: flex-start;
+  justify-content: flex-start;
+  .prefix {
+        color: $gray-500;
+        margin-top:0;
+        font-weight: 700;
+        font-size: 1.5em;
+        padding: 0.5em;
+
+  }
+  .active{
+    .prefix{
+      color: $orange;
+    }
+    .v-list-item__title{
+      font-weight: 700;
+    }
+  }
+  .v-list-item__title{
+    font-size: 1em;
+    font-weight: 500;
+  }
+  .v-list-item__subtitle{
+    font-size: 0,875em;
+    color: $gray-500;
+    font-weight: 300;
+  }
 }
 
 #content-col {
     flex-direction: column;
     display: flex;
-    margin: 0 3em;
+    margin: 3em;
+
 }
 #page-content-container {
   display: flex;
@@ -1114,7 +1120,6 @@ path{
     flex: 1;
 
     overflow:visible;
-
 
     & #page-text {
       margin-top: 2em;
@@ -1178,8 +1183,6 @@ path{
   & #page-slides.expanded {
     padding: 2em 13em 2em 13em;
   }
-
-
 
 }
 #media-col {
@@ -1274,10 +1277,6 @@ path{
         }
       }
 }
-
-
-
-
 
 .breadcrumbs-nav {
   .v-btn {

@@ -17,11 +17,11 @@
         v-divider.my-2(v-else-if='item.k === `divider`')
         v-subheader.pl-4(v-else-if='item.k === `header`') {{ item.l }}
     <!-- Browse -->
-    v-list.menu(v-else-if='currentMode === `browse`', subheader)
+    v-list.menu(v-else-if='currentMode === `browse`', subheader )
       v-list-group#main-menu-toggler(active-class="active-group")
         template(v-slot:activator)
           v-list-item-content
-            v-list-item-title.main-menu-title Main Menu
+            v-list-item-title.main-menu-title Pages
         v-list
           .main-menu(v-for='(rootDoc, idx) of docStructure.filter(d => !d.isFolder)')
             v-list-item(:href='`/` + rootDoc.locale + `/` + rootDoc.path', :key='`childpage-l0-` + rootDoc.id', :input-value='path === rootDoc.path')
@@ -102,7 +102,7 @@ export default {
       const root = {
         id: 0,
         title: '/ (root)'
-      };
+      }
       const rootDocuments = await this.$apollo.query({
         query: gql`
           query ($parent: Int, $locale: String!) {
@@ -153,7 +153,7 @@ export default {
             get: function () { return children }
           })
         };
-      });
+      })
       this.loadedCache = _.union(this.loadedCache, [root.id])
       this.docStructure = _.get(rootDocuments, 'data.pages.tree', [])
       // this.currentItems = _.get(rootDocuments, 'data.pages.tree', [])
@@ -305,6 +305,7 @@ export default {
 .v-application--is-ltr .v-list-item__icon:first-child {
   margin-right: .7em;
 }
+
 #main-menu-toggler {
   & > .v-list-item {
     padding: 0;
@@ -312,6 +313,24 @@ export default {
 
   & > .v-list-item__content {
     padding: 0
+  }
+>.v-list-group__header {
+    border-bottom: 1px solid $gray-300;
+    border-radius: 0;
+    min-height: 44px;
+    .toc-header{
+      font-size: 1.11rem;
+      font-weight: 600;
+      padding-bottom: 0;
+      color: black;
+    }
+    .v-list-item__content {
+       padding: 0 8px;
+    }
+    .v-list-group__header__append-icon{
+      color: black;
+       padding: 0 8px;
+    }
   }
 }
 .menu .v-list-item--active {
