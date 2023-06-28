@@ -162,7 +162,8 @@
               template( width="100%"  v-for="(slide, slideIdx) in slides" )
                 v-sheet.slide.pb-1(
                     :key = "slide.number"
-                    v-on:click="onSlideClick(slide.number)",
+                    @click="onSlideClick(slide.number,false)",
+                    @dblclick="onSlideClick(slide.number, true)",
                     :class="slide.type",
                     v-intersect="{handler: (([e])=>e.target.classList.toggle('stuck', e.intersectionRatio < 1)), options: {threshold: [1]} }"
                 )
@@ -493,7 +494,6 @@ export default {
     const TOPBAR_HEIGHT = 100;
 
     const presentationVideo = document.getElementById('presentationVideo');
-    const highlights = document.querySelectorAll("[data-start]");
 
     const headersAndStarts = Array.from(document.querySelectorAll('#page-text h2, #page-text [data-start]'));
     let headers = [];
@@ -537,8 +537,11 @@ export default {
 
 
 
-    const spans = document.querySelectorAll('#page-text span');
-    spans.forEach(s => { s.addEventListener('dblclick', e => { this.handleTextDblClick(e) }) })
+    const spans = document.querySelectorAll('#page-text [data-start]');
+    spans.forEach(s => {
+      s.addEventListener('dblclick', e => { this.handleTextDblClick(e) });
+      s.addEventListener('click', e => { this.handleTextClick(e) });
+    })
 
     const slidesBlock = document.getElementById('page-slides');
     const slidesSource = Array.from(slidesBlock.querySelectorAll('.slide')).sort(
@@ -717,7 +720,7 @@ export default {
 
 
     },
-    onSlideClick(newActiveSlideIdx) {
+    onSlideClick(newActiveSlideIdx, togglePlay = false) {
       //this.autoScroll = true;
       console.log("slide click", newActiveSlideIdx);
       const mediaContainer = document.getElementById('media-container')
@@ -731,18 +734,21 @@ export default {
       this.mountVideoToActiveSlide()
 
       const newTime = this.slides[newActiveSlideIdx].start;
-      this.setPlayTime(newTime)
+      this.setPlayTime(newTime, togglePlay)
       //console.log("click-finished");
 
     },
-    setPlayTime(startTime) {
+    setPlayTime(startTime, togglePlay = null) {
       const meadiaContainer = document.getElementById('media-container')
 
       if (meadiaContainer.children[0]?.tagName === 'VIDEO') {
         const player = meadiaContainer.children[0]
+        let paused = player.paused;
+        player.pause()
         player.currentTime = startTime
         this.currentPlayTime = startTime; //?
-        player.play()
+        if (togglePlay != null && togglePlay) paused = !paused;
+        if (!paused) player.play()
 
       } else if (meadiaContainer.children[0]?.tagName === 'IFRAME') {
         //Youtube??
@@ -870,6 +876,12 @@ export default {
 
     handleTextDblClick(e) {
       const newTime = Number(e.target.dataset.start)
+      this.setPlayTime(newTime, true)
+      this.currentPlayTime = newTime;
+
+    },
+      handleTextClick(e) {
+      const newTime = Number(e.target.dataset.start)
       this.setPlayTime(newTime)
       this.currentPlayTime = newTime;
 
@@ -914,8 +926,9 @@ export default {
         if (
           this.$refs.slidesContainer.classList.contains('scrolling')
           || (scrollTo == container.scrollTop)
-          || (container.scrollHeight - Math.round(scrollTo) <= container.clientHeight)
+          || (container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight)
         ) {
+
           this.mountVideoToActiveSlide()
         } else {
 
@@ -1172,7 +1185,7 @@ path{
 #media-col {
   border-left: 1px solid $gray-300;
   position: relative;
-  padding: 2em 3em 2em 2em;
+
   display: flex;
   flex-direction: column;
   #media-ancher{
@@ -1207,6 +1220,7 @@ path{
         #media-container {
           pointer-events: all;
           box-shadow: none;
+          border: 1px solid $gray-300;
         }
 
       }
