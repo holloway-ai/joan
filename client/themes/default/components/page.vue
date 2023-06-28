@@ -187,8 +187,11 @@ import ClipboardJS from 'clipboard'
 import Vue from 'vue'
 import Icon from '../../../components/icon'
 import { msToTime } from '../../../helpers/utils'
-import { scaleTime } from 'd3'
+import { scaleLinear } from 'd3'
 import { collectFields } from 'graphql/execution/execute'
+import { ResizeObserver as PolyResizeObserver } from '@juggle/resize-observer';
+
+const ResizeObserver = window.ResizeObserver || PolyResizeObserver;
 
 Vue.component('Tabset', Tabset)
 Prism.plugins.autoloader.languages_path = '/_assets/js/prism/'
@@ -379,6 +382,7 @@ export default {
       ],
       isMediaPage: true,
       currentPlayTime: null,
+      currentScrollTime: null,
       hasTimestamps: false,
     }
   },
@@ -610,6 +614,12 @@ export default {
       this.isMediaPage = mediaContainer && mediaContainer.children.length > 0;
       console.log('isMediaPage: ', this.isMediaPage);
 
+      const roSlides = new ResizeObserver((entries, observer) => this.onSlidesResize(entries, observer));
+      roSlides.observe(this.$refs.slidesContainer);
+      const roText = new ResizeObserver((entries, observer) => this.onTextResize(entries, observer));
+      roText.observe(this.$refs.textContainer);
+
+
     } else {
       this.isMediaPage = false;
     }
@@ -617,25 +627,12 @@ export default {
 
     // mediaContainer.prepend(...presentationVideo.children)
 
-    console.log(presentationVideo);
+    // console.log(presentationVideo);
 
     slidesBlock.parentElement.removeChild(slidesBlock);
-    //ugly hack to make it work
-    //window.setTimeout(()=>this.onSlideClick(0), 1000);
 
-    //"page-slides"
 
-    /*     const pageText = document.getElementById('page-text');
-        const slidesContent = document.getElementById('slides-content');
-        const slides = document.querySelectorAll('.slide');
-        if (slides.length == 0) {
-          //slidesContent.style.display = 'none';
-          const pageContentSection = document.getElementById('page-content');
-          const pageSlidesSection = document.getElementById('page-slides');
-          pageContentSection.style.flex = '1 1'
-          pageSlidesSection.style.display = 'none'
 
-        } */
 
 
 
@@ -676,11 +673,11 @@ export default {
   methods: {
 
     onMediaWheel(e) {
-      console.log("media wheel");
+      //console.log("media wheel");
       // return this.$refs.slidesContainer.dispatchEvent(new WheelEvent(e.type, e))
     },
     onSlidesWheel(e) {
-      console.log("slides wheel");
+      //console.log("slides wheel");
       if (this.autoScroll) { // user scroll while auto scroll
         this.mountVideoToActiveSlide()
       }
@@ -689,9 +686,19 @@ export default {
     onSlidesScroll(e) {
 
       if (!this.autoScroll) {
-        this.$refs.slidesContainer.classList.add('scrolling')
-        const meadiaContainer = document.getElementById('media-container')
-        console.log('scroll parent: ', meadiaContainer.parentElement)
+        const container = this.$refs.slidesContainer
+        container.classList.add('scrolling')
+
+        if (this.slidesScale) {
+          const pos = (
+            container.scrollTop
+            + container.clientHeight * .2
+          )
+          this.currentScrollTime = this.slidesScale.invert(pos)
+          this.slidesScrolling = true
+        }
+
+
       } else {
         console.log("auto scroll ");
       }
@@ -713,10 +720,11 @@ export default {
         console.log("auto scroll end");
       } else {
         this.$refs.slidesContainer.classList.remove('scrolling')
+        this.currentScrollTime = null
+        this.slidesScrolling = false
       }
-
-
     },
+
     onSlideClick(newActiveSlideIdx) {
       //this.autoScroll = true;
       console.log("slide click", newActiveSlideIdx);
@@ -757,7 +765,41 @@ export default {
       this.userTextScroll = false;
     },
 
-
+    onSlidesResize(els, observer) {
+      const container = this.$refs.slidesContainer
+      const slideElements = container.querySelectorAll('.slide')
+      let domain = []
+      let range = []
+      const shift = container.getBoundingClientRect().top - container.scrollTop
+      for (let i = 0; i < slideElements.length; i++) {
+        range.push(slideElements[i].getBoundingClientRect().top - shift)
+        domain.push(this.slides[i].start)
+      }
+      domain.push(this.slides[this.slides.length - 1].end)
+      range.push(container.scrollHeight)
+      this.slidesScale = scaleLinear().domain(domain).range(range)
+     },
+    onTextResize(els, observer) {
+      const container = this.$refs.textContainer
+      const textElements = container.querySelectorAll("[data-start]")
+      let domain = [0]
+      let range = [0]
+      let totalEnd = 0
+      const shift = container.getBoundingClientRect().top - container.scrollTop
+      for (let i = 0; i < textElements.length; i++) {
+        const top = textElements[i].getBoundingClientRect().top - shift
+        const start = Number(textElements[i].dataset.start)
+        if (start && top > range[range.length - 1]) {
+          range.push(top)
+          domain.push(start)
+        }
+        const end = Number(textElements[i].dataset.end)
+        totalEnd = end ? Math.max(totalEnd, end) : Math.max(totalEnd, start)
+      }
+      domain.push(totalEnd)
+      range.push(container.scrollHeight)
+      this.textScale = scaleLinear().domain(domain).range(range)
+     },
     onTextScroll() { },
     onTextScrollEnd() {
       window.setTimeout(() => {
@@ -947,8 +989,8 @@ export default {
           highlightedTop = s.getBoundingClientRect().top
         };
       });
-
-      if (highlightedTop < Infinity &&  !this.userTextScroll) {
+      if (this.currentScrollTime == null) return
+      if (highlightedTop < Infinity &&  !this.userTextScroll && !this.currentScrollTime) {
 
         const container = this.$refs.textContainer
         highlightedTop -= container.getBoundingClientRect().top
@@ -961,6 +1003,21 @@ export default {
             behavior: 'smooth'
           })
         }
+      }
+    },
+    currentScrollTime(newValue, oldValue) {
+      console.log('scroll time: ', newValue);
+      if (newValue) {
+        if (this.textScale) {
+          const textContainer = this.$refs.textContainer
+          const scrollTo = this.textScale(newValue) + textContainer.clientHeight * 0.2
+          textContainer.scrollTo({
+              top: scrollTo,
+              behavior: 'smooth'
+            })
+         }
+
+
       }
 
     },
