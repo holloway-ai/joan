@@ -4,7 +4,7 @@
     v-main.overflow-hidden.fill-height(ref='content')
       v-row.no-gutters.overflow-y-hidden.fill-height
         <!-- toc -->
-        v-col.toc.pa-5.col-2.overflow-y-hidden.fill-height#toc-col(
+        v-col.toc.px-5.pt-5.col-2.overflow-y-hidden.fill-height#toc-col(
           v-if='tocPosition !== `off` && $vuetify.breakpoint.lgAndUp'
           :order-xs1='tocPosition !== `right`'
           :order-xs2='tocPosition === `right`'
@@ -29,7 +29,7 @@
                     v-list-item-subtitle( v-if="header.start_time") {{header.start_time}}
 
         <!-- contents -->
-        v-col.col.pa-0.overflow-y-hidden.fill-height#content-col
+        v-col.col.py-0.px-12.overflow-y-hidden.fill-height#content-col
           v-alert.mb-5(v-if='!isPublished', color='red', outlined, icon='mdi-minus-circle', dense)
             .caption {{$t('common:page.unpublishedWarning')}}
           v-row.px-0.py-5#page-header-section.overflow-y-hidden(no-gutters, ref='headerRef')
@@ -144,24 +144,27 @@
             <!--     .comments-main -->
             <!--       slot(name='comments') -->
         <!-- media -->
-        v-col.col-2.pa-0.overflow-y-hidden.fill-height#media-col(
+        v-col.col-3.px-5.pt-2.overflow-y-hidden.fill-height#media-col(
             ref='mediaCol',
             v-if='isMediaPage && !printView'
           )
           v-row.no-gutters.overflow-y-hidden
             v-col.col-12.pa-0.overflow-y-hidden
-              v-toolbar(flat, dense, small, depressed, text, plain, short, elevation=0)
-                v-btn.pa-0(
-                  small, depressed, text, plain,
-                )
-                  icon(name='expand')
-                  span.px-1.text-none expand
-                v-btn(small, depressed, text, plain) {{currentPlayTimeText}}
+              v-toolbar.px-0(flat, depressed, plain,  tile elevation=0)
+                v-btn.pa-0(depressed, text, plain, tile)
+                  v-icon() mdi-chevron-left
+                  span.text-none expand
+                v-spacer
+                v-toolbar-title Slides <!---{currentPlayTimeText}}-->
+                  .timestamp {{currentPlayTimeText}}
+                v-btn( depressed, text, plain, tile)
+                  span.text-none [hide]
+
           v-row.no-gutters.overflow-y-visible
             v-col.col-12.mx-2.py-0.overflow-y-visible#media-ancher(ref='mediaAncher' v-on:wheel="onMediaWheel")
                 v-sheet(id = "media-container"  )
           v-row.no-gutters.fill-height.overflow-y-hidden.overflow-x-visible
-            v-col.col-12.my-3.px-3.overflow-y-auto.fill-height.slides_container.overflow-x-visible(
+            v-col.col-12.my-3.px-0.overflow-y-auto.fill-height.slides_container.overflow-x-visible(
                 ref="slidesContainer"
                 @scroll.passive="onSlidesScroll"
                 @scrollend.passive="onSlidesScrollEnd"
@@ -493,7 +496,7 @@ export default {
       activeSlide.classList.add('active')
       meadiaContainer.style.top = '0px'
       activeSlide.prepend(meadiaContainer)
-      console.log('parent: ', meadiaContainer.parentElement)
+      // console.log('parent: ', meadiaContainer.parentElement)
       this.$refs.slidesContainer.scrollTo(0, 0)
 
       this.setPlayTime(0.0)
@@ -624,7 +627,7 @@ export default {
 
     // mediaContainer.prepend(...presentationVideo.children)
 
-    console.log(presentationVideo)
+    // console.log(presentationVideo)
 
     slidesBlock.parentElement.removeChild(slidesBlock)
     // ugly hack to make it work
@@ -679,11 +682,11 @@ export default {
   methods: {
 
     onMediaWheel(e) {
-      console.log('media wheel')
+      // console.log('media wheel')
       // return this.$refs.slidesContainer.dispatchEvent(new WheelEvent(e.type, e))
     },
     onSlidesWheel(e) {
-      console.log('slides wheel')
+      // console.log('slides wheel')
       if (this.autoScroll) { // user scroll while auto scroll
         this.mountVideoToActiveSlide()
       }
@@ -693,9 +696,9 @@ export default {
       if (!this.autoScroll) {
         this.$refs.slidesContainer.classList.add('scrolling')
         const meadiaContainer = document.getElementById('media-container')
-        console.log('scroll parent: ', meadiaContainer.parentElement)
+        // console.log('scroll parent: ', meadiaContainer.parentElement)
       } else {
-        console.log('auto scroll ')
+        // console.log('auto scroll ')
       }
     },
     mountVideoToActiveSlide() {
@@ -711,14 +714,14 @@ export default {
       if (this.autoScroll) {
         this.mountVideoToActiveSlide()
         this.autoScroll = false
-        console.log('auto scroll end')
+        // console.log('auto scroll end')
       } else {
         this.$refs.slidesContainer.classList.remove('scrolling')
       }
     },
     onSlideClick(newActiveSlideIdx, togglePlay = false) {
       // this.autoScroll = true;
-      console.log('slide click', newActiveSlideIdx)
+      // console.log('slide click', newActiveSlideIdx)
       const mediaContainer = document.getElementById('media-container')
       const activeSlide = document.querySelector('.slide.active')
       const slideElements = document.querySelectorAll('.slide')
@@ -761,12 +764,12 @@ export default {
     onTextScrollEnd() {
       window.setTimeout(() => {
         this.userTextScroll = false
-        console.log('text scroll end')
+        // console.log('text scroll end')
       }, 3000)
     },
     onTextWheel() {
       this.userTextScroll = true
-      console.log('text wheel')
+      // console.log('text wheel')
     },
 
     onTocClick(start, toggle, headerId) {
@@ -895,7 +898,7 @@ export default {
     activeSlideIndex(newValue, oldValue) {
       const mediaContainer = document.getElementById('media-container')
 
-      console.log(`slides: ${oldValue} => ${newValue}`)
+      // console.log(`slides: ${oldValue} => ${newValue}`)
       // console.log(this.slides[newValue].startTime);
 
       const container = this.$refs.slidesContainer
@@ -911,7 +914,7 @@ export default {
 
       if (activeSlide) {
         if (activeSlide.classList.contains('active')) {
-          console.log('already active')
+          // console.log('already active')
           return
         }
 
@@ -945,7 +948,7 @@ export default {
           })
         }
       }
-      console.log('end slide change')
+      // console.log('end slide change')
     },
     currentPlayTime(newValue, oldValue) {
       let highlightedTop = Infinity
@@ -963,7 +966,7 @@ export default {
         // console.log('ht: ', highlightedTop,"ct: ", container.getBoundingClientRect().top, "ch: ", container.clientHeight);
         if (highlightedTop < container.clientHeight * 0.2 || highlightedTop > container.clientHeight * 0.7) {
           const scrollTo = container.scrollTop + highlightedTop - container.clientHeight * 0.3
-          console.log('scrolling up text', scrollTo)
+          // console.log('scrolling up text', scrollTo)
           container.scrollTo({
             top: scrollTo,
             behavior: 'smooth'
@@ -1041,7 +1044,6 @@ path{
 }
 #toc-col {
   border-right: 1px solid $gray-300;
-  padding: 1em 3em;
   overflow: hidden;
   height: 100%;
   display: flex;
@@ -1056,6 +1058,8 @@ path{
       border-bottom: 1px solid $gray-300;
       border-radius: 0;
       min-height: 44px;
+      padding-top: 1em;
+
       .toc-header{
         font-size: 1.11rem;
         font-weight: 600;
@@ -1098,7 +1102,7 @@ path{
     font-weight: 500;
   }
   .v-list-item__subtitle{
-    font-size: 0,875em;
+    font-size: 0.875em;
     color: $gray-500;
     font-weight: 300;
   }
@@ -1107,7 +1111,6 @@ path{
 #content-col {
     flex-direction: column;
     display: flex;
-    margin: 3em;
 
 }
 #page-content-container {
@@ -1193,6 +1196,17 @@ path{
   flex-direction: column;
   #media-ancher{
     position: relative;
+  }
+  .v-toolbar__title{
+    font-size: 1.2em;
+    font-weight: 600;
+    .timestamp{
+      margin-top: -3px;
+      position: absolute;
+      font-size: 0.45em;
+      font-weight: 300;
+      color: gray;
+    }
   }
 
   .slides_container {

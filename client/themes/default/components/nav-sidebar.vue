@@ -334,8 +334,12 @@ export default {
   }
 }
 .menu .v-list-item--active {
-  background-color: $gray-200;
+  // background-color: $gray-200;
   color: black;
+  &:hover {
+    background-color: transparent;
+
+  }
 }
 .main-menu-title {
   font-size: 1.11rem;
