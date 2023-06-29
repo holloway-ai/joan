@@ -211,7 +211,23 @@
                           p.pa-1.ma-0 {{slide.startTime}}
 
     search-results
-    page-selector(mode='create', v-model='newPageModal', :open-handler='pageNewCreate', :locale='locale')
+    v-fab-transition
+      v-btn(
+        v-if='upBtnShown'
+        fab
+        fixed
+        bottom
+        :right='$vuetify.rtl'
+        :left='!$vuetify.rtl'
+        small
+        :depressed='this.$vuetify.breakpoint.mdAndUp'
+        @click='$vuetify.goTo(0, scrollOpts)'
+        color='primary'
+        dark
+        :style='upBtnPosition'
+        :aria-label='$t(`common:actions.returnToTop`)'
+        )
+        v-icon mdi-arrow-up
 </template>
 
 <script>
@@ -267,8 +283,7 @@ Prism.plugins.toolbar.registerButton('copy-to-clipboard', (env) => {
 export default {
   components: {
     NavSidebar,
-    StatusIndicator,
-    Icon
+    StatusIndicator
   },
   props: {
     pageId: {
@@ -355,7 +370,7 @@ export default {
   data() {
     return {
       route: window.location,
-      navShown: true,
+      navShown: false,
       navExpanded: false,
       upBtnShown: false,
       showEditMenu: false,
@@ -426,7 +441,6 @@ export default {
     }
   },
   computed: {
-    mode: get('page/mode'),
     isAuthenticated: get('user/authenticated'),
     hasNewPagePermission() {
       return this.hasAdminPermission || _.intersection(this.permissions, ['write:pages']).length > 0
@@ -434,7 +448,6 @@ export default {
     commentsCount: get('page/commentsCount'),
     commentsPerms: get('page/effectivePermissions@comments'),
     editShortcutsObj: get('page/editShortcuts'),
-    currentEditor: sync('editor/editor'),
     rating: {
       get() {
         return 3.5
@@ -868,11 +881,11 @@ export default {
     handleSideNavVisibility () {
       if (window.innerWidth === this.winWidth) { return }
       this.winWidth = window.innerWidth
-      // if (this.$vuetify.breakpoint.mdAndUp) {
-      //   this.navShown = true
-      // } else {
-      //   this.navShown = false
-      // }
+      if (this.$vuetify.breakpoint.mdAndUp) {
+        this.navShown = true
+      } else {
+        this.navShown = false
+      }
     },
     goToComments (focusNewComment = false) {
       this.$vuetify.goTo('#discussion', this.scrollOpts)
@@ -1022,10 +1035,14 @@ export default {
         const paragraphs = Array.from(document.querySelectorAll('.text-container p'));
         const location = String(window.location);
         const pid = location.substring(location.indexOf('#'));
+        console.log('pid: ', pid);
+        console.log('paragraphs: ', paragraphs);
         paragraphs.forEach(p => {
           if (p.id === pid) {
+            console.log('AAAA');
             Array.from(p.children).forEach(child => child.classList.add('highlighted-on-select'))
           } else {
+            console.log('BBBB');
             Array.from(p.children).forEach(child => child.classList.remove('highlighted-on-select'))
           };
         })
@@ -1368,20 +1385,10 @@ path{
     align-items: center;
   }
   .page-header-headings {
+    min-height: 52px;
     display: flex;
     justify-content: center;
     flex-direction: column;
-    margin: auto 0;
-
-    & h1 {
-      font-size: 2.24rem;
-      font-weight: 600;
-      margin: auto 0;
-    }
-
-    & .description {
-      font-size: .9rem;
-    }
   }
   .page-edit-shortcuts {
     position: absolute;
@@ -1412,44 +1419,6 @@ path{
       }
     }
   }
-  & .v-menu__content {
-    box-shadow: none !important;
-  }
-  & > .page-info {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 1em;
-    color: black;
-
-  }
-}
-.copiedMsg .v-snack__wrapper {
-  max-width: 500px;
-}
-.copiedMsg .theme--light.v-sheet {
-  display: flex;
-  justify-content: center;
-}
-.copiedMsg .v-sheet.v-snack__wrapper:not(.v-sheet--outlined) {
-  box-shadow: none;
-  border: 1px solid $gray-700 !important;
-  min-width: 0px;
-  margin-bottom: 30px;
-}
-.copiedMsg .v-snack__content {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: .7em;
-}
-.copiedMsg .theme--light.v-sheet {
-  background-color: white;
-}
-.header-menu {
-  box-shadow: none;
-  border: 1px solid $gray-700;
 }
 
 .drager_col{
