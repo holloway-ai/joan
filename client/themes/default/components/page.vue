@@ -4,10 +4,7 @@
     v-main.overflow-hidden.fill-height(ref='content')
       v-row.no-gutters.overflow-y-hidden.fill-height
         <!-- toc -->
-        v-col.toc.px-5.pt-5.col-2.overflow-y-hidden.fill-height#toc-col(
-          v-if='tocPosition !== `off` && $vuetify.breakpoint.lgAndUp'
-          :order-xs1='tocPosition !== `right`'
-          :order-xs2='tocPosition === `right`'
+        v-col.toc.px-5.col-2.pt-5.overflow-y-hidden.fill-height#toc-col(
           ref="tocRef"
           )
             nav-sidebar(:items='sidebarDecoded', :nav-mode='navMode')
@@ -27,162 +24,173 @@
                   v-list-item-content
                     v-list-item-title  {{header.header}}
                     v-list-item-subtitle( v-if="header.start_time") {{header.start_time}}
+        v-drag-col.col.fill-height.pa-0.ma-0(
+          ref='dragCol' height="100%"
+          leftPercent=75
+          sliderWidth=10
+          sliderColor='transparent'
+          sliderHoverColor='#FF6B00'
+          sliderBgColor='transparent'
+          sliderBgHoverColor='#FAFAFA'
 
-        <!-- contents -->
-        v-col.col.py-0.px-12.overflow-y-hidden.fill-height#content-col
-          v-alert.mb-5(v-if='!isPublished', color='red', outlined, icon='mdi-minus-circle', dense)
-            .caption {{$t('common:page.unpublishedWarning')}}
-          v-row.px-0.py-5#page-header-section.overflow-y-hidden(no-gutters, ref='headerRef')
-            v-col.is-page-header.px-0.ma-0(
-              :xl='tocPosition === `right` ? 10 : false'
-              :lg='tocPosition === `right` ? 9 : false'
-              style='margin-top: auto; margin-bottom: auto;'
-              )
-              .page-header-headings
-                h1 {{title}}
-                .caption.grey--text.text--darken-1 {{description}}
-              .page-edit-shortcuts(
-                v-if='editShortcutsObj.editMenuBar'
-                :class='tocPosition === `right` ? `is-right` : ``'
-                )
-                v-btn(
-                  v-if='editShortcutsObj.editMenuBtn'
-                  @click='pageEdit'
-                  depressed
-                  small
-                  )
-                  v-icon.mr-2(small) mdi-pencil
-                  icon(name='edit-page')
-                  span.text-none {{$t(`common:actions.edit`)}}
-                v-btn(
-                  v-if='editShortcutsObj.editMenuExternalBtn'
-                  :href='editMenuExternalUrl'
-                  target='_blank'
-                  depressed
-                  small
-                  )
-                  v-icon.mr-2(small) {{ editShortcutsObj.editMenuExternalIcon }}
-                  span.text-none {{$t(`common:page.editExternal`, { name: editShortcutsObj.editMenuExternalName })}}
-            v-col.page-info.pa-0
-              v-btn(
-                v-if='hasWritePagesPermission'
-                icon,
-                tile,
-                :disabled='!hasWritePagesPermission'
-                :aria-label='$t(`common:page.editPage`)'
-                @click="pageEdit"
-                )
-                icon(name="edit-page")
-              <!-- new page menu -->
-              v-menu(offset-y, bottom, open-on-hover, content-class="header-menu")
-                template(v-slot:activator='{ on: menu }')
-                  v-btn(icon, tile, v-on='menu', :aria-label='$t(`common:page.share`)')
-                    icon(name='new-page')
-                v-list
-                  v-list-item(v-for="(editor, idx) in editorOptions", :key="idx", link, @click='pageNew(editor.id)')
-                    v-list-item-title {{ editor.name }}
-              v-menu(offset-y, bottom, min-width='300', content-class="header-menu")
-                template(v-slot:activator='{ on: menu }')
-                  v-tooltip(bottom)
-                    template(v-slot:activator='{ on: tooltip }')
-                      v-btn(icon, tile, v-on='{ ...menu, ...tooltip }')
-                        icon(name='share')
-                    span {{$t('common:page.share')}}
-                social-sharing(
-                  :url='pageUrl'
-                  :title='title'
-                  :description='description'
-                )
-              v-menu(offset-y, bottom, open-on-hover, content-class="header-menu")
-                template(v-slot:activator='{ on: menu }')
-                  v-btn(icon, tile, v-on='menu', :aria-label='$t(`common:page.share`)')
-                    icon(name='more')
-                v-list
-                  v-list-item(link, @click='pageHistory')
-                    v-list-item-icon
-                      v-icon(size='20') mdi-history
-                    v-list-item-title {{$t('common:header.history')}}
-                  v-list-item(link, @click='pageSource')
-                    v-list-item-icon
-                      v-icon(size='20') mdi-code-tags
-                    v-list-item-title
-                      span {{$t('common:header.viewSource')}}
-                  v-list-item(link, @click='pageConvert', small)
-                    v-list-item-icon
-                      v-icon(size='20') mdi-lightning-bolt
-                    v-list-item-title
-                      span {{$t('common:header.convert')}}
-                  v-list-item(link, @click='pageDuplicate')
-                    v-list-item-icon
-                      v-icon(size='20') mdi-content-duplicate
-                    v-list-item-title
-                      span {{$t('common:header.duplicate')}}
-                  v-list-item(link, @click='pageMove')
-                    v-list-item-icon
-                      v-icon(size='20') mdi-content-save-move-outline
-                    v-list-item-title
-                      span {{$t('common:header.move')}}
-                  v-list-item(link, @click='pageDelete')
-                    v-list-item-icon
-                      v-icon(size='20') mdi-trash-can-outline
-                    v-list-item-title
-                      span {{$t('common:header.delete')}}
-          v-row.no-gutters.overflow-y-hidden.fill-height
-            v-col.no-gutters.col-12.overflow-y-auto.fill-height#page-content-container(
-                ref='textContainer'
-                @scroll.passive="onTextScroll"
-                @scrollend.passive="onTextScrollEnd"
-                @wheel.passive="onTextWheel"
-              )
-              slot(name='contents')
-            .text-center
-              v-snackbar.copiedMsg(v-model="snackbar", :timeout="2000", light, rounded) Copied to clipboard...
-              <!-- .comments-container#discussion(v-if='commentsEnabled && commentsPerms.read && !printView') -->
-                <!-- .comments-header -->
-                <!--   v-icon.mr-2(dark) mdi-comment-text-outline -->
-                <!--   span {{$t('common:comments.title')}} -->
-            <!--     .comments-main -->
-            <!--       slot(name='comments') -->
-        <!-- media -->
-        v-col.col-3.px-5.pt-2.overflow-y-hidden.fill-height#media-col(
-            ref='mediaCol',
-            v-if='isMediaPage && !printView'
           )
-          v-row.no-gutters.overflow-y-hidden
-            v-col.col-12.pa-0.overflow-y-hidden
-              v-toolbar.px-0(flat, depressed, plain,  tile elevation=0)
-                v-btn.pa-0(depressed, text, plain, tile)
-                  v-icon() mdi-chevron-left
-                  span.text-none expand
-                v-spacer
-                v-toolbar-title Slides <!---{currentPlayTimeText}}-->
-                  .timestamp {{currentPlayTimeText}}
-                v-btn( depressed, text, plain, tile)
-                  span.text-none [hide]
-
-          v-row.no-gutters.overflow-y-visible
-            v-col.col-12.mx-2.py-0.overflow-y-visible#media-ancher(ref='mediaAncher' v-on:wheel="onMediaWheel")
-                v-sheet(id = "media-container"  )
-          v-row.no-gutters.fill-height.overflow-y-hidden.overflow-x-visible
-            v-col.col-12.my-3.px-0.overflow-y-auto.fill-height.slides_container.overflow-x-visible(
-                ref="slidesContainer"
-                @scroll.passive="onSlidesScroll"
-                @scrollend.passive="onSlidesScrollEnd"
-                @wheel.passive="onSlidesWheel"
+          template(#left)
+            <!-- contents -->
+            v-col.py-0.px-12.overflow-y-hidden.fill-height#content-col
+              v-alert.mb-5(v-if='!isPublished', color='red', outlined, icon='mdi-minus-circle', dense)
+                .caption {{$t('common:page.unpublishedWarning')}}
+              v-row.px-0.py-5#page-header-section.overflow-y-hidden(no-gutters, ref='headerRef')
+                v-col.is-page-header.px-0.ma-0(
+                  :xl='tocPosition === `right` ? 10 : false'
+                  :lg='tocPosition === `right` ? 9 : false'
+                  style='margin-top: auto; margin-bottom: auto;'
+                  )
+                  .page-header-headings
+                    h1 {{title}}
+                    .caption.grey--text.text--darken-1 {{description}}
+                  .page-edit-shortcuts(
+                    v-if='editShortcutsObj.editMenuBar'
+                    :class='tocPosition === `right` ? `is-right` : ``'
+                    )
+                    v-btn(
+                      v-if='editShortcutsObj.editMenuBtn'
+                      @click='pageEdit'
+                      depressed
+                      small
+                      )
+                      v-icon.mr-2(small) mdi-pencil
+                      icon(name='edit-page')
+                      span.text-none {{$t(`common:actions.edit`)}}
+                    v-btn(
+                      v-if='editShortcutsObj.editMenuExternalBtn'
+                      :href='editMenuExternalUrl'
+                      target='_blank'
+                      depressed
+                      small
+                      )
+                      v-icon.mr-2(small) {{ editShortcutsObj.editMenuExternalIcon }}
+                      span.text-none {{$t(`common:page.editExternal`, { name: editShortcutsObj.editMenuExternalName })}}
+                v-col.page-info.pa-0
+                  v-btn(
+                    v-if='hasWritePagesPermission'
+                    icon,
+                    tile,
+                    :disabled='!hasWritePagesPermission'
+                    :aria-label='$t(`common:page.editPage`)'
+                    @click="pageEdit"
+                    )
+                    icon(name="edit-page")
+                  <!-- new page menu -->
+                  v-menu(offset-y, bottom, open-on-hover, content-class="header-menu")
+                    template(v-slot:activator='{ on: menu }')
+                      v-btn(icon, tile, v-on='menu', :aria-label='$t(`common:page.share`)')
+                        icon(name='new-page')
+                    v-list
+                      v-list-item(v-for="(editor, idx) in editorOptions", :key="idx", link, @click='pageNew(editor.id)')
+                        v-list-item-title {{ editor.name }}
+                  v-menu(offset-y, bottom, min-width='300', content-class="header-menu")
+                    template(v-slot:activator='{ on: menu }')
+                      v-tooltip(bottom)
+                        template(v-slot:activator='{ on: tooltip }')
+                          v-btn(icon, tile, v-on='{ ...menu, ...tooltip }')
+                            icon(name='share')
+                        span {{$t('common:page.share')}}
+                    social-sharing(
+                      :url='pageUrl'
+                      :title='title'
+                      :description='description'
+                    )
+                  v-menu(offset-y, bottom, open-on-hover, content-class="header-menu")
+                    template(v-slot:activator='{ on: menu }')
+                      v-btn(icon, tile, v-on='menu', :aria-label='$t(`common:page.share`)')
+                        icon(name='more')
+                    v-list
+                      v-list-item(link, @click='pageHistory')
+                        v-list-item-icon
+                          v-icon(size='20') mdi-history
+                        v-list-item-title {{$t('common:header.history')}}
+                      v-list-item(link, @click='pageSource')
+                        v-list-item-icon
+                          v-icon(size='20') mdi-code-tags
+                        v-list-item-title
+                          span {{$t('common:header.viewSource')}}
+                      v-list-item(link, @click='pageConvert', small)
+                        v-list-item-icon
+                          v-icon(size='20') mdi-lightning-bolt
+                        v-list-item-title
+                          span {{$t('common:header.convert')}}
+                      v-list-item(link, @click='pageDuplicate')
+                        v-list-item-icon
+                          v-icon(size='20') mdi-content-duplicate
+                        v-list-item-title
+                          span {{$t('common:header.duplicate')}}
+                      v-list-item(link, @click='pageMove')
+                        v-list-item-icon
+                          v-icon(size='20') mdi-content-save-move-outline
+                        v-list-item-title
+                          span {{$t('common:header.move')}}
+                      v-list-item(link, @click='pageDelete')
+                        v-list-item-icon
+                          v-icon(size='20') mdi-trash-can-outline
+                        v-list-item-title
+                          span {{$t('common:header.delete')}}
+              v-row.no-gutters.overflow-y-hidden.fill-height
+                v-col.no-gutters.col-12.overflow-y-auto.fill-height#page-content-container(
+                    ref='textContainer'
+                    @scroll.passive="onTextScroll"
+                    @scrollend.passive="onTextScrollEnd"
+                    @wheel.passive="onTextWheel"
+                  )
+                  slot(name='contents')
+                .text-center
+                  v-snackbar.copiedMsg(v-model="snackbar", :timeout="2000", light, rounded) Copied to clipboard...
+                  <!-- .comments-container#discussion(v-if='commentsEnabled && commentsPerms.read && !printView') -->
+                    <!-- .comments-header -->
+                    <!--   v-icon.mr-2(dark) mdi-comment-text-outline -->
+                    <!--   span {{$t('common:comments.title')}} -->
+                <!--     .comments-main -->
+                <!--       slot(name='comments') -->
+          template(#right)
+            <!-- media -->
+            v-col.px-5.pt-2.overflow-y-hidden.fill-height#media-col(
+                ref='mediaCol',
+                v-if='isMediaPage && !printView'
               )
+              v-row.no-gutters.overflow-y-hidden
+                v-col.col-12.pa-0.overflow-y-hidden
+                  v-toolbar.px-0(flat, depressed, plain,  tile elevation=0)
+                    v-btn.pa-0(depressed, text, plain, tile)
+                      v-icon() mdi-chevron-left
+                      span.text-none expand
+                    v-spacer
+                    v-toolbar-title Slides <!---{currentPlayTimeText}}-->
+                      .timestamp {{currentPlayTimeText}}
+                    v-btn( depressed, text, plain, tile)
+                      span.text-none [hide]
 
-              template( width="100%"  v-for="(slide, slideIdx) in slides" )
-                v-sheet.slide.pb-1(
-                    :key = "slide.number"
-                    @click="onSlideClick(slide.number,false)",
-                    @dblclick="onSlideClick(slide.number, true)",
-                    :class="slide.type",
-                    v-intersect="{handler: (([e])=>e.target.classList.toggle('stuck', e.intersectionRatio < 1)), options: {threshold: [1]} }"
-                )
-                  v-responsive( width="100%",:aspect-ratio="16/9" )
-                    v-img.slide_img(:src="slide.src" width="100%")
+              v-row.no-gutters.overflow-y-visible
+                v-col.col-12.mx-2.py-0.overflow-y-visible#media-ancher(ref='mediaAncher' v-on:wheel="onMediaWheel")
+                    v-sheet(id = "media-container"  )
+              v-row.no-gutters.fill-height.overflow-y-hidden.overflow-x-visible
+                v-col.col-12.my-3.px-0.overflow-y-auto.fill-height.slides_container.overflow-x-visible(
+                    ref="slidesContainer"
+                    @scroll.passive="onSlidesScroll"
+                    @scrollend.passive="onSlidesScrollEnd"
+                    @wheel.passive="onSlidesWheel"
+                  )
 
-                  p.pa-1.ma-0 {{slide.startTime}}
+                  template( width="100%"  v-for="(slide, slideIdx) in slides" )
+                    v-sheet.slide.pb-1(
+                        :key = "slide.number"
+                        @click="onSlideClick(slide.number,false)",
+                        @dblclick="onSlideClick(slide.number, true)",
+                        :class="slide.type",
+                        v-intersect="{handler: (([e])=>e.target.classList.toggle('stuck', e.intersectionRatio < 1)), options: {threshold: [1]} }"
+                    )
+                      v-responsive( width="100%",:aspect-ratio="16/9" )
+                        v-img.slide_img(:src="slide.src" width="100%")
+
+                      p.pa-1.ma-0 {{slide.startTime}}
 
     search-results
     page-selector(mode='create', v-model='newPageModal', :open-handler='pageNewCreate', :locale='locale')
@@ -202,8 +210,12 @@ import Icon from '../../../components/icon'
 import { msToTime } from '../../../helpers/utils'
 import { scaleTime } from 'd3'
 import { collectFields } from 'graphql/execution/execute'
+import {DragCol} from 'vue-resizer'
 
 Vue.component('Tabset', Tabset)
+
+Vue.component('VDragCol', DragCol)
+
 Prism.plugins.autoloader.languages_path = '/_assets/js/prism/'
 Prism.plugins.NormalizeWhitespace.setDefaults({
   'remove-trailing': true,
@@ -1189,7 +1201,7 @@ path{
 
 }
 #media-col {
-  border-left: 1px solid $gray-300;
+  // border-left: 1px solid $gray-300;
   position: relative;
 
   display: flex;
@@ -1405,5 +1417,15 @@ path{
 .header-menu {
   box-shadow: none;
   border: 1px solid $gray-700;
+}
+
+.drager_col{
+  .slider_col{
+    background-image: linear-gradient($gray-300,$gray-300);
+    background-size: 1px 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-color: transparent;
+  }
 }
 </style>

@@ -23408,6 +23408,11 @@ vue-moment@4.1.0:
   dependencies:
     moment "^2.19.2"
 
+vue-resizer@1.1.9:
+  version "1.1.9"
+  resolved "https://registry.yarnpkg.com/vue-resizer/-/vue-resizer-1.1.9.tgz#9c8676c90c8bae2d1e6b436bd1fe6544f9c87f33"
+  integrity sha512-cDGPIhpFxUYNHQ3e9rWISNckSvBqrKhNvR9MTmP3/cttTsz5sFkNU/NyO7GDXTxhQslzJKpCTf+PH65m3FEoyg==
+
 vue-router@3.4.7:
   version "3.4.7"
   resolved "https://registry.yarnpkg.com/vue-router/-/vue-router-3.4.7.tgz#bf189bafd16f4e4ef783c4a6250a3090f2c1fa1b"
