@@ -24,10 +24,11 @@
                   v-list-item-content
                     v-list-item-title  {{header.header}}
                     v-list-item-subtitle( v-if="header.start_time") {{header.start_time}}
-        v-drag-col.col.fill-height.pa-0.ma-0(
-          ref='dragCol' height="100%"
-          leftPercent=75
-          sliderWidth=10
+        v-drag-col.col.fill-height.pa-0.ma-0#media-drager(
+          ref='dragCol'
+          height="100%"
+          :leftPercent=75
+          :sliderWidth='isMediaPage ? 10 : 0'
           sliderColor='transparent'
           sliderHoverColor='#FF6B00'
           sliderBgColor='transparent'
@@ -150,7 +151,7 @@
                     <!--   span {{$t('common:comments.title')}} -->
                 <!--     .comments-main -->
                 <!--       slot(name='comments') -->
-          template(#right)
+          template(#right v-if='isMediaPage')
             <!-- media -->
             v-col.px-5.pt-2.overflow-y-hidden.fill-height#media-col(
                 ref='mediaCol',
@@ -635,6 +636,18 @@ export default {
       console.log('isMediaPage: ', this.isMediaPage)
     } else {
       this.isMediaPage = false
+      // hack drager
+      const drager = document.querySelectorAll('#media-drager .drager_left')
+      drager.forEach(d => {
+        d.style.removeProperty('width')
+      })
+      const dragerCols = document.querySelectorAll('#media-drager .drager_right, #media-drager .slider_col')
+      dragerCols.forEach(d => {
+        d.parentElement.removeChild(d)
+      })
+      const contentCol = document.getElementById('content-col')
+      contentCol.classList.remove('px-12')
+      contentCol.classList.add('pl-12')
     }
 
     // mediaContainer.prepend(...presentationVideo.children)
