@@ -7,7 +7,7 @@
           ref='dragCol'
           height="100%"
           width="100%"
-          :leftPercent='20'
+          :leftPercent='15'
           :sliderWidth='10'
           sliderColor='transparent'
           sliderHoverColor='#FF6B00'
@@ -42,7 +42,7 @@
               ref='dragCol'
               height="100%"
               width="100%"
-              :leftPercent='75'
+              :leftPercent='70'
               :sliderWidth='isMediaPage ? 10 : 0'
               sliderColor='transparent'
               sliderHoverColor='#FF6B00'
@@ -175,14 +175,16 @@
                   v-row.no-gutters.overflow-y-hidden
                     v-col.col-12.pa-0.overflow-y-hidden
                       v-toolbar.px-0(flat, depressed, plain,  tile elevation=0)
-                        v-btn.pa-0(depressed, text, plain, tile)
+                        v-btn.pa-0(depressed, text, plain, tile, :disabled='true')
                           v-icon() mdi-chevron-left
                           span.text-none expand
                         v-spacer
                         v-toolbar-title Slides <!---{currentPlayTimeText}}-->
                           .timestamp {{currentPlayTimeText}}
+                      //-
                         v-btn( depressed, text, plain, tile)
                           span.text-none [hide]
+                      //
 
                   v-row.no-gutters.overflow-y-visible
                     v-col.col-12.mx-2.py-0.overflow-y-visible#media-ancher(ref='mediaAncher' v-on:wheel="onMediaWheel")
@@ -1241,14 +1243,14 @@ path{
     position: relative;
   }
   .v-toolbar__title{
-    font-size: 1.2em;
+    font-size: 1.11rem;
     font-weight: 600;
     .timestamp{
       margin-top: -3px;
       position: absolute;
       font-size: 0.45em;
       font-weight: 300;
-      color: gray;
+      color: $gray-500;
     }
   }
 
