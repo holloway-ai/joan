@@ -3,9 +3,9 @@ name: Build + Publish
 on:
   push:
     branches:
-      - main
+      - none
     tags:
-      - 'v*'
+      - 'nonev*'
 
 env:
   BASE_DEV_VERSION: 2.5.0
