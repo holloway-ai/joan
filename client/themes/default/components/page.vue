@@ -1,357 +1,217 @@
 <template lang="pug">
-  v-app(v-scroll='upBtnScroll', :dark='$vuetify.theme.dark', :class='$vuetify.rtl ? `is-rtl` : `is-ltr`')
+  v-app.overflow-hidden.fill-height(:dark='$vuetify.theme.dark', :class='$vuetify.rtl ? `is-rtl` : `is-ltr`')
     nav-header(v-if='!printView')
-    v-navigation-drawer(
-      v-if='navMode !== `NONE` && !printView'
-      :class='$vuetify.theme.dark ? `grey darken-4-d4` : `primary`'
-      dark
-      app
-      clipped
-      mobile-breakpoint='600'
-      :temporary='$vuetify.breakpoint.smAndDown'
-      v-model='navShown'
-      :right='$vuetify.rtl'
-      )
-      vue-scroll(:ops='scrollStyle')
-        nav-sidebar(:color='$vuetify.theme.dark ? `grey darken-4-d4` : `primary`', :items='sidebarDecoded', :nav-mode='navMode')
+    v-main.overflow-hidden.fill-height(ref='content')
+      v-row.no-gutters.overflow-y-hidden.fill-height
+        v-drag-col.col-12.col.fill-height.pa-0.ma-0#toc-drager(
+          ref='dragCol'
+          height="100%"
+          width="100%"
+          :leftPercent='15'
+          :sliderWidth='10'
+          sliderColor='transparent'
+          sliderHoverColor='#FF6B00'
+          sliderBgColor='transparent'
+          sliderBgHoverColor='#FAFAFA'
 
-    v-fab-transition(v-if='navMode !== `NONE`')
-      v-btn(
-        fab
-        color='primary'
-        fixed
-        bottom
-        :right='$vuetify.rtl'
-        :left='!$vuetify.rtl'
-        small
-        @click='navShown = !navShown'
-        v-if='$vuetify.breakpoint.mdAndDown'
-        v-show='!navShown'
-        )
-        v-icon mdi-menu
-
-    v-main(ref='content')
-      template(v-if='path !== `home`')
-        v-toolbar(:color='$vuetify.theme.dark ? `grey darken-4-d3` : `grey lighten-3`', flat, dense, v-if='$vuetify.breakpoint.smAndUp')
-          //- v-btn.pl-0(v-if='$vuetify.breakpoint.xsOnly', flat, @click='toggleNavigation')
-          //-   v-icon(color='grey darken-2', left) menu
-          //-   span Navigation
-          v-breadcrumbs.breadcrumbs-nav.pl-0(
-            :items='breadcrumbs'
-            divider='/'
-            )
-            template(slot='item', slot-scope='props')
-              v-icon(v-if='props.item.path === "/"', small, @click='goHome') mdi-home
-              v-btn.ma-0(v-else, :href='props.item.path', small, text) {{props.item.name}}
-          template(v-if='!isPublished')
-            v-spacer
-            .caption.red--text {{$t('common:page.unpublished')}}
-            status-indicator.ml-3(negative, pulse)
-        v-divider
-      v-container.grey.pa-0(fluid, :class='$vuetify.theme.dark ? `darken-4-l3` : `lighten-4`')
-        v-row.page-header-section(no-gutters, align-content='center', style='height: 90px;')
-          v-col.page-col-content.is-page-header(
-            :offset-xl='tocPosition === `left` ? 2 : 0'
-            :offset-lg='tocPosition === `left` ? 3 : 0'
-            :xl='tocPosition === `right` ? 10 : false'
-            :lg='tocPosition === `right` ? 9 : false'
-            style='margin-top: auto; margin-bottom: auto;'
-            :class='$vuetify.rtl ? `pr-4` : `pl-4`'
-            )
-            .page-header-headings
-              .headline.grey--text(:class='$vuetify.theme.dark ? `text--lighten-2` : `text--darken-3`') {{title}}
-              .caption.grey--text.text--darken-1 {{description}}
-            .page-edit-shortcuts(
-              v-if='editShortcutsObj.editMenuBar'
-              :class='tocPosition === `right` ? `is-right` : ``'
+          )
+          template(#left)
+            <!-- toc -->
+            v-col.toc.px-4.pt-5.col-12.overflow-y-hidden.fill-height#toc-col(
+              ref="tocRef"
               )
-              v-btn(
-                v-if='editShortcutsObj.editMenuBtn'
-                @click='pageEdit'
-                depressed
-                small
-                )
-                v-icon.mr-2(small) mdi-pencil
-                span.text-none {{$t(`common:actions.edit`)}}
-              v-btn(
-                v-if='editShortcutsObj.editMenuExternalBtn'
-                :href='editMenuExternalUrl'
-                target='_blank'
-                depressed
-                small
-                )
-                v-icon.mr-2(small) {{ editShortcutsObj.editMenuExternalIcon }}
-                span.text-none {{$t(`common:page.editExternal`, { name: editShortcutsObj.editMenuExternalName })}}
-      v-divider
-      v-container.pl-5.pt-4(fluid, grid-list-xl)
-        v-layout(row)
-          v-flex.page-col-sd(
-            v-if='tocPosition !== `off` && $vuetify.breakpoint.lgAndUp'
-            :order-xs1='tocPosition !== `right`'
-            :order-xs2='tocPosition === `right`'
-            lg3
-            xl2
-            )
-            v-card.page-toc-card.mb-5(v-if='tocDecoded.length')
-              .overline.pa-5.pb-0(:class='$vuetify.theme.dark ? `blue--text text--lighten-2` : `primary--text`') {{$t('common:page.toc')}}
-              v-list.pb-3(dense, nav, :class='$vuetify.theme.dark ? `darken-3-d3` : ``')
-                template(v-for='(tocItem, tocIdx) in tocDecoded')
-                  v-list-item(@click='$vuetify.goTo(tocItem.anchor, scrollOpts)')
-                    v-icon(color='grey', small) {{ $vuetify.rtl ? `mdi-chevron-left` : `mdi-chevron-right` }}
-                    v-list-item-title.px-3 {{tocItem.title}}
-                  //- v-divider(v-if='tocIdx < toc.length - 1 || tocItem.children.length')
-                  template(v-for='tocSubItem in tocItem.children')
-                    v-list-item(@click='$vuetify.goTo(tocSubItem.anchor, scrollOpts)')
-                      v-icon.px-3(color='grey lighten-1', small) {{ $vuetify.rtl ? `mdi-chevron-left` : `mdi-chevron-right` }}
-                      v-list-item-title.px-3.caption.grey--text(:class='$vuetify.theme.dark ? `text--lighten-1` : `text--darken-1`') {{tocSubItem.title}}
-                    //- v-divider(inset, v-if='tocIdx < toc.length - 1')
-            v-card.page-tags-card.mb-5(v-if='tags.length > 0')
-              .pa-5
-                .overline.teal--text.pb-2(:class='$vuetify.theme.dark ? `text--lighten-3` : ``') {{$t('common:page.tags')}}
-                v-chip.mr-1.mb-1(
-                  label
-                  :color='$vuetify.theme.dark ? `teal darken-1` : `teal lighten-5`'
-                  v-for='(tag, idx) in tags'
-                  :href='`/t/` + tag.tag'
-                  :key='`tag-` + tag.tag'
-                  )
-                  v-icon(:color='$vuetify.theme.dark ? `teal lighten-3` : `teal`', left, small) mdi-tag
-                  span(:class='$vuetify.theme.dark ? `teal--text text--lighten-5` : `teal--text text--darken-2`') {{tag.title}}
-                v-chip.mr-1.mb-1(
-                  label
-                  :color='$vuetify.theme.dark ? `teal darken-1` : `teal lighten-5`'
-                  :href='`/t/` + tags.map(t => t.tag).join(`/`)'
-                  :aria-label='$t(`common:page.tagsMatching`)'
-                  )
-                  v-icon(:color='$vuetify.theme.dark ? `teal lighten-3` : `teal`', size='20') mdi-tag-multiple
-
-            v-card.page-comments-card.mb-5(v-if='commentsEnabled && commentsPerms.read')
-              .pa-5
-                .overline.pb-2.blue-grey--text.d-flex.align-center(:class='$vuetify.theme.dark ? `text--lighten-3` : `text--darken-2`')
-                  span {{$t('common:comments.sdTitle')}}
-                  //- v-spacer
-                  //- v-chip.text-center(
-                  //-   v-if='!commentsExternal'
-                  //-   label
-                  //-   x-small
-                  //-   :color='$vuetify.theme.dark ? `blue-grey darken-3` : `blue-grey darken-2`'
-                  //-   dark
-                  //-   style='min-width: 50px; justify-content: center;'
-                  //-   )
-                  //-   span {{commentsCount}}
-                .d-flex
-                  v-btn.text-none(
-                    @click='goToComments()'
-                    :color='$vuetify.theme.dark ? `blue-grey` : `blue-grey darken-2`'
-                    outlined
-                    style='flex: 1 1 100%;'
-                    small
-                    )
-                    span.blue-grey--text(:class='$vuetify.theme.dark ? `text--lighten-1` : `text--darken-2`') {{$t('common:comments.viewDiscussion')}}
-                  v-tooltip(right, v-if='commentsPerms.write')
-                    template(v-slot:activator='{ on }')
-                      v-btn.ml-2(
-                        @click='goToComments(true)'
-                        v-on='on'
-                        outlined
-                        small
-                        :color='$vuetify.theme.dark ? `blue-grey` : `blue-grey darken-2`'
-                        :aria-label='$t(`common:comments.newComment`)'
-                        )
-                        v-icon(:color='$vuetify.theme.dark ? `blue-grey lighten-1` : `blue-grey darken-2`', dense) mdi-comment-plus
-                    span {{$t('common:comments.newComment')}}
-
-            v-card.page-author-card.mb-5
-              .pa-5
-                .overline.indigo--text.d-flex(:class='$vuetify.theme.dark ? `text--lighten-3` : ``')
-                  span {{$t('common:page.lastEditedBy')}}
-                  v-spacer
-                  v-tooltip(right, v-if='isAuthenticated')
-                    template(v-slot:activator='{ on }')
-                      v-btn.btn-animate-edit(
-                        icon
-                        :href='"/h/" + locale + "/" + path'
-                        v-on='on'
-                        x-small
-                        v-if='hasReadHistoryPermission'
-                        :aria-label='$t(`common:header.history`)'
-                        )
-                        v-icon(color='indigo', dense) mdi-history
-                    span {{$t('common:header.history')}}
-                .page-author-card-name.body-2.grey--text(:class='$vuetify.theme.dark ? `` : `text--darken-3`') {{ authorName }}
-                .page-author-card-date.caption.grey--text.text--darken-1 {{ updatedAt | moment('calendar') }}
-
-            //- v-card.mb-5
-            //-   .pa-5
-            //-     .overline.pb-2.yellow--text(:class='$vuetify.theme.dark ? `text--darken-3` : `text--darken-4`') Rating
-            //-     .text-center
-            //-       v-rating(
-            //-         v-model='rating'
-            //-         color='yellow darken-3'
-            //-         background-color='grey lighten-1'
-            //-         half-increments
-            //-         hover
-            //-       )
-            //-       .caption.grey--text 5 votes
-            v-card.page-shortcuts-card(flat)
-              v-toolbar(:color='$vuetify.theme.dark ? `grey darken-4-d3` : `grey lighten-3`', flat, dense)
-                v-spacer
-                //- v-tooltip(bottom)
-                //-   template(v-slot:activator='{ on }')
-                //-     v-btn(icon, tile, v-on='on', :aria-label='$t(`common:page.bookmark`)'): v-icon(color='grey') mdi-bookmark
-                //-   span {{$t('common:page.bookmark')}}
-                v-menu(offset-y, bottom, min-width='300')
-                  template(v-slot:activator='{ on: menu }')
-                    v-tooltip(bottom)
-                      template(v-slot:activator='{ on: tooltip }')
-                        v-btn(icon, tile, v-on='{ ...menu, ...tooltip }', :aria-label='$t(`common:page.share`)'): v-icon(color='grey') mdi-share-variant
-                      span {{$t('common:page.share')}}
-                  social-sharing(
-                    :url='pageUrl'
-                    :title='title'
-                    :description='description'
-                  )
-                v-tooltip(bottom)
-                  template(v-slot:activator='{ on }')
-                    v-btn(icon, tile, v-on='on', @click='print', :aria-label='$t(`common:page.printFormat`)')
-                      v-icon(:color='printView ? `primary` : `grey`') mdi-printer
-                  span {{$t('common:page.printFormat')}}
-                v-spacer
-
-          v-flex.page-col-content(
-            xs12
-            :lg9='tocPosition !== `off`'
-            :xl10='tocPosition !== `off`'
-            :order-xs1='tocPosition === `right`'
-            :order-xs2='tocPosition !== `right`'
-            )
-            v-tooltip(:right='$vuetify.rtl', :left='!$vuetify.rtl', v-if='hasAnyPagePermissions && editShortcutsObj.editFab')
-              template(v-slot:activator='{ on: onEditActivator }')
-                v-speed-dial(
-                  v-model='pageEditFab'
-                  direction='top'
-                  open-on-hover
-                  transition='scale-transition'
-                  bottom
-                  :right='!$vuetify.rtl'
-                  :left='$vuetify.rtl'
-                  fixed
-                  dark
-                  )
-                  template(v-slot:activator)
-                    v-btn.btn-animate-edit(
-                      fab
-                      color='primary'
-                      v-model='pageEditFab'
-                      @click='pageEdit'
-                      v-on='onEditActivator'
-                      :disabled='!hasWritePagesPermission'
-                      :aria-label='$t(`common:page.editPage`)'
+                nav-sidebar(:items='sidebarDecoded', :nav-mode='navMode')
+                v-list#toc-contents.pa-0.overflow-y-hidden(dense, flat, nav, :subheader = 'hasTimestamps', :two-line="hasTimestamps" :class='$vuetify.theme.dark ? `darken-3-d3` : ``')
+                  v-list-group#content-toggler.fill-height(active-class="active-group" value = "content")
+                    template(v-slot:activator)
+                      v-list-item-content
+                        v-list-item-title.toc-header Content
+                    v-list-item.pa-0.ma-0(
+                        v-for='header in headers',
+                        :key='header.prefix'
+                        :class="header.start<=currentPlayTime && currentPlayTime < header.end? 'active' : ''"
+                        @click="onTocClick(header.start,false,header.id)",
+                        @dblclick="onTocClick(header.start, true,header.id)",
                       )
-                      v-icon mdi-pencil
-                  v-tooltip(:right='$vuetify.rtl', :left='!$vuetify.rtl', v-if='hasReadHistoryPermission')
-                    template(v-slot:activator='{ on }')
-                      v-btn(
-                        fab
-                        small
-                        color='white'
-                        light
-                        v-on='on'
-                        @click='pageHistory'
+                      .prefix {{header.prefix}}
+                      v-list-item-content
+                        v-list-item-title  {{header.header}}
+                        v-list-item-subtitle( v-if="header.start_time") {{header.start_time}}
+          template(#right)
+            v-drag-col.fill-height.pa-0.col-12.col.ma-0#media-drager(
+              ref='dragCol'
+              height="100%"
+              width="100%"
+              :leftPercent='70'
+              :sliderWidth='isMediaPage ? 10 : 0'
+              sliderColor='transparent'
+              sliderHoverColor='#FF6B00'
+              sliderBgColor='transparent'
+              sliderBgHoverColor='#FAFAFA'
+
+              )
+              template(#left)
+                <!-- contents -->
+                v-col.py-0.px-11.overflow-y-hidden.fill-height#content-col
+                  v-alert.mb-5(v-if='!isPublished', color='red', outlined, icon='mdi-minus-circle', dense)
+                    .caption {{$t('common:page.unpublishedWarning')}}
+                  v-row.px-0.py-5#page-header-section.overflow-y-hidden(no-gutters, ref='headerRef')
+                    v-col.is-page-header.px-0.ma-0(
+                      :xl='tocPosition === `right` ? 10 : false'
+                      :lg='tocPosition === `right` ? 9 : false'
+                      style='margin-top: auto; margin-bottom: auto;'
+                      )
+                      .page-header-headings
+                        h1 {{title}}
+                        .caption.grey--text.text--darken-1 {{description}}
+                      .page-edit-shortcuts(
+                        v-if='editShortcutsObj.editMenuBar'
+                        :class='tocPosition === `right` ? `is-right` : ``'
                         )
-                        v-icon(size='20') mdi-history
-                    span {{$t('common:header.history')}}
-                  v-tooltip(:right='$vuetify.rtl', :left='!$vuetify.rtl', v-if='hasReadSourcePermission')
-                    template(v-slot:activator='{ on }')
+                        v-btn(
+                          v-if='editShortcutsObj.editMenuBtn'
+                          @click='pageEdit'
+                          depressed
+                          small
+                          )
+                          v-icon.mr-2(small) mdi-pencil
+                          icon(name='edit-page')
+                          span.text-none {{$t(`common:actions.edit`)}}
+                        v-btn(
+                          v-if='editShortcutsObj.editMenuExternalBtn'
+                          :href='editMenuExternalUrl'
+                          target='_blank'
+                          depressed
+                          small
+                          )
+                          v-icon.mr-2(small) {{ editShortcutsObj.editMenuExternalIcon }}
+                          span.text-none {{$t(`common:page.editExternal`, { name: editShortcutsObj.editMenuExternalName })}}
+                    v-col.page-info.pa-0
                       v-btn(
-                        fab
-                        small
-                        color='white'
-                        light
-                        v-on='on'
-                        @click='pageSource'
+                        v-if='hasWritePagesPermission'
+                        icon,
+                        tile,
+                        :disabled='!hasWritePagesPermission'
+                        :aria-label='$t(`common:page.editPage`)'
+                        @click="pageEdit"
                         )
-                        v-icon(size='20') mdi-code-tags
-                    span {{$t('common:header.viewSource')}}
-                  v-tooltip(:right='$vuetify.rtl', :left='!$vuetify.rtl', v-if='hasWritePagesPermission')
-                    template(v-slot:activator='{ on }')
-                      v-btn(
-                        fab
-                        small
-                        color='white'
-                        light
-                        v-on='on'
-                        @click='pageConvert'
+                        icon(name="edit-page")
+                      <!-- new page menu -->
+                      v-menu(offset-y, bottom, open-on-hover, content-class="header-menu")
+                        template(v-slot:activator='{ on: menu }')
+                          v-btn(icon, tile, v-on='menu', :aria-label='$t(`common:page.share`)')
+                            icon(name='new-page')
+                        v-list
+                          v-list-item(v-for="(editor, idx) in editorOptions", :key="idx", link, @click='pageNew(editor.id)')
+                            v-list-item-title {{ editor.name }}
+                      v-menu(offset-y, bottom, min-width='300', content-class="header-menu")
+                        template(v-slot:activator='{ on: menu }')
+                          v-tooltip(bottom)
+                            template(v-slot:activator='{ on: tooltip }')
+                              v-btn(icon, tile, v-on='{ ...menu, ...tooltip }')
+                                icon(name='share')
+                            span {{$t('common:page.share')}}
+                        social-sharing(
+                          :url='pageUrl'
+                          :title='title'
+                          :description='description'
                         )
-                        v-icon(size='20') mdi-lightning-bolt
-                    span {{$t('common:header.convert')}}
-                  v-tooltip(:right='$vuetify.rtl', :left='!$vuetify.rtl', v-if='hasWritePagesPermission')
-                    template(v-slot:activator='{ on }')
-                      v-btn(
-                        fab
-                        small
-                        color='white'
-                        light
-                        v-on='on'
-                        @click='pageDuplicate'
+                      v-menu(offset-y, bottom, open-on-hover, content-class="header-menu")
+                        template(v-slot:activator='{ on: menu }')
+                          v-btn(icon, tile, v-on='menu', :aria-label='$t(`common:page.share`)')
+                            icon(name='more')
+                        v-list
+                          v-list-item(link, @click='pageHistory')
+                            v-list-item-icon
+                              v-icon(size='20') mdi-history
+                            v-list-item-title {{$t('common:header.history')}}
+                          v-list-item(link, @click='pageSource')
+                            v-list-item-icon
+                              v-icon(size='20') mdi-code-tags
+                            v-list-item-title
+                              span {{$t('common:header.viewSource')}}
+                          v-list-item(link, @click='pageConvert', small)
+                            v-list-item-icon
+                              v-icon(size='20') mdi-lightning-bolt
+                            v-list-item-title
+                              span {{$t('common:header.convert')}}
+                          v-list-item(link, @click='pageDuplicate')
+                            v-list-item-icon
+                              v-icon(size='20') mdi-content-duplicate
+                            v-list-item-title
+                              span {{$t('common:header.duplicate')}}
+                          v-list-item(link, @click='pageMove')
+                            v-list-item-icon
+                              v-icon(size='20') mdi-content-save-move-outline
+                            v-list-item-title
+                              span {{$t('common:header.move')}}
+                          v-list-item(link, @click='pageDelete')
+                            v-list-item-icon
+                              v-icon(size='20') mdi-trash-can-outline
+                            v-list-item-title
+                              span {{$t('common:header.delete')}}
+                  v-row.no-gutters.overflow-y-hidden.fill-height
+                    v-col.no-gutters.col-12.overflow-y-auto.fill-height#page-content-container(
+                        ref='textContainer'
+                        @scroll.passive="onTextScroll"
+                        @scrollend.passive="onTextScrollEnd"
+                        @wheel.passive="onTextWheel"
+                      )
+                      slot(name='contents')
+                    .text-center
+                      v-snackbar.copiedMsg(v-model="snackbar", :timeout="2000", light, rounded) Copied to clipboard...
+                      <!-- .comments-container#discussion(v-if='commentsEnabled && commentsPerms.read && !printView') -->
+                        <!-- .comments-header -->
+                        <!--   v-icon.mr-2(dark) mdi-comment-text-outline -->
+                        <!--   span {{$t('common:comments.title')}} -->
+                    <!--     .comments-main -->
+                    <!--       slot(name='comments') -->
+              template(#right v-if='isMediaPage')
+                <!-- media -->
+                v-col.px-5.pt-2.overflow-y-hidden.fill-height#media-col(
+                    ref='mediaCol',
+                    v-if='isMediaPage && !printView'
+                  )
+                  v-row.no-gutters.overflow-y-hidden
+                    v-col.col-12.pa-0.overflow-y-hidden
+                      v-toolbar.px-0(flat, depressed, plain,  tile elevation=0)
+                        v-btn.pa-0(depressed, text, plain, tile, :disabled='true')
+                          v-icon() mdi-chevron-left
+                          span.text-none expand
+                        v-spacer
+                        v-toolbar-title Slides <!---{currentPlayTimeText}}-->
+                          .timestamp {{currentPlayTimeText}}
+                      //-
+                        v-btn( depressed, text, plain, tile)
+                          span.text-none [hide]
+                      //
+
+                  v-row.no-gutters.overflow-y-visible
+                    v-col.col-12.mx-2.py-0.overflow-y-visible#media-ancher(ref='mediaAncher' v-on:wheel="onMediaWheel")
+                        v-sheet(id = "media-container"  )
+                  v-row.no-gutters.fill-height.overflow-y-hidden.overflow-x-visible
+                    v-col.col-12.my-3.px-0.overflow-y-auto.fill-height.slides_container.overflow-x-visible(
+                        ref="slidesContainer"
+                        @scroll.passive="onSlidesScroll"
+                        @scrollend.passive="onSlidesScrollEnd"
+                        @wheel.passive="onSlidesWheel"
+                      )
+
+                      template( width="100%"  v-for="(slide, slideIdx) in slides" )
+                        v-sheet.slide.pb-1(
+                            :key = "slide.number"
+                            @click="onSlideClick(slide.number,false)",
+                            @dblclick="onSlideClick(slide.number, true)",
+                            :class="slide.type",
+                            v-intersect="{handler: (([e])=>e.target.classList.toggle('stuck', e.intersectionRatio < 1)), options: {threshold: [1]} }"
                         )
-                        v-icon(size='20') mdi-content-duplicate
-                    span {{$t('common:header.duplicate')}}
-                  v-tooltip(:right='$vuetify.rtl', :left='!$vuetify.rtl', v-if='hasManagePagesPermission')
-                    template(v-slot:activator='{ on }')
-                      v-btn(
-                        fab
-                        small
-                        color='white'
-                        light
-                        v-on='on'
-                        @click='pageMove'
-                        )
-                        v-icon(size='20') mdi-content-save-move-outline
-                    span {{$t('common:header.move')}}
-                  v-tooltip(:right='$vuetify.rtl', :left='!$vuetify.rtl', v-if='hasDeletePagesPermission')
-                    template(v-slot:activator='{ on }')
-                      v-btn(
-                        fab
-                        dark
-                        small
-                        color='red'
-                        v-on='on'
-                        @click='pageDelete'
-                        )
-                        v-icon(size='20') mdi-trash-can-outline
-                    span {{$t('common:header.delete')}}
-              span {{$t('common:page.editPage')}}
-            v-alert.mb-5(v-if='!isPublished', color='red', outlined, icon='mdi-minus-circle', dense)
-              .caption {{$t('common:page.unpublishedWarning')}}
-            .contents(ref='container')
-              slot(name='contents')
-            .comments-container#discussion(v-if='commentsEnabled && commentsPerms.read && !printView')
-              .comments-header
-                v-icon.mr-2(dark) mdi-comment-text-outline
-                span {{$t('common:comments.title')}}
-              .comments-main
-                slot(name='comments')
-    nav-footer
-    notify
+                          v-responsive( width="100%",:aspect-ratio="16/9" )
+                            v-img.slide_img(:src="slide.src" width="100%")
+
+                          p.pa-1.ma-0 {{slide.startTime}}
+
     search-results
-    v-fab-transition
-      v-btn(
-        v-if='upBtnShown'
-        fab
-        fixed
-        bottom
-        :right='$vuetify.rtl'
-        :left='!$vuetify.rtl'
-        small
-        :depressed='this.$vuetify.breakpoint.mdAndUp'
-        @click='$vuetify.goTo(0, scrollOpts)'
-        color='primary'
-        dark
-        :style='upBtnPosition'
-        :aria-label='$t(`common:actions.returnToTop`)'
-        )
-        v-icon mdi-arrow-up
+    page-selector(mode='create', v-model='newPageModal', :open-handler='pageNewCreate', :locale='locale')
 </template>
 
 <script>
@@ -364,7 +224,16 @@ import { get, sync } from 'vuex-pathify'
 import _ from 'lodash'
 import ClipboardJS from 'clipboard'
 import Vue from 'vue'
+import Icon from '../../../components/icon'
+import { msToTime } from '../../../helpers/utils'
+import { scaleTime } from 'd3'
+import { collectFields } from 'graphql/execution/execute'
+import {DragCol} from 'vue-resizer'
+
 Vue.component('Tabset', Tabset)
+
+Vue.component('VDragCol', DragCol)
+
 Prism.plugins.autoloader.languages_path = '/_assets/js/prism/'
 Prism.plugins.NormalizeWhitespace.setDefaults({
   'remove-trailing': true,
@@ -398,7 +267,8 @@ Prism.plugins.toolbar.registerButton('copy-to-clipboard', (env) => {
 export default {
   components: {
     NavSidebar,
-    StatusIndicator
+    StatusIndicator,
+    Icon
   },
   props: {
     pageId: {
@@ -485,10 +355,43 @@ export default {
   data() {
     return {
       route: window.location,
-      navShown: false,
+      navShown: true,
       navExpanded: false,
       upBtnShown: false,
-      pageEditFab: false,
+      showEditMenu: false,
+      snackbar: false,
+      slidesExpanded: false,
+      pageContainerHeight: 0,
+      selectedSlideTopPosition: 0,
+      lastSelectedSlide: null,
+      newPageModal: false,
+      ignoreScrollEvent: false,
+      mainScrolled: null,
+      slidesSectionScrollTop: 0,
+      timeScales: {},
+      editorOptions: [
+        {
+          name: 'Markdown',
+          id: 'markdown'
+        },
+        {
+          name: 'HTML Code',
+          id: 'code'
+        },
+        {
+          name: 'Visual Editor',
+          id: 'ckeditor'
+        },
+        {
+          name: 'ASCIIDoc',
+          id: 'asciidoc'
+        },
+        {
+          name: 'Video Markdown',
+          id: 'video'
+        }
+      ],
+      selectedEditor: '',
       scrollOpts: {
         duration: 1150,
         offset: 50,
@@ -512,19 +415,31 @@ export default {
           }
         }
       },
-      winWidth: 0
+      winWidth: 0,
+      headers: [],
+      slides: [
+        { src: null, title: '', number: 0, start: -1.0, type: 'service', startTime: '00:00:00.000', end: 100000 }
+      ],
+      isMediaPage: true,
+      currentPlayTime: null,
+      hasTimestamps: false
     }
   },
   computed: {
+    mode: get('page/mode'),
     isAuthenticated: get('user/authenticated'),
+    hasNewPagePermission() {
+      return this.hasAdminPermission || _.intersection(this.permissions, ['write:pages']).length > 0
+    },
     commentsCount: get('page/commentsCount'),
     commentsPerms: get('page/effectivePermissions@comments'),
     editShortcutsObj: get('page/editShortcuts'),
+    currentEditor: sync('editor/editor'),
     rating: {
-      get () {
+      get() {
         return 3.5
       },
-      set (val) {
+      set(val) {
       }
     },
     breadcrumbs() {
@@ -536,18 +451,18 @@ export default {
         return result
       }, []))
     },
-    pageUrl () { return window.location.href },
-    upBtnPosition () {
+    pageUrl() { return window.location.href },
+    upBtnPosition() {
       if (this.$vuetify.breakpoint.mdAndUp) {
         return this.$vuetify.rtl ? `right: 235px;` : `left: 235px;`
       } else {
         return this.$vuetify.rtl ? `right: 65px;` : `left: 65px;`
       }
     },
-    sidebarDecoded () {
+    sidebarDecoded() {
       return JSON.parse(Buffer.from(this.sidebar, 'base64').toString())
     },
-    tocDecoded () {
+    tocDecoded() {
       return JSON.parse(Buffer.from(this.toc, 'base64').toString())
     },
     tocPosition: get('site/tocPosition'),
@@ -557,17 +472,25 @@ export default {
     hasDeletePagesPermission: get('page/effectivePermissions@pages.delete'),
     hasReadSourcePermission: get('page/effectivePermissions@source.read'),
     hasReadHistoryPermission: get('page/effectivePermissions@history.read'),
-    hasAnyPagePermissions () {
+    hasAnyPagePermissions() {
       return this.hasAdminPermission || this.hasWritePagesPermission || this.hasManagePagesPermission ||
         this.hasDeletePagesPermission || this.hasReadSourcePermission || this.hasReadHistoryPermission
     },
     printView: sync('site/printView'),
-    editMenuExternalUrl () {
+    editMenuExternalUrl() {
       if (this.editShortcutsObj.editMenuBar && this.editShortcutsObj.editMenuExternalBtn) {
         return this.editShortcutsObj.editMenuExternalUrl.replace('{filename}', this.filename)
       } else {
         return ''
       }
+    },
+    activeSlideIndex() {
+      return _.findIndex(this.slides, (slide) => {
+        return slide.start <= this.currentPlayTime && slide.end > this.currentPlayTime
+      })
+    },
+    currentPlayTimeText() {
+      return new Date(this.currentPlayTime * 1000).toISOString().slice(11, -1)
     }
   },
   created() {
@@ -591,7 +514,181 @@ export default {
     }
     this.$store.set('page/mode', 'view')
   },
-  mounted () {
+  beforeMount() {
+    // console.log(Array.from(document.querySelectorAll('#page-text h2, #page-text [data-start]')));
+  },
+  updated() {
+    if (this.isMediaPage && this.currentPlayTime === null) {
+      const meadiaContainer = document.getElementById('media-container')
+      const slideElements = document.querySelectorAll('.slide')
+      const activeSlide = slideElements[0]
+
+      activeSlide.classList.add('active')
+      meadiaContainer.style.top = '0px'
+      activeSlide.prepend(meadiaContainer)
+      // console.log('parent: ', meadiaContainer.parentElement)
+      this.$refs.slidesContainer.scrollTo(0, 0)
+
+      this.setPlayTime(0.0)
+    }
+  },
+  mounted() {
+    const presentationVideo = document.getElementById('presentationVideo')
+
+    const headersAndStarts = Array.from(document.querySelectorAll('#page-text h2, #page-text [data-start]'))
+    let headers = []
+    let maxTime = 0.0
+    for (let i = 0; i < headersAndStarts.length; i++) {
+      let timestamp = null
+      if (headersAndStarts[i].tagName === 'H2') {
+        const h2 = headersAndStarts[i]
+        if (i < headersAndStarts.length - 1) {
+          timestamp = Number(headersAndStarts[i + 1].dataset?.start)
+          if (timestamp != null && !isNaN(timestamp)) {
+            this.hasTimestamps = true
+            maxTime = Math.max(maxTime, Number(timestamp))
+          } else console.log(headersAndStarts[i + 1])
+        }
+        const prefix = (headers.length + 1).toString().padStart(2, '0')
+
+        headers.push({
+          header: h2.textContent,
+          start: timestamp != null && !isNaN(timestamp) ? Number(timestamp) : null,
+          start_time: timestamp != null && !isNaN(timestamp) ? new Date(Number(timestamp) * 1000).toISOString().slice(11, -1) : '',
+          id: h2.id,
+          end: null,
+          prefix: prefix
+        })
+        let element = document.createElement('span')
+        element.textContent = prefix
+        element.classList.add('header-number')
+        h2.prepend(element)
+      } else {
+        if (headers.length > 0) {
+          const end = Number(headersAndStarts[i].dataset?.end)
+          if (end) maxTime = Math.max(maxTime, Number(end))
+          else console.log(headersAndStarts[i])
+          if (maxTime) headers[headers.length - 1].end = maxTime
+        }
+      }
+    }
+
+    // console.log(headers);
+
+    const spans = document.querySelectorAll('#page-text [data-start]')
+    spans.forEach(s => {
+      s.addEventListener('dblclick', e => { this.handleTextDblClick(e) })
+      s.addEventListener('click', e => { this.handleTextClick(e) })
+    })
+
+    const slidesBlock = document.getElementById('page-slides')
+    const slidesSource = Array.from(slidesBlock.querySelectorAll('.slide')).sort(
+      (a, b) => { return Number(a.dataset?.start) - Number(b.dataset?.start) })
+    let slides = [{
+      src: null,
+      title: '',
+      number: 0,
+      start: -1.0,
+      type: 'service',
+      startTime: '00:00:00.000',
+      end: null
+    }]
+    for (let i = 0; i < slidesSource.length; i++) {
+      const slide = slidesSource[i]
+      const slideImg = slidesSource[i].querySelector('img')
+      if (!slideImg) continue
+
+      let timestamp = slide.dataset?.start
+      timestamp = timestamp ? Number(timestamp) : null
+      if (timestamp) {
+        this.hasTimestamps = true
+        maxTime = Math.max(maxTime, Number(timestamp))
+        if (slides.length > 0) slides[slides.length - 1].end = timestamp
+      }
+      slides.push({
+        src: slideImg.src,
+        title: slide.textContent,
+        number: slides.length,
+        start: timestamp,
+        type: 'image',
+        startTime: timestamp ? new Date(timestamp * 1000).toISOString().slice(11, -1) : '',
+        end: null
+      })
+    }
+
+    slides[slides.length - 1].end = maxTime
+
+    if (slides.length > 1) {
+      slides.push({
+        src: null,
+        title: '',
+        number: slides.length,
+        start: maxTime,
+        type: 'service',
+        startTime: new Date(maxTime * 1000).toISOString().slice(11, -1),
+        end: Infinity
+      })
+    }
+    this.slides = slides
+
+    if (headers.length > 0) {
+      headers[headers.length - 1].end = maxTime
+      // console.log(headers);
+      this.headers = headers
+    }
+
+    if (presentationVideo) {
+      const video = presentationVideo.querySelector('video')
+      if (video) {
+        video.addEventListener('timeupdate', (ev) => {
+          this.currentPlayTime = ev.target.currentTime
+        })
+      }
+
+      const mediaContainer = document.getElementById('media-container')
+      if (mediaContainer) {
+        mediaContainer.prepend(...presentationVideo.children)
+      }
+      this.isMediaPage = mediaContainer && mediaContainer.children.length > 0
+      console.log('isMediaPage: ', this.isMediaPage)
+    } else {
+      this.isMediaPage = false
+      // hack drager
+      const drager = document.querySelectorAll('#media-drager .drager_left')
+      drager.forEach(d => {
+        d.style.removeProperty('width')
+      })
+      const dragerCols = document.querySelectorAll('#media-drager .drager_right, #media-drager .slider_col')
+      dragerCols.forEach(d => {
+        d.parentElement.removeChild(d)
+      })
+      const contentCol = document.getElementById('content-col')
+      contentCol.classList.remove('px-12')
+      contentCol.classList.add('pl-12')
+    }
+
+    // mediaContainer.prepend(...presentationVideo.children)
+
+    // console.log(presentationVideo)
+
+    slidesBlock.parentElement.removeChild(slidesBlock)
+    // ugly hack to make it work
+    // window.setTimeout(()=>this.onSlideClick(0), 1000);
+
+    // "page-slides"
+
+    /*     const pageText = document.getElementById('page-text');
+        const slidesContent = document.getElementById('slides-content');
+        const slides = document.querySelectorAll('.slide');
+        if (slides.length == 0) {
+          //slidesContent.style.display = 'none';
+          const pageContentSection = document.getElementById('page-content');
+          const pageSlidesSection = document.getElementById('page-slides');
+          pageContentSection.style.flex = '1 1'
+          pageSlidesSection.style.display = 'none'
+
+        } */
+
     if (this.$vuetify.theme.dark) {
       this.scrollStyle.bar.background = '#424242'
     }
@@ -601,7 +698,7 @@ export default {
       this.handleSideNavVisibility()
     }, 500))
     // -> Highlight Code Blocks
-    Prism.highlightAllUnder(this.$refs.container)
+    Prism.highlightAllUnder(this.$refs.textContainer)
     // -> Render Mermaid diagrams
     mermaid.mermaidAPI.initialize({
       startOnLoad: true,
@@ -611,31 +708,122 @@ export default {
     if (window.location.hash && window.location.hash.length > 1) {
       if (document.readyState === 'complete') {
         this.$nextTick(() => {
-          this.navigateToResult();
+          this.navigateToResult()
         })
       } else {
         window.addEventListener('load', () => {
-          this.navigateToResult();
+          this.navigateToResult()
           window.addEventListener('hashchange', () => this.navigateToResult())
         })
       }
     }
-    // -> Handle anchor links within the page contents
-    this.$nextTick(() => {
-      this.$refs.container.querySelectorAll(`a[href^="#"], a[href^="${window.location.href.replace(window.location.hash, '')}#"]`).forEach(el => {
-        el.onclick = ev => {
-          ev.preventDefault()
-          ev.stopPropagation()
-          this.$vuetify.goTo(decodeURIComponent(ev.currentTarget.hash), this.scrollOpts)
-        }
-      })
-      window.boot.notify('page-ready')
-    })
   },
   beforeUnmount() {
     window.removeEventListener('hashchange', () => this.navigateToResult())
   },
   methods: {
+
+    onMediaWheel(e) {
+      // console.log('media wheel')
+      // return this.$refs.slidesContainer.dispatchEvent(new WheelEvent(e.type, e))
+    },
+    onSlidesWheel(e) {
+      // console.log('slides wheel')
+      if (this.autoScroll) { // user scroll while auto scroll
+        this.mountVideoToActiveSlide()
+      }
+      this.autoScroll = false
+    },
+    onSlidesScroll(e) {
+      if (!this.autoScroll) {
+        this.$refs.slidesContainer.classList.add('scrolling')
+        const meadiaContainer = document.getElementById('media-container')
+        // console.log('scroll parent: ', meadiaContainer.parentElement)
+      } else {
+        // console.log('auto scroll ')
+      }
+    },
+    mountVideoToActiveSlide() {
+      const meadiaContainer = document.getElementById('media-container')
+      const activeSlide = document.querySelector('.slide.active')
+      if (activeSlide && meadiaContainer && meadiaContainer.parentElement != activeSlide) {
+        meadiaContainer.parentElement.removeChild(meadiaContainer)
+        meadiaContainer.style.top = 0
+        activeSlide.prepend(meadiaContainer)
+      }
+    },
+    onSlidesScrollEnd(e) {
+      if (this.autoScroll) {
+        this.mountVideoToActiveSlide()
+        this.autoScroll = false
+        // console.log('auto scroll end')
+      } else {
+        this.$refs.slidesContainer.classList.remove('scrolling')
+      }
+    },
+    onSlideClick(newActiveSlideIdx, togglePlay = false) {
+      // this.autoScroll = true;
+      // console.log('slide click', newActiveSlideIdx)
+      const mediaContainer = document.getElementById('media-container')
+      const activeSlide = document.querySelector('.slide.active')
+      const slideElements = document.querySelectorAll('.slide')
+      // console.log(slideElements);
+      const newSlide = slideElements[newActiveSlideIdx]
+      if (activeSlide) activeSlide.classList.remove('active')
+
+      newSlide.classList.add('active')
+      this.mountVideoToActiveSlide()
+
+      const newTime = this.slides[newActiveSlideIdx].start
+      this.setPlayTime(newTime, togglePlay)
+      // console.log("click-finished");
+    },
+    setPlayTime(startTime, togglePlay = null) {
+      const meadiaContainer = document.getElementById('media-container')
+
+      if (meadiaContainer.children[0]?.tagName === 'VIDEO') {
+        const player = meadiaContainer.children[0]
+        let paused = player.paused
+        player.pause()
+        player.currentTime = startTime
+        this.currentPlayTime = startTime // ?
+        if (togglePlay != null && togglePlay) paused = !paused
+        if (!paused) player.play()
+      } else if (meadiaContainer.children[0]?.tagName === 'IFRAME') {
+        // Youtube??
+        const targetTime = startTime
+        const videoSrc = meadiaContainer.children[0].src
+        const newVideoSrc = new URL(videoSrc)
+        newVideoSrc.searchParams.set('start', targetTime)
+        newVideoSrc.searchParams.set('autoplay', 1)
+        meadiaContainer.children[0].src = newVideoSrc
+      };
+      this.currentPlayTime = startTime
+      this.userTextScroll = false
+    },
+
+    onTextScroll() { },
+    onTextScrollEnd() {
+      window.setTimeout(() => {
+        this.userTextScroll = false
+        // console.log('text scroll end')
+      }, 3000)
+    },
+    onTextWheel() {
+      this.userTextScroll = true
+      // console.log('text wheel')
+    },
+
+    onTocClick(start, toggle, headerId) {
+      if (start == null) {
+        const header = document.getElementById(headerId)
+        if (header) {
+          header.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      } else {
+        this.setPlayTime(start, toggle)
+      }
+    },
     goHome () {
       window.location.assign('/')
     },
@@ -680,11 +868,11 @@ export default {
     handleSideNavVisibility () {
       if (window.innerWidth === this.winWidth) { return }
       this.winWidth = window.innerWidth
-      if (this.$vuetify.breakpoint.mdAndUp) {
-        this.navShown = true
-      } else {
-        this.navShown = false
-      }
+      // if (this.$vuetify.breakpoint.mdAndUp) {
+      //   this.navShown = true
+      // } else {
+      //   this.navShown = false
+      // }
     },
     goToComments (focusNewComment = false) {
       this.$vuetify.goTo('#discussion', this.scrollOpts)
@@ -692,8 +880,9 @@ export default {
         document.querySelector('#discussion-new').focus()
       }
     },
-    navigateToResult () {
-      const elements = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6, .content'));
+    navigateToResult() {
+
+      /*       const elements = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6, .content'));
       const location = String(window.location);
       const searchResultId = location.substring(location.indexOf('#') + 1);
       elements.forEach(element => {
@@ -703,26 +892,174 @@ export default {
           element.classList.remove('highlighted-on-select')
         };
       })
-      this.$vuetify.goTo(decodeURIComponent(window.location.hash), this.scrollOpts)
+      this.$vuetify.goTo(decodeURIComponent(window.location.hash), this.scrollOpts) */
+    },
+    toggleExpand() {
+      this.slidesExpanded = !this.slidesExpanded
+    },
+    goToContent (contentHash) {
+      const headers = document.querySelectorAll('#page-text h2')
+      const selectedContentRef = document.getElementById(contentHash.substring(1))
+      selectedContentRef.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+      headers.forEach((h) => {
+        if (h.id !== contentHash.substring(1)) {
+          h.classList.remove('highlighted-on-select')
+        } else {
+          h.classList.add('highlighted-on-select')
+        };
+      })
+    },
+    pageNew (editorId) {
+      this.newPageModal = true
+      this.selectedEditor = editorId
+    },
+    pageNewCreate ({ path, locale }) {
+      window.location.assign(`/e/${locale}/${path}?editor=${this.selectedEditor}`)
+    },
+    getScrollPercentage (element) {
+      return element.scrollTop / (element.scrollHeight - element.offsetHeight)
+    },
+
+    handleTextDblClick(e) {
+      const newTime = Number(e.target.dataset.start)
+      this.setPlayTime(newTime, true)
+      this.currentPlayTime = newTime
+    },
+    handleTextClick(e) {
+      const newTime = Number(e.target.dataset.start)
+      this.setPlayTime(newTime)
+      this.currentPlayTime = newTime
+    },
+
+    printValues () {
+      const slides = document.querySelectorAll('#slides-content .slide')
     }
   },
   watch: {
+    activeSlideIndex(newValue, oldValue) {
+      const mediaContainer = document.getElementById('media-container')
+
+      // console.log(`slides: ${oldValue} => ${newValue}`)
+      // console.log(this.slides[newValue].startTime);
+
+      const container = this.$refs.slidesContainer
+      const slideElements = container.querySelectorAll('.slide')
+
+      const activeSlide = slideElements[newValue]
+      const oldSlide = slideElements[oldValue]
+      let oldTop = slideElements[0].getBoundingClientRect().top
+      if (oldSlide) {
+        oldTop = oldSlide.getBoundingClientRect().top
+        oldSlide.classList.remove('active')
+      } else oldSlide = slideElements[0]
+
+      if (activeSlide) {
+        if (activeSlide.classList.contains('active')) {
+          // console.log('already active')
+          return
+        }
+
+        const scrollTo = (
+          activeSlide.getBoundingClientRect().top -
+          oldTop +
+          container.scrollTop
+        )
+        activeSlide.classList.add('active')
+
+        if (
+          this.$refs.slidesContainer.classList.contains('scrolling') ||
+          (scrollTo == container.scrollTop) ||
+          (container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight)
+        ) {
+          this.mountVideoToActiveSlide()
+        } else {
+          const activePos = (
+            oldTop -
+            this.$refs.mediaAncher.getBoundingClientRect().top
+          )
+          mediaContainer.parentNode.removeChild(mediaContainer)
+          mediaContainer.style.top = `${activePos}px`
+          this.$refs.mediaAncher.prepend(mediaContainer)
+          // console.log("top: ", mediaContainer.style.top, "parent:", mediaContainer.parentNode);
+
+          this.autoScroll = true
+          this.$refs.slidesContainer.scrollTo({
+            top: scrollTo,
+            behavior: 'smooth'
+          })
+        }
+      }
+      // console.log('end slide change')
+    },
+    currentPlayTime(newValue, oldValue) {
+      let highlightedTop = Infinity
+      const spans = document.querySelectorAll('#page-text span').forEach(s => {
+        s.classList.remove('highlighted')
+        if (Number(s.dataset?.start) <= newValue && newValue < Number(s.dataset?.end)) {
+          s.classList.add('highlighted')
+          highlightedTop = s.getBoundingClientRect().top
+        };
+      })
+
+      if (highlightedTop < Infinity && !this.userTextScroll) {
+        const container = this.$refs.textContainer
+        highlightedTop -= container.getBoundingClientRect().top
+        // console.log('ht: ', highlightedTop,"ct: ", container.getBoundingClientRect().top, "ch: ", container.clientHeight);
+        if (highlightedTop < container.clientHeight * 0.2 || highlightedTop > container.clientHeight * 0.7) {
+          const scrollTo = container.scrollTop + highlightedTop - container.clientHeight * 0.3
+          // console.log('scrolling up text', scrollTo)
+          container.scrollTo({
+            top: scrollTo,
+            behavior: 'smooth'
+          })
+        }
+      }
+    },
     upBtnShown(_, newValue) {
+      /*
       if (newValue) {
         const paragraphs = Array.from(document.querySelectorAll('.text-container p'));
         const location = String(window.location);
         const pid = location.substring(location.indexOf('#'));
-        console.log('pid: ', pid);
-        console.log('paragraphs: ', paragraphs);
         paragraphs.forEach(p => {
           if (p.id === pid) {
-            console.log('AAAA');
             Array.from(p.children).forEach(child => child.classList.add('highlighted-on-select'))
           } else {
-            console.log('BBBB');
             Array.from(p.children).forEach(child => child.classList.remove('highlighted-on-select'))
           };
         })
+      };
+      */
+    },
+    slidesExpanded (newValue, oldValue) {
+      const expandBtn = document.getElementById('expand-btn')
+      const restoreBtn = document.getElementById('restore-btn')
+      const toggleBtnText = document.querySelector('#toggle-expand-btn span')
+      const pageContentSection = document.getElementById('page-content')
+      const pageSlidesSection = document.getElementById('page-slides')
+      const selectedSlide = document.querySelector('#slides-content .selected')
+
+      if (newValue) {
+        expandBtn.classList.remove('active')
+        restoreBtn.classList.add('active')
+        pageSlidesSection.classList.add('expanded')
+        toggleBtnText.innerHTML = 'Restore'
+        pageContentSection.style.display = 'none'
+        pageSlidesSection.style.flex = '1 1'
+      } else {
+        expandBtn.classList.add('active')
+        restoreBtn.classList.remove('active')
+        pageSlidesSection.classList.remove('expanded')
+        toggleBtnText.innerHTML = 'Expand'
+        pageContentSection.style.display = 'flex'
+        pageSlidesSection.style.flex = '0.25 1'
+      };
+
+      const videoContainer = document.getElementById('presentationVideo')
+      if (selectedSlide) {
+        videoContainer.style.top = selectedSlide.offsetTop + 'px'
+        selectedSlide.scrollIntoView({ behavior: 'smooth', block: 'center' })
       };
     }
   }
@@ -730,6 +1067,276 @@ export default {
 </script>
 
 <style lang="scss">
+@import '../../../scss/joan-styles.scss';
+html, body,#root, #app{margin: 0; height: 100%; overflow: hidden}
+.v-main__wrap {
+
+ padding: 0px 30px 30px 30px ;
+}
+
+.v-navigation-drawer {
+  z-index: 999999;
+}
+path{
+  fill: black;
+}
+
+.theme--light.v-toolbar.v-sheet {
+  background-color: $gray-200;
+}
+#toc-col {
+  // border-right: 1px solid $gray-300;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  #content-toggler {
+    & .v-list-group__items {
+      min-width: 0;
+      overflow: auto;
+      height: 100%;
+    }
+    .v-list-group__header {
+      border-bottom: 1px solid $gray-300;
+      border-radius: 0;
+      min-height: 44px;
+      padding-top: 1em;
+
+      .toc-header{
+        font-size: 1.11rem;
+        font-weight: 600;
+        padding-bottom: 0;
+        color: black;
+      }
+      .v-list-group__header__append-icon{
+        color: black;
+      }
+    }
+  }
+}
+
+#toc-contents.v-list--two-line .prefix{
+  margin-top: -0.65em;
+}
+#toc-contents {
+  flex-wrap: nowrap;
+  overflow: visible;
+  align-content: flex-start;
+  justify-content: flex-start;
+  .prefix {
+        color: $gray-500;
+        margin-top:0;
+        font-weight: 700;
+        font-size: 1.5em;
+        padding: 0.5em;
+
+  }
+  .active{
+    .prefix{
+      color: $orange;
+    }
+    .v-list-item__title{
+      font-weight: 700;
+    }
+  }
+  .v-list-item__title{
+    font-size: 1em;
+    font-weight: 500;
+  }
+  .v-list-item__subtitle{
+    font-size: 0.75em;
+    color: $gray-500;
+    font-weight: 400;
+  }
+}
+
+#content-col {
+    flex-direction: column;
+    display: flex;
+    width: 100%;
+
+}
+#page-content-container {
+  display: flex;
+  overflow: auto;
+
+  & #page-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+
+    overflow:visible;
+
+    & #page-text {
+      margin-top: 2em;
+
+      overflow-y:visible;
+
+      & p {
+        line-height: 1.55;
+      }
+
+      & p + p {
+        margin: 0 0 0.4em 0;
+      }
+
+      & * + h2 {
+        margin-top: 1.3em;
+      }
+      & .header-number {
+          font-weight: 700;
+          margin-right: .6em;
+          color: $orange;
+      }
+
+      & h2 {
+        display: flex;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: .5em;
+        & .toc-anchor {
+          display: flex;
+          align-items: center;
+          margin-left: .6em;
+
+          & path{
+            fill: $gray-400;
+          }
+        }
+      }
+
+      & h2:hover .toc-anchor path {
+        fill: black;
+      }
+      & .highlighted {
+        background-color: $light-orange;
+      }
+      & .highlighted-on-select {
+        animation-name: fade;
+        animation-duration: 5s
+      }
+      @keyframes fade {
+        from {
+          background-color: $light-orange;
+        }
+        to {
+          background-color: transparent
+        }
+      }
+    }
+  }
+
+  & #page-slides.expanded {
+    padding: 2em 13em 2em 13em;
+  }
+
+}
+#media-col {
+  // border-left: 1px solid $gray-300;
+  position: relative;
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  #media-ancher{
+    position: relative;
+  }
+  .v-toolbar__title{
+    font-size: 1.11rem;
+    font-weight: 600;
+    .timestamp{
+      margin-top: -3px;
+      position: absolute;
+      font-size: 0.45em;
+      font-weight: 400;
+      color: $gray-500;
+    }
+  }
+
+  .slides_container {
+    display: flex;
+    flex-direction: column;
+    .service{
+      display: none;
+      &.active{
+        display: block;
+      }
+    }
+    .slide{
+      position: relative;
+      color: $gray-500;
+      font-size: 0.7em;
+      .slide_img {
+          opacity: .4;
+          transition: opacity 0.3s linear;
+          border: 1px solid $gray-300;
+        }
+      &.active{
+        opacity: 1;
+        transition: opacity 0.3s linear;
+        position: sticky;
+        top: -1px; // allows to handle the sticky effect
+        bottom: 0px;
+        z-index: 100;
+        #media-container {
+          pointer-events: all;
+          box-shadow: none;
+          border: 1px solid $gray-300;
+        }
+
+      }
+      .slide_img{
+        width: 100%;
+      }
+    }
+    &.scrolling{
+      .slide{
+        .slide_img {
+          opacity: 1;
+          transition: opacity 0.3s linear;
+        }
+        &.active{
+          top: -1px;
+          #media-container {
+              position: absolute;
+              z-index: 110;
+              left: 0;
+              width: 100%;
+              pointer-events: all;
+              box-shadow: none;
+              }
+          &.stuck{
+            opacity: 0.2;
+            transition: opacity 0.3s linear;
+            box-shadow: 0.3em 0.3em 0.5em hsl(0deg 0% 0% / 0.3);
+            //left: -1em;
+            //width: calc(100% + 2em);
+          }
+        }
+      }
+    }
+  }
+  #media-container {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      z-index: 110;
+      width: 100%;
+      pointer-events: none;
+      // margin: -1em -1em 0 0;
+      box-shadow: 0.3em 0.3em 0.5em hsl(0deg 0% 0% / 0.3);
+        & iframe {
+          width: 100%;
+          height: 100%;
+        }
+        & video {
+          width: 100%;
+            // width: calc(100% - 3rem);
+        }
+      }
+}
+
 .breadcrumbs-nav {
   .v-btn {
     min-width: 0;
@@ -744,28 +1351,37 @@ export default {
     padding: 0 6px 0 12px;
   }
 }
-.page-col-sd {
-  margin-top: -90px;
-  align-self: flex-start;
-  position: sticky;
-  top: 64px;
-  max-height: calc(100vh - 64px);
-  overflow-y: auto;
-  -ms-overflow-style: none;
-}
-.page-col-sd::-webkit-scrollbar {
-  display: none;
-}
-.page-header-section {
-  position: relative;
-  > .is-page-header {
-    position: relative;
+
+#page-header-section {
+  padding: 2em 0;
+  border-bottom: 1px solid $gray-300;
+
+  .v-speed-dial button {
+    padding: 0;
+    box-shadow: none;
+    min-width: 36px;
+    background-color: white;
+  }
+
+  & .is-page-header {
+    display: flex;
+    align-items: center;
   }
   .page-header-headings {
-    min-height: 52px;
     display: flex;
     justify-content: center;
     flex-direction: column;
+    margin: auto 0;
+
+    & h1 {
+      font-size: 2.24rem;
+      font-weight: 600;
+      margin: auto 0;
+    }
+
+    & .description {
+      font-size: .9rem;
+    }
   }
   .page-edit-shortcuts {
     position: absolute;
@@ -795,6 +1411,54 @@ export default {
         border-bottom-right-radius: 5px;
       }
     }
+  }
+  & .v-menu__content {
+    box-shadow: none !important;
+  }
+  & > .page-info {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1em;
+    color: black;
+
+  }
+}
+.copiedMsg .v-snack__wrapper {
+  max-width: 500px;
+}
+.copiedMsg .theme--light.v-sheet {
+  display: flex;
+  justify-content: center;
+}
+.copiedMsg .v-sheet.v-snack__wrapper:not(.v-sheet--outlined) {
+  box-shadow: none;
+  border: 1px solid $gray-700 !important;
+  min-width: 0px;
+  margin-bottom: 30px;
+}
+.copiedMsg .v-snack__content {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .7em;
+}
+.copiedMsg .theme--light.v-sheet {
+  background-color: white;
+}
+.header-menu {
+  box-shadow: none;
+  border: 1px solid $gray-700;
+}
+
+.drager_col{
+  .slider_col{
+    background-image: linear-gradient($gray-300,$gray-300);
+    background-size: 1px 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-color: transparent;
   }
 }
 </style>
