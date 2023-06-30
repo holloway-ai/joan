@@ -517,7 +517,7 @@ export default {
   components: {
     markdownHelp,
     Icon,
-    pageSelector,
+    pageSelector
   },
   props: {
     save: {
@@ -535,7 +535,7 @@ export default {
     exitGo: {
       type: Function,
       default: () => {}
-    },
+    }
   },
   data() {
     return {
@@ -625,12 +625,12 @@ export default {
       }
     },
     previewHTML (newValue) {
-      console.log('pageSlides on previewHTML value update', document.getElementById('page-slides'));
+      console.log('pageSlides on previewHTML value update', document.getElementById('page-slides'))
     },
     viewMode (newValue) {
-      console.log('new viewMode: ', newValue);
-      const pageSlides = document.getElementById('page-slides');
-      const pageContent = document.getElementById('page-content');
+      console.log('new viewMode: ', newValue)
+      const pageSlides = document.getElementById('page-slides')
+      const pageContent = document.getElementById('page-content')
       // console.log('pageSlides on viewMode change: ', pageSlides);
       // console.log('pageContent on viewMode change: ', pageContent);
 
@@ -644,8 +644,6 @@ export default {
         pageSlides.classList.remove('is-preview-mode')
         pageContent.classList.remove('is-preview-mode')
       };
-
-
     }
   },
   methods: {
@@ -678,9 +676,9 @@ export default {
       // }
     },
     processContent (newContent = this.$store.get('editor/content')) {
-      const topbarHeight = getElementSize('#top-bar', 'height');
-      const toolbarHeight = getElementSize('.editor-markdown-toolbar', 'height');
-      const contentHeight = window.innerHeight - topbarHeight - toolbarHeight;
+      const topbarHeight = getElementSize('#top-bar', 'height')
+      const toolbarHeight = getElementSize('.editor-markdown-toolbar', 'height')
+      const contentHeight = window.innerHeight - topbarHeight - toolbarHeight
 
       linesMap = []
       // this.$store.set('editor/content', newContent)
@@ -693,8 +691,8 @@ export default {
         this.renderMermaidDiagrams()
         Prism.highlightAllUnder(this.$refs.editorPreview)
         Array.from(this.$refs.editorPreview.querySelectorAll('pre.line-numbers')).forEach(pre => pre.classList.add('prismjs'))
-        const pageSlides = document.getElementById('page-slides');
-        const pageContent = document.getElementById('page-content');
+        const pageSlides = document.getElementById('page-slides')
+        const pageContent = document.getElementById('page-content')
         pageSlides.style.height = String(contentHeight) + 'px'
         pageContent.style.height = String(contentHeight) + 'px'
       })
@@ -951,9 +949,9 @@ export default {
       })
     },
     resizeComponents () {
-      const topbarHeight = getElementSize('#top-bar', 'height');
-      const toolbarHeight = getElementSize('.editor-markdown-toolbar', 'height');
-      const contentHeight = window.innerHeight - topbarHeight - toolbarHeight;
+      const topbarHeight = getElementSize('#top-bar', 'height')
+      const toolbarHeight = getElementSize('.editor-markdown-toolbar', 'height')
+      const contentHeight = window.innerHeight - topbarHeight - toolbarHeight
 
       this.contentHeight = contentHeight
       this.processContent()
@@ -999,8 +997,8 @@ export default {
       this.movePageModal = true
     },
     goToSettingSection (sectionId) {
-      const section = document.getElementById(sectionId);
-      section.scrollIntoView({ behavior: "smooth", block: "start" })
+      const section = document.getElementById(sectionId)
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   },
   mounted() {
@@ -1124,8 +1122,8 @@ export default {
     window.addEventListener('resize', this.resizeComponents)
     this.refresh()
 
-    const pageContent = document.getElementById('page-content');
-    console.log('pageContent after inital render: ', pageContent);
+    const pageContent = document.getElementById('page-content')
+    console.log('pageContent after inital render: ', pageContent)
 
     this.$root.$on('editorInsert', opts => {
       switch (opts.kind) {
@@ -1173,7 +1171,6 @@ export default {
 </script>
 
 <style lang='scss'>
-@import "../../scss/joan-styles.scss";
 
 $editor-height: calc(100vh - 112px - 24px);
 $editor-height-mobile: calc(100vh - 112px - 16px);
@@ -1288,7 +1285,6 @@ $editor-height-mobile: calc(100vh - 112px - 16px);
         padding: 1em 3em 1em 3.4em;
       }
 
-
       & > #page-slides {
         flex: 1;
         padding-left: 2em;
@@ -1310,7 +1306,6 @@ $editor-height-mobile: calc(100vh - 112px - 16px);
           overflow: scroll;
         }
       }
-
 
     }
 

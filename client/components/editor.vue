@@ -204,7 +204,7 @@ export default {
   },
   watch: {
     currentEditor(newValue, oldValue) {
-      console.log('newValue: ', newValue);
+      console.log('newValue: ', newValue)
       if (newValue !== '' && newValue !== 'editorMarkdown' && this.mode === 'create') {
         _.delay(() => {
           this.dialogProps = true
@@ -239,7 +239,7 @@ export default {
     }
   },
   mounted() {
-    console.log('this.currentEditor: ', this.currentEditor);
+    console.log('this.currentEditor: ', this.currentEditor)
     this.$store.set('editor/mode', this.initMode || 'create')
 
     this.initContentParsed = this.initContent ? Base64.decode(this.initContent) : ''
