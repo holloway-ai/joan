@@ -1145,9 +1145,9 @@ path{
     font-weight: 500;
   }
   .v-list-item__subtitle{
-    font-size: 0.875em;
+    font-size: 0.75em;
     color: $gray-500;
-    font-weight: 300;
+    font-weight: 400;
   }
 }
 
@@ -1249,7 +1249,7 @@ path{
       margin-top: -3px;
       position: absolute;
       font-size: 0.45em;
-      font-weight: 300;
+      font-weight: 400;
       color: $gray-500;
     }
   }

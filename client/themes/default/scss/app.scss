@@ -1,6 +1,9 @@
 /* THEME SPECIFIC STYLES */
 @import '../../../scss/joan-styles.scss';
 
+#app {
+    font-family: 'Suisse Intl';
+}
 .v-main .contents {
   font-family: 'Suisse Intl';
   // color: mc('grey', '800');
