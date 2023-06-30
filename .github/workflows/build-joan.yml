@@ -8,12 +8,11 @@ on:
       - 'v*'
   pull_request:
     branches: [ "main" ]
-
 env:
   BASE_DEV_VERSION: 2.5.0
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  FULL_IMAGE_NAME: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+  FULL_IMAGE_NAME: ghcr.io/${{ github.repository }}
 jobs:
 
   build:
