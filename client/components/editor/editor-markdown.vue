@@ -1171,6 +1171,7 @@ export default {
 </script>
 
 <style lang='scss'>
+@import '../../scss/joan-styles.scss';
 
 $editor-height: calc(100vh - 112px - 24px);
 $editor-height-mobile: calc(100vh - 112px - 16px);
