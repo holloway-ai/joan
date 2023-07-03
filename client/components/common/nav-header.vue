@@ -1,11 +1,11 @@
 <template lang='pug'>
   v-app-bar.nav-header#top-bar(
     height="100"
-    app 
+    app
     :clipped-left='!$vuetify.rtl'
     :clipped-right='$vuetify.rtl'
-    fixed 
-    flat 
+    fixed
+    flat
     :extended='searchIsShown && $vuetify.breakpoint.smAndDown'
   )
     v-toolbar(color='deep-purple', flat, slot='extension', v-if='searchIsShown && $vuetify.breakpoint.smAndDown')
@@ -460,6 +460,7 @@ export default {
 
 <style lang='scss'>
 @import "../../scss/joan-styles.scss";
+#app {
 path {
   fill: black;
 }
@@ -582,6 +583,7 @@ path {
 }
 .navHeaderLoading { // To avoid search bar jumping
   width: 22px;
+}
 }
 
 </style>
