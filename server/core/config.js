@@ -75,6 +75,20 @@ module.exports = {
     WIKI.version = packageInfo.version
     WIKI.releaseDate = packageInfo.releaseDate
     WIKI.devMode = (packageInfo.dev === true)
+    WIKI.dd = {
+      applicationId: process.env.DD_APP_ID || '9cc48266-d0ab-4371-bb2e-5dbd0fd5e79b',
+      clientToken: process.env.DD_CLIENT_TOKEN || 'pub9e83312bcfffa9ae8138cd96f88ce4c8',
+      site: process.env.DD_SITE || 'datadoghq.eu',
+      service: process.env.DD_SERVICE || 'joan',
+      env: WIKI.devMode ? 'dev' : 'prod',
+      sessionSampleRate: 100,
+      sessionReplaySampleRate: 20,
+      trackUserInteractions: true,
+      trackResources: true,
+      trackLongTasks: true,
+      defaultPrivacyLevel: 'mask-user-input'
+    }
+    console.info(`DD:`, WIKI.dd)
   },
 
   /**
