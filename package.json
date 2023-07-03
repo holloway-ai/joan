@@ -4,7 +4,7 @@
   "releaseDate": "2019-01-01T01:01:01.000Z",
   "description": "A modern, lightweight and powerful wiki app built on NodeJS, Git and Markdown",
   "main": "wiki.js",
-  "dev": false,
+  "dev": true,
   "scripts": {
     "start": "node server",
     "dev": "node dev",
@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@azure/storage-blob": "12.12.0",
+    "@datadog/browser-rum": "4.44.0",
     "@exlinc/keycloak-passport": "1.0.2",
     "@joplin/turndown-plugin-gfm": "1.0.45",
     "@root/csr": "0.8.1",

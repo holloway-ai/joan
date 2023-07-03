@@ -3834,6 +3834,26 @@
     enabled "2.0.x"
     kuler "^2.0.0"
 
+"@datadog/browser-core@4.44.0":
+  version "4.44.0"
+  resolved "https://registry.yarnpkg.com/@datadog/browser-core/-/browser-core-4.44.0.tgz#2445395b7ddf687d68a04e631644c4ed8604f6f4"
+  integrity sha512-o5ApIBP2xgXyDOuYwaX5Gz4w1Wa1lRvG8j55+CTrB1t5JkCymNemTAx+GMQUfbs9Eyyd0MUVjTIk+I9FTMAjrA==
+
+"@datadog/browser-rum-core@4.44.0":
+  version "4.44.0"
+  resolved "https://registry.yarnpkg.com/@datadog/browser-rum-core/-/browser-rum-core-4.44.0.tgz#a451f23c70db902b73c35fa85d6a595dbd7cf236"
+  integrity sha512-Kicw7vHGYGgN+tmVS/gk77+vk5DncsP9b4129RusOejx1YATVP2/K2tHOGL44kpEi2v2SbJYb6ix286+molRIw==
+  dependencies:
+    "@datadog/browser-core" "4.44.0"
+
+"@datadog/browser-rum@4.44.0":
+  version "4.44.0"
+  resolved "https://registry.yarnpkg.com/@datadog/browser-rum/-/browser-rum-4.44.0.tgz#db03a7ef63f279757f7ca14efa60a4f3b2958321"
+  integrity sha512-uTY420AKOn9xh9wqxRvS93pk/n2mvZQSZ/E7wkzK2zBj+OBlCf4AqPrtKgn8aZ0rjVZb9+7fGLx3hsvTcFDdWA==
+  dependencies:
+    "@datadog/browser-core" "4.44.0"
+    "@datadog/browser-rum-core" "4.44.0"
+
 "@eslint-community/eslint-utils@^4.3.0":
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/@eslint-community/eslint-utils/-/eslint-utils-4.4.0.tgz#a23514e8fb9af1269d5f7788aa556798d61c6b59"

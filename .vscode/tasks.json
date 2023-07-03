@@ -15,7 +15,8 @@
         "$tsc"
       ],
       "label": "npm: dev",
-      "detail": "node dev"
+      "detail": "node dev",
+
     }
   ]
 }

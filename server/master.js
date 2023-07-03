@@ -130,6 +130,7 @@ module.exports = async () => {
     url: '/'
   }
   app.locals.devMode = WIKI.devMode
+  app.locals.dd = WIKI.dd
 
   // ----------------------------------------
   // HMR (Dev Mode Only)
