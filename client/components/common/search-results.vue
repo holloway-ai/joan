@@ -15,7 +15,7 @@
         img(src='/_assets/svg/icon-no-results.svg', alt='No Results')
         .subheading {{$t('common:header.searchNoResult')}}
       template(v-if='search && search.length >= 2 && results && results.length > 0')
-        v-subheader.white--text {{$t('common:header.searchResultsCount', { total: response.totalHits })}}
+        v-subheader {{$t('common:header.searchResultsCount', { total: response.totalHits })}}
         v-list.search-results-items.radius-7.py-0(two-line, dense)
           template(v-for='(item, idx) of results')
             v-list-item(@click='goToPage(item); search=``', @click.middle="goToPageInNewTab(item)", :key='item.id', :class='idx === cursor ? `highlighted` : ``')
@@ -27,7 +27,6 @@
                 .caption.grey--text(v-text='item.path')
               v-list-item-action
                 v-chip(label, outlined) {{item.locale.toUpperCase()}}
-            v-divider(v-if='idx < results.length - 1')
         v-pagination.mt-3(
           v-if='paginationLength > 1'
           dark
@@ -149,10 +148,10 @@ export default {
       window.open(`/${item.locale}/${item.path}`, '_blank')
     },
     handleSamePageResult(resultPath) {
-      const resultHash = getHash(resultPath);
-      const currentPageHash = getHash(String(window.location));
+      const resultHash = getHash(resultPath)
+      const currentPageHash = getHash(String(window.location))
       if (resultHash === currentPageHash) {
-        const element = document.getElementById(resultHash);
+        const element = document.getElementById(resultHash)
         element.classList.remove('highlighted-on-select')
         setTimeout(() => {
           element.classList.add('highlighted-on-select')
@@ -188,14 +187,17 @@ export default {
 </script>
 
 <style lang="scss">
+
+@import '../../scss/joan-styles.scss';
+
 .search-results {
   position: fixed;
-  top: 64px;
+  top: 100px;
   left: 0;
   overflow-y: auto;
   width: 100%;
-  height: calc(100% - 64px);
-  background-color: rgba(0,0,0,.9);
+  height: calc(100% - 100px);
+  background-color: rgba($color: $gray-200, $alpha: .95);
   z-index: 100;
   text-align: center;
   animation: searchResultsReveal .6s ease;
@@ -204,10 +206,29 @@ export default {
     top: 112px;
   }
 
-  &-container {
+  .search-results-container {
     margin: 12px auto;
     width: 90vw;
     max-width: 1024px;
+    border-radius: 0px;
+    background: transparent;
+    .search-results-items {
+      gap: 0.75em;
+      display: flex;
+      flex-direction: column;
+      background: transparent;
+      border-radius: 0px;
+      .v-list-item{
+          min-height: 64px;
+          border-radius: 8px;
+          border: $gray-500 1px solid;
+          background: white;
+          opacity: 1;
+          .highlighted {
+            background-color: $light-orange;
+          }
+
+      }
   }
 
   &-help {
@@ -239,33 +260,22 @@ export default {
     }
   }
 
-  &-items {
-    text-align: left;
-
-    .highlighted {
-      background: #FFF linear-gradient(to bottom, #FFF, mc('orange', '100'));
-
-      @at-root .theme--dark & {
-        background: mc('grey', '900') linear-gradient(to bottom, mc('orange', '900'), darken(mc('orange', '900'), 15%));
-      }
-    }
-  }
-
   &-suggestions {
     .highlighted {
-      background: transparent linear-gradient(to bottom, mc('blue', '500'), mc('blue', '700'));
+      background-color: $light-orange;
     }
   }
 }
 
 @keyframes searchResultsReveal {
   0% {
-    background-color: rgba(0,0,0,0);
+    background-color: rgba($color: $gray-200, $alpha: .95);
     padding-top: 32px;
   }
   100% {
-    background-color: rgba(0,0,0,.9);
+    background-color: rgba($color: $gray-200, $alpha: .95);
     padding-top: 0;
   }
+}
 }
 </style>
