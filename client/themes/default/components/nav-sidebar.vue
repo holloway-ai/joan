@@ -281,6 +281,7 @@ export default {
 </script>
 <style lang="scss">
 @import '../../../scss/joan-styles.scss';
+#app {
 .main-menu-parents .v-list-item, .main-menu .v-list-item {
   padding: 0;
   margin: 0;
@@ -344,5 +345,6 @@ export default {
 .main-menu-title {
   font-size: 1.11rem;
   font-weight: 600;
+}
 }
 </style>

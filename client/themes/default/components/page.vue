@@ -1069,6 +1069,8 @@ export default {
 <style lang="scss">
 @import '../../../scss/joan-styles.scss';
 html, body,#root, #app{margin: 0; height: 100%; overflow: hidden}
+
+#app {
 .v-main__wrap {
 
  padding: 0px 30px 30px 30px ;
@@ -1082,7 +1084,7 @@ path{
 }
 
 .theme--light.v-toolbar.v-sheet {
-  background-color: $gray-200;
+  background-color: white;
 }
 #toc-col {
   // border-right: 1px solid $gray-300;
@@ -1246,7 +1248,7 @@ path{
     font-size: 1.11rem;
     font-weight: 600;
     .timestamp{
-      margin-top: -3px;
+      margin-top: -4px;
       position: absolute;
       font-size: 0.45em;
       font-weight: 400;
@@ -1460,5 +1462,6 @@ path{
     background-position: center center;
     background-color: transparent;
   }
+}
 }
 </style>
