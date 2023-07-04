@@ -82,7 +82,7 @@ module.exports = {
       service: process.env.DD_SERVICE || 'joan',
       env: WIKI.devMode ? 'dev' : 'prod',
       sessionSampleRate: 100,
-      sessionReplaySampleRate: 20,
+      sessionReplaySampleRate: 100,
       trackUserInteractions: true,
       trackResources: true,
       trackLongTasks: true,
