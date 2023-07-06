@@ -17,11 +17,11 @@
           )
           template(#left)
             <!-- toc -->
-            v-col.toc.px-4.pt-5.col-12.overflow-y-hidden.fill-height#toc-col(
+            v-col.toc.px-4.pt-5.col-12.fill-height#toc-col(
               ref="tocRef"
               )
                 nav-sidebar(:items='sidebarDecoded', :nav-mode='navMode')
-                v-list#toc-contents.pa-0.overflow-y-hidden(dense, flat, nav, :subheader = 'hasTimestamps', :two-line="hasTimestamps" :class='$vuetify.theme.dark ? `darken-3-d3` : ``')
+                v-list#toc-contents.pa-0(dense, flat, nav, :subheader = 'hasTimestamps', :two-line="hasTimestamps" :class='$vuetify.theme.dark ? `darken-3-d3` : ``')
                   v-list-group#content-toggler.fill-height(active-class="active-group" value = "content")
                     template(v-slot:activator)
                       v-list-item-content
@@ -1088,7 +1088,7 @@ path{
 }
 #toc-col {
   // border-right: 1px solid $gray-300;
-  overflow: hidden;
+  overflow: scroll;
   height: 100%;
   width: 100%;
   display: flex;
@@ -1096,8 +1096,8 @@ path{
   #content-toggler {
     & .v-list-group__items {
       min-width: 0;
-      overflow: auto;
-      height: 100%;
+      // overflow: auto;
+      // height: 100%;
     }
     .v-list-group__header {
       border-bottom: 1px solid $gray-300;
