@@ -1280,7 +1280,7 @@ path{
         position: sticky;
         top: -1px; // allows to handle the sticky effect
         bottom: 0px;
-        z-index: 100;
+        z-index: 5;
         #media-container {
           pointer-events: all;
           box-shadow: none;
