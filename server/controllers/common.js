@@ -6,9 +6,18 @@ const CleanCSS = require('clean-css')
 const moment = require('moment')
 const qs = require('querystring')
 
+const resultMock = require('../helpers/results-mock.json'); // temporary mock for search results
+
 /* global WIKI */
 
 const tmplCreateRegex = /^[0-9]+(,[0-9]+)?$/
+/**
+ * Custom Search Results
+ */
+router.get('/searchresults', (req, res, next) => {
+  // here will be the call to the search api
+  res.render('searchresults', { results: resultMock })
+})
 
 /**
  * Robots.txt

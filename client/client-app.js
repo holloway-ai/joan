@@ -20,6 +20,7 @@ import Vuescroll from 'vuescroll/dist/vuescroll-native'
 import Hammer from 'hammerjs'
 import moment from 'moment-timezone'
 import VueMoment from 'vue-moment'
+import SearchResultsPage from './components/common/search-results-page.vue'
 import store from './store'
 import Cookies from 'js-cookie'
 
@@ -175,6 +176,7 @@ Vue.component('Tags', () => import(/* webpackChunkName: "tags" */ './components/
 Vue.component('Unauthorized', () => import(/* webpackChunkName: "unauthorized" */ './components/unauthorized.vue'))
 Vue.component('VCardChin', () => import(/* webpackPrefetch: true, webpackChunkName: "ui-extra" */ './components/common/v-card-chin.vue'))
 Vue.component('VCardInfo', () => import(/* webpackPrefetch: true, webpackChunkName: "ui-extra" */ './components/common/v-card-info.vue'))
+Vue.component('SearchResultsPage', () => import(/* webpackPrefetch: true, webpackChunkName: "ui-extra" */ './components/common/search-results-page.vue'))
 Vue.component('Welcome', () => import(/* webpackChunkName: "welcome" */ './components/welcome.vue'))
 
 Vue.component('NavFooter', () => import(/* webpackChunkName: "theme" */ './themes/' + siteConfig.theme + '/components/nav-footer.vue'))
