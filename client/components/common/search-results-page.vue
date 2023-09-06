@@ -9,7 +9,9 @@
           v-tab
             icon(name='search')
             span Search
-          v-tab Chat
+          v-tab
+            icon(name='chat')
+            span Chat
         .correction.my-5
           p.corrected-input Showing results for 
             span Voice Clue
@@ -25,10 +27,14 @@
               .d-flex.align-center(style='gap: 10px')
                 span.sources-label Learn more:
                 div(v-for='(link, idx) of qna.links')
-                  v-btn.source-link(:href='link', depressed, small) {{ getTitleFromPath(link) }}
+                  v-btn.source-link.d-flex(:href='link', depressed, small)
+                    icon.mr-1(name="document", size="15")
+                    span {{ getTitleFromPath(link) }}
         section.d-flex.flex-column.px-8.py-6(style='gap: 15px')
           article.qna-result(v-for='(qnar, idx) of JSON.parse(results).qnas_results')
-            h3 {{ qnar.title }}
+            .d-flex
+              icon.mr-2(name="document")
+              h3 {{ qnar.title }}
             a(:href='qnar.path')
               small {{ qnar.path }}
             p.clamped-2(v-for='(text, idx) of qnar.text_blocks') {{ text }}
@@ -100,6 +106,10 @@ h3 { font-size: 16px; }
     gap: 10px;
     padding: 0;
     color: black;
+  }
+  .v-slide-group__content {
+    gap: 20px;
+    background-color: blue;
   }
 }
 .theme--light.v-tabs > .v-tabs-bar .v-tab:not(.v-tab--active) {
