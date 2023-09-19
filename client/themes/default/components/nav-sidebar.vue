@@ -25,7 +25,7 @@
         v-list
           .main-menu(v-for='(rootDoc, idx) of docStructure.filter(d => !d.isFolder)')
             v-list-item(:href='`/` + rootDoc.locale + `/` + rootDoc.path', :key='`childpage-l0-` + rootDoc.id', :input-value='path === rootDoc.path')
-              icon(name="page")
+              icon(name="document")
               v-list-item-title {{ rootDoc.title }}
           v-list-group.main-menu-parents(
             v-for='(parent, idx) of docStructure.filter(d => d.isFolder)'
@@ -39,7 +39,7 @@
                 v-list-item-title {{ parent.title.split('-').map(s => s[0].toUpperCase() + s.substring(1)).join(' ') }}
             template(v-if="parent.children")
               v-list-item(v-for="child of parent.children.data.pages.tree", :key="'child' + child.id" :href='`/` + child.locale + `/` + child.path')
-                icon(name="page")
+                icon(name="document")
                 v-list-item-title {{ child.title }}
 </template>
 
@@ -76,6 +76,7 @@ export default {
   data() {
     return {
       currentMode: 'browse',
+      isSearch: false,
       currentItems: [],
       docStructure: [],
       currentParent: {
@@ -264,6 +265,9 @@ export default {
     }
   },
   mounted () {
+    if (window.location.pathname === '/searchresults') {
+      this.isSearch = true
+    };
     this.currentParent.title = `/ ${this.$t('common:sidebar.root')}`
     if (this.navMode === 'TREE') {
       this.currentMode = 'browse'

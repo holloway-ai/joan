@@ -210,7 +210,7 @@
 
                           p.pa-1.ma-0 {{slide.startTime}}
 
-    search-results
+    <!-- search-results -->
     page-selector(mode='create', v-model='newPageModal', :open-handler='pageNewCreate', :locale='locale')
 </template>
 

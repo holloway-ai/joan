@@ -47,10 +47,6 @@
                 :loading='searchIsLoading',
                 @keyup.enter='searchEnter'
                 @keyup.esc='searchClose'
-                @focus='searchFocus'
-                @blur='searchBlur'
-                @keyup.down='searchMove(`down`)'
-                @keyup.up='searchMove(`up`)'
                 autocomplete='none'
               )
                 template(v-slot:append)
@@ -348,12 +344,12 @@ export default {
     this.isDevMode = siteConfig.devMode === true
   },
   methods: {
-    searchFocus () {
-      this.searchIsFocused = true
-    },
-    searchBlur () {
-      this.searchIsFocused = false
-    },
+    // searchFocus () {
+    //   this.searchIsFocused = true
+    // },
+    // searchBlur () {
+    //   this.searchIsFocused = false
+    // },
     searchClose () {
       this.search = ''
       this.searchBlur()
@@ -367,7 +363,9 @@ export default {
       }
     },
     searchEnter () {
-      this.$root.$emit('searchEnter', true)
+      console.log('searching: ', this.search);
+      window.location.assign(`/searchresults?searchterm=${_.kebabCase(this.search)}`)
+      // this.$root.$emit('searchEnter', true)
     },
     searchMove(dir) {
       this.$root.$emit('searchMove', dir)

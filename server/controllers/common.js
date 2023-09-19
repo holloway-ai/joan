@@ -14,9 +14,28 @@ const tmplCreateRegex = /^[0-9]+(,[0-9]+)?$/
 /**
  * Custom Search Results
  */
-router.get('/searchresults', (req, res, next) => {
-  // here will be the call to the search api
-  res.render('searchresults', { results: resultMock })
+router.get('/searchresults', async (req, res, next) => {
+  try {
+    console.log('searching for: ', req.query.searchterm);
+    // here will be the call to the search api
+
+    const pageArgs = pageHelper.parsePath(req.path, { stripExt: true })
+    // -> Build sidebar navigation
+    let sdi = 1
+    // const sidebar = (await WIKI.models.navigation.getTree({ cache: true, locale: pageArgs.locale, groups: req.user.groups })).map(n => ({
+    const sidebar = (await WIKI.models.navigation.getTree({ cache: true, locale: pageArgs.locale, groups: req.user.groups })).map(n => ({
+      i: `sdi-${sdi++}`,
+      k: n.kind,
+      l: n.label,
+      c: n.icon,
+      y: n.targetType,
+      t: n.target
+    }))
+
+    res.render('searchresults', { results: resultMock, sidebar })
+  } catch (err) {
+    throw new Error(err)
+  }
 })
 
 /**
@@ -558,6 +577,8 @@ router.get('/*', async (req, res, next) => {
           pageFilename += page.contentType === 'markdown' ? '.md' : '.html'
 
           // -> Render view
+          console.log('req.user.groups: ', req.user.groups);
+          console.log('sidebar: ', sidebar);
           res.render('page', {
             page,
             sidebar,
